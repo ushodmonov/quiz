@@ -12,11 +12,24 @@ export interface TestCatalog {
 }
 
 /**
+ * Get base URL for assets (handles GitHub Pages subdirectory)
+ */
+function getBaseUrl(): string {
+  // Vite provides BASE_URL which includes the base path
+  // For GitHub Pages: if base is '/quiz/', BASE_URL will be '/quiz/'
+  // For local dev: BASE_URL will be '/'
+  const baseUrl = import.meta.env.BASE_URL || '/'
+  // Ensure baseUrl ends with '/' for proper path joining
+  return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+}
+
+/**
  * Load test catalog from JSON file
  */
 export async function loadTestCatalog(): Promise<TestCatalog> {
   try {
-    const response = await fetch('/assets/test-catalog.json')
+    const baseUrl = getBaseUrl()
+    const response = await fetch(`${baseUrl}assets/test-catalog.json`)
     if (!response.ok) {
       return { tests: [] }
     }
@@ -33,7 +46,8 @@ export async function loadTestCatalog(): Promise<TestCatalog> {
  */
 export async function loadTestQuestions(fileName: string): Promise<Question[]> {
   try {
-    const response = await fetch(`/assets/${fileName}`)
+    const baseUrl = getBaseUrl()
+    const response = await fetch(`${baseUrl}assets/${fileName}`)
     if (!response.ok) {
       throw new Error(`Failed to load file: ${fileName}`)
     }
