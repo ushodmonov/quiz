@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import {
   Container,
   Card,
@@ -29,13 +29,14 @@ import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
 import { clearProgress } from '../utils/storage'
 import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
-import type { QuizData } from '../types'
+import type { QuizData, Question } from '../types'
 
 interface StartPageProps {
   onStart: (data: QuizData) => void
+  onViewAllQuestions?: (questions: Question[]) => void
 }
 
-export default function StartPage({ onStart }: StartPageProps) {
+export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
   const { t } = useTranslation()
   const [tabValue, setTabValue] = useState(1)
   const [file, setFile] = useState<File | null>(null)
@@ -305,28 +306,41 @@ export default function StartPage({ onStart }: StartPageProps) {
                     {t('start.noTestsAvailable')}
                   </Alert>
                 ) : (
-                  <Card variant="outlined">
-                    <List>
-                      {testCatalog.map((test, index) => (
-                        <React.Fragment key={test.id}>
-                          <ListItem disablePadding>
-                            <ListItemButton
-                              selected={selectedTest?.id === test.id}
-                              onClick={() => handleTestSelect(test)}
-                              disabled={loading}
-                            >
-                              <ListItemText
-                                primary={test.name}
-                                secondary={test.description || undefined}
-                              />
-                              <Description color="primary" />
-                            </ListItemButton>
-                          </ListItem>
-                          {index < testCatalog.length - 1 && <Divider />}
-                        </React.Fragment>
-                      ))}
-                    </List>
-                  </Card>
+                  <>
+                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 600 }}>
+                        {t('start.selectFromCatalog')}
+                      </Typography>
+                      <Chip 
+                        label={`${testCatalog.length} ${testCatalog.length === 1 ? t('start.test') : t('start.tests')}`}
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
+                      />
+                    </Box>
+                    <Card variant="outlined">
+                      <List>
+                        {testCatalog.map((test, index) => (
+                          <Fragment key={test.id}>
+                            <ListItem disablePadding>
+                              <ListItemButton
+                                selected={selectedTest?.id === test.id}
+                                onClick={() => handleTestSelect(test)}
+                                disabled={loading}
+                              >
+                                <ListItemText
+                                  primary={test.name}
+                                  secondary={test.description || undefined}
+                                />
+                                <Description color="primary" />
+                              </ListItemButton>
+                            </ListItem>
+                            {index < testCatalog.length - 1 && <Divider />}
+                          </Fragment>
+                        ))}
+                      </List>
+                    </Card>
+                  </>
                 )}
                 {selectedTest && allQuestions.length > 0 && (
                   <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
@@ -354,6 +368,21 @@ export default function StartPage({ onStart }: StartPageProps) {
 
           {allQuestions.length > 0 && (
             <>
+              <Box sx={{ mb: { xs: 1.5, sm: 2 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }, color: 'text.secondary', fontWeight: 500 }}>
+                  {t('start.totalQuestions')}: <strong style={{ color: 'inherit' }}>{allQuestions.length}</strong>
+                </Typography>
+                {onViewAllQuestions && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => onViewAllQuestions(allQuestions as Question[])}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
+                    {t('start.viewAllQuestions')}
+                  </Button>
+                )}
+              </Box>
               <TextField
                 fullWidth
                 label={t('start.startQuestion')}

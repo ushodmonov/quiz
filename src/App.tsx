@@ -4,18 +4,20 @@ import { useTranslation } from 'react-i18next'
 import StartPage from './pages/StartPage'
 import TestPage from './pages/TestPage'
 import ResultsPage from './pages/ResultsPage'
+import AllQuestionsPage from './pages/AllQuestionsPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
-import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage } from './utils/storage'
+import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import './i18n/config'
-import type { QuizData, QuizResults, ThemeMode, Language } from './types'
+import type { QuizData, QuizResults, ThemeMode, Language, Question } from './types'
 
 function App() {
   const { i18n } = useTranslation()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
+  const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>(loadTheme())
   const [language, setLanguage] = useState<Language>(loadLanguage())
@@ -29,6 +31,33 @@ function App() {
       setShowResumeModal(true)
     }
   }, [])
+
+  // Handle hash routing for questions page
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#questions') {
+        const savedQuestions = loadAllQuestions()
+        if (savedQuestions && savedQuestions.length > 0) {
+          setAllQuestions(savedQuestions)
+          setCurrentPage('questions')
+        }
+      } else if (window.location.hash === '' || !window.location.hash) {
+        // If hash is cleared, go back to start
+        if (currentPage === 'questions') {
+          setCurrentPage('start')
+        }
+      }
+    }
+
+    // Check initial hash on mount
+    if (window.location.hash === '#questions') {
+      handleHashChange()
+    }
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [currentPage])
 
   const handleStartQuiz = (data: QuizData) => {
     clearProgress()
@@ -107,6 +136,23 @@ function App() {
     }
   }
 
+  const handleViewAllQuestions = (questions: Question[]) => {
+    // Save questions to localStorage
+    saveAllQuestions(questions)
+    // Open in new tab
+    const baseUrl = window.location.origin + import.meta.env.BASE_URL
+    const newTab = window.open(`${baseUrl}#questions`, '_blank')
+    if (!newTab) {
+      // If popup blocked, fallback to same tab
+      setAllQuestions(questions)
+      setCurrentPage('questions')
+    }
+  }
+
+  const handleBackFromQuestions = () => {
+    setCurrentPage('start')
+  }
+
   const handleThemeToggle = () => {
     const newMode = themeMode === 'light' ? 'dark' : 'light'
     setThemeMode(newMode)
@@ -138,7 +184,10 @@ function App() {
             onNew={handleNewQuiz}
           />
           {currentPage === 'start' && (
-            <StartPage onStart={handleStartQuiz} />
+            <StartPage onStart={handleStartQuiz} onViewAllQuestions={handleViewAllQuestions} />
+          )}
+          {currentPage === 'questions' && (
+            <AllQuestionsPage questions={allQuestions} onBack={handleBackFromQuestions} />
           )}
           {currentPage === 'test' && quizData && (
             <TestPage

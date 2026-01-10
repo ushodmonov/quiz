@@ -20,6 +20,9 @@
     "loading": "Загрузка файла...",
     "loadingCatalog": "Загрузка каталога...",
     "noTestsAvailable": "В каталоге нет тестов",
+    "test": "тест",
+    "tests": "тестов",
+    "viewAllQuestions": "Просмотреть все вопросы",
     "error": {
       "fileRequired": "Пожалуйста, выберите файл или тест",
       "invalidFile": "Принимаются только TXT или DOCX файлы",
@@ -65,5 +68,15 @@
   },
   "footer": {
     "contact": "Связь"
+  },
+  "questions": {
+    "allQuestions": "Все вопросы",
+    "searchPlaceholder": "Поиск по вопросу или ответу...",
+    "noResults": "Вопросы не найдены",
+    "page": "Страница",
+    "total": "Всего",
+    "found": "Найдено",
+    "showing": "Показано",
+    "of": "из"
   }
 }

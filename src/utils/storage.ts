@@ -1,8 +1,9 @@
-import type { QuizProgress } from '../types'
+import type { QuizProgress, Question } from '../types'
 
 const STORAGE_KEY = 'quiz_progress'
 const THEME_KEY = 'quiz_theme'
 const LANGUAGE_KEY = 'quiz_language'
+const ALL_QUESTIONS_KEY = 'quiz_all_questions'
 
 export function saveProgress(progress: QuizProgress): void {
   try {
@@ -65,5 +66,31 @@ export function loadLanguage(): 'uz' | 'ru' {
     return (lang === 'uz' || lang === 'ru') ? lang : 'uz'
   } catch (error) {
     return 'uz'
+  }
+}
+
+export function saveAllQuestions(questions: Question[]): void {
+  try {
+    localStorage.setItem(ALL_QUESTIONS_KEY, JSON.stringify(questions))
+  } catch (error) {
+    console.error('Failed to save all questions:', error)
+  }
+}
+
+export function loadAllQuestions(): Question[] | null {
+  try {
+    const data = localStorage.getItem(ALL_QUESTIONS_KEY)
+    return data ? JSON.parse(data) as Question[] : null
+  } catch (error) {
+    console.error('Failed to load all questions:', error)
+    return null
+  }
+}
+
+export function clearAllQuestions(): void {
+  try {
+    localStorage.removeItem(ALL_QUESTIONS_KEY)
+  } catch (error) {
+    console.error('Failed to clear all questions:', error)
   }
 }

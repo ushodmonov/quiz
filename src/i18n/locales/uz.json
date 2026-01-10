@@ -20,6 +20,9 @@
     "loading": "Fayl yuklanmoqda...",
     "loadingCatalog": "Katalog yuklanmoqda...",
     "noTestsAvailable": "Katalogda testlar mavjud emas",
+    "test": "test",
+    "tests": "test",
+    "viewAllQuestions": "Barcha savollarni ko'rish",
     "error": {
       "fileRequired": "Iltimos, fayl yoki test tanlang",
       "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
@@ -65,5 +68,15 @@
   },
   "footer": {
     "contact": "Murojaat"
+  },
+  "questions": {
+    "allQuestions": "Barcha savollar",
+    "searchPlaceholder": "Savol yoki javob bo'yicha qidirish...",
+    "noResults": "Savollar topilmadi",
+    "page": "Sahifa",
+    "total": "Jami",
+    "found": "Topildi",
+    "showing": "Ko'rsatilmoqda",
+    "of": "dan"
   }
 }
