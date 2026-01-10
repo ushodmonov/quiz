@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { ThemeProvider, CssBaseline, Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import StartPage from './pages/StartPage'

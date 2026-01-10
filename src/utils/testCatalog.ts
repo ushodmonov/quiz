@@ -1,4 +1,3 @@
-import { parseDocxFile } from './fileParser'
 import type { Question } from '../types'
 
 export interface TestCatalogItem {

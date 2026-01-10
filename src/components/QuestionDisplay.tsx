@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert } from '@mui/material'
 import { InlineMath, BlockMath } from 'react-katex'
 import { useTranslation } from 'react-i18next'
@@ -36,16 +36,6 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
     
     return shuffled
   }, [question.answers])
-
-  // Convert selected answers from shuffled indices to original indices
-  const convertToOriginalIndex = (shuffledIndex: number): number => {
-    return shuffledAnswers[shuffledIndex].originalIndex
-  }
-
-  // Convert original indices to shuffled indices for display
-  const convertToShuffledIndex = (originalIndex: number): number => {
-    return shuffledAnswers.findIndex(a => a.originalIndex === originalIndex)
-  }
 
   // Get answer color based on original index
   const getAnswerColor = (shuffledIndex: number): 'success' | 'error' | 'default' => {
