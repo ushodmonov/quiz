@@ -1,0 +1,69 @@
+{
+  "app": {
+    "title": "QUIZ",
+    "home": "Главная страница"
+  },
+  "start": {
+    "title": "Начать тест",
+    "selectFile": "Выберите файл (TXT или Word)",
+    "selectFromCatalog": "Выбрать из каталога",
+    "fileSelected": "Файл выбран",
+    "testSelected": "Тест выбран",
+    "totalQuestions": "Всего вопросов",
+    "startQuestion": "Номер начального вопроса",
+    "questionCount": "Количество вопросов",
+    "maxAvailable": "Максимум",
+    "selectionMethod": "Способ выбора вопросов",
+    "sequential": "Последовательно",
+    "random": "Случайно",
+    "startTest": "Начать тест",
+    "loading": "Загрузка файла...",
+    "loadingCatalog": "Загрузка каталога...",
+    "noTestsAvailable": "В каталоге нет тестов",
+    "error": {
+      "fileRequired": "Пожалуйста, выберите файл или тест",
+      "invalidFile": "Принимаются только TXT или DOCX файлы",
+      "noQuestions": "Вопросы не найдены. Формат файла неверен.",
+      "invalidStart": "Номер начального вопроса неверен",
+      "invalidCount": "Количество вопросов неверно"
+    }
+  },
+  "test": {
+    "progress": "Вопрос {{current}} / {{total}}",
+    "questionNumber": "Вопрос №{{number}}",
+    "checkAnswer": "Проверить ответ",
+    "nextQuestion": "Следующий вопрос",
+    "viewResults": "Посмотреть результаты",
+    "correct": "Правильно!",
+    "incorrect": "Неправильно"
+  },
+  "results": {
+    "title": "Результаты теста",
+    "correct": "Правильные ответы",
+    "incorrect": "Неправильные ответы",
+    "total": "Всего вопросов",
+    "excellent": "Отлично",
+    "good": "Хорошо",
+    "poor": "Неудовлетворительно",
+    "restart": "Перезапустить тест",
+    "nextTest": "Перейти к следующему тесту",
+    "backToStart": "Вернуться на стартовую страницу",
+    "wrongAnswers": "Неправильные ответы",
+    "question": "Вопрос",
+    "yourAnswer": "Ваш ответ",
+    "correctAnswer": "Правильный ответ"
+  },
+  "resume": {
+    "title": "Существует предыдущий тест",
+    "message": "Продолжить?",
+    "resume": "Продолжить",
+    "new": "Начать новый тест"
+  },
+  "common": {
+    "select": "Выбрать",
+    "close": "Закрыть"
+  },
+  "footer": {
+    "contact": "Связь"
+  }
+}

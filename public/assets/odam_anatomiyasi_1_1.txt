@@ -1,0 +1,2101 @@
+﻿ # Umurtkalarda nima bo‘lmaydi?  
++ saput
+- arcus
+- processus
+- incisurae
+- corpus
+
+# Bo‘yin umurtqalarining boshqa umurtqalardan farqi:
++ foramina processus transversalia
+- foveae costales  
+- tuberculum costae  
+- processus accessorius  
+- processus transversus 
+
+# Ko‘krak umurtkalarining boshka umurtkalardan  farqi:
++ foveae costales
+- foramina  processus transversalia
+- tuberculum anterior et posterior   
+- processus accessorius  
+- processus transversus
+ 
+# Bel umurtkalarining boshka umurtkalardan farqi:
++ processus accessorius, processus mamillaris
+- foramina processus transversalia
+- tuberculum anterior et posterior  
+- foveae costales   
+- fossa olecrani
+
+# Qaysi xosila birinchi bo‘yin umurtkasida bo‘ladi?
++ arcus anterior
+- processus accessorius
+- fovea costalis
+- processus spinosus
+- dens
+
+# Qaysi xosila ko‘krak umurtkasida bo‘ladi?
++ foveae costales
+- processus accesorius
+- tuberculum conoideum 
+- arcus anterior 
+- fossa olecrani
+
+# Qaysi xosila ikkinchi bo‘yin umurtkasida bo‘ladi?
++ dens
+- incisurae costales
+- foveae costales
+- arcus anterior
+- processus accessorius
+
+# Dumgazada nima bo‘lmaydi? 
++ fovea
+- foramen
+- apex
+- cristae
+- processus articularis
+
+# Tush suyagida nima bo‘lmaydi? 
++ II incisurae articulares
+- incisurae costales I
+- incisurae costales
+- incisura clavicularis 
+- incisura jugularis 
+
+# Kovurgada nima bo‘lmaydi?
++ processus
+- corpus
+- caput
+- collum
+- angulus
+
+# Umrov suyagida nima bo‘lmaydi?
++ processus coracoideus
+- tuberculum conoideum 
+- extremitas acromialis 
+- extremitas sternalis 
+- facies articularis sterni
+
+# Cavitas glenoidalis kurak suyagida kaerda joylashadi?
++ angulus lateralis
+- angulus inferior
+- angulus superior
+- angulus medialis
+- fossae subscapularis
+
+# Yelka suyagining proksimal qismda joylashgan:
++ caput humeri, tuberculum majus, crista tuberculi minoris
+- epicondylus lateralis, fossa radialis, trochlea 
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, fossa radialis, fossa coronoidea 
+- epicondylus mediali, fossa radialis, trochlea 
+
+# Yelka suyagining proksimal qismda joylashgan:
++ collum anatomicum, collum chirurgicum
+- fossa olecrani, collum anatomicum 
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, fossa radialis, fossa coronoidea 
+- epicondylus mediali, fossa radialis, trochlea 
+
+# Yelka suyagining proksimal qismda joylashgan:
++ tuberculum minus, crista tuberculi majoris
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, fossa radialis, fossa coronoidea 
+- epicondylus mediali, fossa radialis, trochlea 
+- capitulum humeri, fossa radialis, crista tuberculi majoris 
+
+# Yelka suyagining distal qismda joylashgan:
++ trochlea, capitulum humeri
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, crista tuberculi majoris, fossa coronoidea 
+- epicondylus mediali, caput humeri, trochlea 
+- capitulum humeri, fossa radialis, crista tuberculi majoris 
+
+# Yelka suyagining distal qismda joylashgan:
++ fossa coronoidea, fossa olecrani
+- sulcus intertubercularis, fossa radialis
+- collum chirurgicum, capitulum humeri
+- collum anatomicum, trochlea humeri 
+- caput humeri, fossa radialis
+
+#Yelka suyagining distal qismda joylashgan:
++ fossa radialis, trochlea humeri
+- caput humeri, trochlea humeri 
+- collum anatomicum, capitulum humeri
+- fossa olecrani, tuberositas deltoidea
+- caput humeri, fossa radialis
+
+# Tirsak suyakning proksimal qismda joylashgan:
++ olecranon, processus coronoideus
+- incisura trochlearis, incisura ulnaris
+- incisura ulnaris, circumferentia articularis
+- incisura radialis, incisura ulnaris
+- processus styloideus, olecranon
+
+# Tirsak suyakning proksimal qismda joylashgan:
++ incisura trochlearis, incisura radialis
+- incisura radialis, incisura ulnaris
+- incisura trochlearis, incisura ulnaris
+- processus styloidens, incisura trochlearis 
+- processus styloideus, olecranon
+
+# Tirsak suyagining distal qismda joylashgan:
++ processus styloidens, circumferentia articularis 
+- processus coronoideus, olecranon 
+- incisura trochlearis, incisura radialis
+- processus styloidens, processus coronoideus 
+- incisura trochlearis, incisura ulnaris
+
+# Tirsak suyagining distal qismda joylashgan:
++ caput, processus styloideus
+- circumferentia articularis, incisura ulnaris 
+- processus styloidens, processus coronoideus
+- caput, incisura ulnaris
+- incisura radialis, incisura ulnaris 
+
+# Bilak suyagining proksimal qismda joylashgan:
++ circumferentia articularis, caput
+- collum, processus styloideus
+- caput, processus coronoideus 
+- circumferentia articularis, trochlea
+- incisura ulnaris, processus styloideus
+
+# Bilak suyagining distal qismda joylashgan:
++ processus styloideus, incisura ulnaris
+- incisura radialis, processus styloideus
+- incisura ulnaris, caput
+- incisura radialis, facies articularis carpea 
+- corpus, facies posterior
+
+# Bilak suyagining distal qismda joylashgan:
++ facies articularis carpea, incisura ulnaris
+- incisura radialis, facies articularis carpea
+- caput radii, collum radii 
+- processus styloideus, incisura radialis
+- corpus, facies posterior
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os occipitale, os sphenoidale, os temporale
+- maxilla, os nasale
+- vomer, os zygomaticum
+- mandibula, concha nasalis inferior
+- os palatinum
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os temporale, os parietale, os frontale
+- maxilla, os nasale
+- vomer, os zygomaticum
+- mandibula, concha nasalis inferior
+- os palatinum, os frontale
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os frontale, os ethmoidale, os occipitale
+- maxilla, os nasale
+- vomer, os zygomaticum
+- mandibula, concha nasalis inferior
+- os palatinum
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os frontale
+- maxilla
+- os nasale
+- vomer
+- os zygomaticum
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os temporale 
+- maxilla
+- os nasale
+- vomer
+- os lacrimale
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os sphenoidale
+- mandibula
+- concha nasalis inferior
+- os palatinum
+- vomer
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os occipitale
+- os zygomaticum
+- os lacrimale
+- concha nasalis inferior
+- os palatinum
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os frontale
+- concha nasalis inferior
+- os lacrimale
+- vomer
+- mandibula
+
+# Neurocranium xosil bulishida ishtirok etadi:
++ os temporale
+- os palatinum
+- mandibula
+- os lacrimale
+- os zygomaticum
+
+# Cranium viscerale xosil bulishida ishtirok etadi:
++ maxilla, os lacrimale
+- os temporale, os palatinum
+- os parietale
+- os frontale
+- os sphenoidale
+
+# Maxilla da bo‘ladi:
++ alveoli dentales  
+- lamina horizontalis
+- foramen spinosum
+- foramen ovale
+- lamina perpendicularis
+
+# Maxilla da bo‘ladi:
++ corpus maxillae
+- foramen spinosum
+- foramen ovale
+- lamina horizontalis
+- lamina perpendicularis
+
+# Maxilla da bo‘ladi:
++ fossa canina
+- foramen spinosum
+- foramen ovale
+- lamina horizontalis
+- lamina perpendicularis
+
+# Maxilla da bo‘ladi:
++ facies nasalis
+- lamina horizontalis
+- lamina perpendicularis
+- processus lacrimalis
+- foramen spinosum
+
+# Maxilla da bo‘ladi:
++ processus alveolaris
+- processus pterygoideus
+- lamina cribrosa
+- processus coronoideus
+- foramen spinosum
+
+# Maxilla da bo‘ladi:
++ fossa canina
+- eminentia arcuata
+- protuberantia mentalis
+- sulcus mylohyoideus
+- foramen spinosum
+
+# Maxilla da bo‘ladi:
++ sulcus palatinus major
+- incisura supraorbitalis
+- fossa glandulae lacrimalis
+- foramen spinosum
+- foramen ovale
+
+# Maxilla da bo‘ladi:
++ foramen infraorbitale
+- foramen spinosum
+- foramen ovale
+- processus coronoideus 
+- processus lacrimalis
+
+# Maxilla da bo‘ladi:
++ canalis incisivus
+- fissura orbitalis inferior
+- canalis facialis
+- foramen spinosum
+- foramen ovale
+
+# Maxilla da bo‘ladi:
++ sulcus lacrimalis
+- foramen spinosum
+- sulcus hiasmatis
+- sulcus supraorbitalis
+- foramen ovale
+
+# Maxilla da bo‘ladi:
+- foramen ovale
+- processus pterygoideus
+- processus condylaris
+- foramen spinosum
++ processus zygomaticus
+
+# Os palatinum da bo‘ladi:
++ lamina horizontalis
+- foramen spinosum
+- foramen ovale
+- processus coronoideus 
+- processus lacrimalis
+
+# Os zygomaticum da bo‘ladi:
++ processus frontalis
+- sulcus infraorbitalis
+- foramen supraorbitale
+- processus coronoideus 
+- processus lacrimalis
+
+# Mandibula da bo‘ladi:
++ tuberositas masseterica
+- foramen palatinum majus
+- foramen sphenopalatinum 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+
+# Mandibula da bo‘ladi: 
++ septa interalveolaria
+- facies sphenoidalis
+- foramen sphenopalatinum 
+- foramen palatinum majus 
+- sulcus supraorbitalis
+
+# Mandibula da bo‘ladi:
++ processus coronoideus 
+- sulcus supraorbitalis
+- foramen sphenopalatinum 
+- foramen palatinum majus 
+- facies sphenoidalis  
+
+# Mandibula da bo‘ladi:
++ fossa digastrica 
+- foramen sphenopalatinum 
+- foramen palatinum majus 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+
+# Mandibula da bo‘ladi:
++ foramen mentale 
+- foramen sphenopalatinum
+- foramen palatinum majus 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+
+# Qaysi bugim bir uqli?
++ art.radioulnaris
+- art.coxae
+- art.genu  
+- art.radiocarpea 
+- art.humeri 
+
+# Qaysi bugim kup uqli?
++ art.coxae 
+- art.genu
+- art.talocruralis 
+- art.cubiti 
+- art.interphalangea 
+
+# Umurtqa tanalari nima orkali birikishadi?
++ disci intervertebrales
+- lig.longitudinale posterius
+- annulus fibrosus
+- nucleus pulposus
+- lig.longitudinale anterius 
+
+# Umurtqalar ravoklari orasidagi boglamlar?
++ ligg.flava 
+- ligg.interspinalia 
+- ligg.supraspinale 
+- ligg.nuche 
+- ligg.longitudinale 
+
+# Chakka pastki jag bug'imi orasida nima joylashgan?
++ discus articularis
+- lig.laterale
+- lig.sphenomandibulare
+- lig.caput mandibule
+- cavitas glenoidalis
+
+# Chanok son bug'imi bug'im ichi boylami?
++ lig.capitis femoris
+- lig.pubofemorale
+- lig.ilifemorale
+- lig.ischiofemorale
+- lig.flava
+
+# Chanok son bug'imi bug'im ichi boylami?
++ lig.transversum acetabuli
+- lig.crusiatum posterius
+- lig.transversum genus 
+- lig.crusiatum anterius  
+- lig.crusiatum genus
+
+# Tizza bug'imi ichida nima joylashgan?
++ meniscus lateralis et medialis
+- lig.genu lateralis
+- labrum glenoidale 
+- labrum acetabularae 
+- lig.capitis femoris  
+
+# Tizza bug'imini bug'im ichi boylami?
++ ligg.cruciata genus 
+- ligg.collaterale tibiale 
+- lig.popliteum arcuatum 
+- lig.capitis femoris 
+- lig.bifurcatum 
+
+# Qaysi bug'imlar art.tarsi transversa ni xosil kiladi?
++ art.calcanocuboidea, art.talonaviculare
+- art.cuneonavicularis, art.talonaviculare 
+- art.calcanocuboidea, art.cuneonavicularis 
+- art.tarsometatarseae, art.cuneonavicularis 
+- art.metatarsophalangeae, art.tarsometatarseae 
+
+# Oyok panjasi gumbazini qaysi boylam mustaxkamlaydi?
++ lig.plantare longum
+- lig.calcanonaviculare
+- lig.bifurcatum 
+- lig.calcanocuboideum 
+- lig.metatarsea
+
+# M.multifidi qayerdan boshlanadi   ?
++ processus transversae vertebrae
+- fovea costalis
+- Processus spinalis
+- processus accissorius
+- tuber ischii
+
+# M.rectus capitis posterior minor qayerga yopishadi ?
++ linea nuchae  inferior
+- linea nuchae suprema
+- m.digastricus
+- regio infraclavicularis
+- m.digastricus
+
+# M.erector spinae ni hosil qilishda ishtirok etadi
++ m.iliocostales
+- m. rectus capitis posterior minor
+- m.digastricus
+- m.rotatores
+- m.delthoidea
+
+# Linea alba ni hosil qilishda ishtirok etadi
++ m.obliquus externus abdominis
+- m.delthoidea
+- m.digastricus
+- m.iliocostales
+- m.rectus capitis posterior major
+ 
+# M.pyramidalis qayerga yopishadi ?
++ linea alba
+- crista iliaca
+- tuber ischii
+- m.rectus
+- m.delthoidea
+
+# M.abdominis tarkibiga qanday muskullar kiradi?
++ m.pyramidalis
+- m.delthoidea
+- m.serratus posterior
+- m.subclavius
+- m.delthoidea
+
+# M.abdominis tarkibiga qanday muskullar kiradi?
++ m.obliquus externus abdominis
+- m.pronator quadrates
+- m.delthoidea
+- m.longissimus
+- m.subclavius
+
+# M.abdominis tarkibiga qanday muskullar kiradi?
++ m.serratus posterior
+- m.transversus
+- m.subclavius
+- m.delthoidea
+- m.longissimus
+
+# Mm.abdominis tarkibiga qanday muskullar kiradi?
++ m.quadratus lumborum
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.subclavius
+
+# Mm.abdominis tarkibiga qanday muskullar kiradi? 
++ m.obliquus internus abdominis
+- m.longissimus
+- m.pronator quadrates
+- m.subclavius
+- m.multifidi
+
+# Mm.abdominis tarkibiga qanday muskullar kirmaydi? 
++ m.triceps brachii
+- m.obliquus internus abdominis
+- m.obliquus internus abdominis
+- m.obliquus externus abdominis
+- m.multifidi
+
+# Linea alba ni hosil qilishda ishtirok etadi
++ m.transversus abdominis
+- m.levator scapulae
+- m..pronator quadrates
+- m.longissimus
+- m.multifidi
+
+# Linea alba ni hosil qilishda ishtirok etadi
++ m.rectus
+- m.brachioradialis
+- m.trapezoideus
+- m.pronator teres
+- m.multifidi
+
+# Linea alba ni hosil qilishda ishtirok etadi?
++ m.transversus abdominis
+- m.flexor carpi radialis
+- m.palmaris longus
+- m.pronator teres
+- m.multifidi
+
+# M. anconeus qayerdan boshlanadi ?
++ epicondylus lateralis
+- epicondylus medialis
+- olecranon
+- bursa olecrani
+- crista anterior tibiae
+
+# Caput longum m.triceps brachii ning boshlanish joyi
++ tuberculum infraglenoidale
+- bursa olecrani
+- epicondylus medialis
+- epicondylus lateralis
+- crista anterior tibiae
+
+# Caput laterale  m.triceps brachii ning boshlanish joyi?
++ facies posterior humeri
+- epicondylus lateralis
+- tuberculum infraglenoidale
+- epicondylus medialis
+- crista anterior tibiae
+
+# Caput mediale  m.triceps brachii ning boshlanish joyi?
++ sulcus n. Radialis
+- tuberculum infraglenoidale
+- epicondylus medialis
+- epicondylus lateralis
+- crista anterior tibiae
+
+# M.quadriceps femoris qaerga yopishadi
++ tuberositas tibiae
+- crista anterior tibiae 
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# M.semitendinosus  qaerga yopishadi?
++ tuberositas tibiae
+- caput fibulae
+- caput femoris
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# M.biceps brachii kaerdan boshlanadi?
++ tuberculum supraglenoidale, processus carocoideus scapulae 
+- tuberositas supraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae  
+- tuberositas infraglenoidalis
+
+# M.biceps brachii qaerga yopishadi?
++ tuberositas radii
+- olecranon
+- sredneytreti os radii  urtauchdanbiridan
+- tuberositas ulnae
+- membrana interossea
+
+# M.erector spinae tarkibiga kiradi? 
++ m.iliocostalis,m.spinalis, m.longissimus 
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.transversospinalis tarkibiga kiradi?
++ m.semispinalis,mm.rotatores, mm.muitifidi
+- mm.multifidi,m.iliocostalis  
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.pectoralis ma¬jor yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M.transversus thoracis  
++ cartilago costae 
+- processus coracoideus scapulae
+- tuberositas deltoidea ossis humeri 
+- crista  tuberculi minoris ossis humeri
+- margo medialis scapulae
+ 
+# M.obliquus internus abdominis qayerdan   boshlanadi ?
++ crista tuberculi minoris ossis humeri 
+- condilus medialis tibiae
+- crista anterior tibiae
+- condilus lateralis tibiae
+- fascia thoracolumbalis
+
+# M.quadratus lumborum qayerdan boshlanadi ?
++ lig. Iliolumbale et protsessus transverses lumbalis
+- condilus lateralis tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- capitulum tibiae
+
+# M.rectus abdominis qayerdan boshlanadi?       
++ processus xiphoideus sterni
+- tuberositas humeri
+- processus coracoideus scapulae
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# M.pyramidalis qayerdan boshlanadi?
++ qov birlashmasi
+- linea alba
+- tuberositas humeri
+- processus coracoideus scapulae
+- vagina musculi recti abdominis
+
+# Caput longum m.triceps brachii ning boshlanish joyi
++ tuberculum infraglenoidale
+- bursa olecrani
+- epicondylus medialis
+- epicondylus lateralis
+- linea alba
+
+# Mm.abdominis tarkibiga qanday muskullar kiradi? 
++ m.transversus
+- m.depressor anguli ori
+- m.serratus posterior
+- m.delthoidea
+- m.subclavius
+
+# Mm.abdominis tarkibiga qanday muskullar   kiradi?
++ m.quadratus lumborum
+- m.gastrocnemius
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+
+# M.quadriceps femoris qaerga yopishadi
++ tuberositas tibiae 
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# M.semitendinosus  qaerga yopishadi?
++ tuberositas tibiae
+- caput femoris
+- caput fibulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# M.biceps brachii kaerdan boshlanadi?
++ tuberculum supraglenoidale, processus carocoideus scapulae 
+- processus coracoideus scapulae
+- tuberositas humeri  
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# M.biceps brachii qaerga yopishadi?
++ tuberositas radii
+- membrana interossea
+- sredneytreti os radii  urtauchdanbiridan
+- tuberositas ulnae
+- olecranon
+
+# M.erector spinae tarkibiga kiradi? 
++ m.iliocostalis,m.spinalis, m.longissimus
+- m.multifidi,m.semispinalis
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores  
+
+# M.transversospinalis tarkibiga kiradi?
++ m.semispinalis,mm.rotatores, mm.muitifidi 
+- mm.multifidi,m.iliocostalis 
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.pectoralis ma¬jor yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Yumshok tanglay tarkibiga kiruvchi mushaklar.
++ mm.palatopharyngeus,palatoglossus, levator veli palatini,tensor veli palatini,uvulae
+- m.palatopharyngeus,m.uvulae
+- m.palatoglossus, tensor veli palatini  
+- m.levator veli palatini,m.depressor veli palatini 
+- m.palatoglossus,m.levator veli palatini,m.palatopharingeus,m.uvulae 
+
+# M.deltoideus  kaerdan boshlanadi?
++ spina scapula, acromion
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- manubrium sterni
+
+# M.supraspinalis kaerdan boshlanadi?
++ trohanter major humeri
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- manubrium sterni
+
+# M.infraspinalis kaerdan boshlanadi ?
++ fossa infra scapula
+- epicondilus medialis tibiae
+- caput femoris
+- caput fibulae
+- epicondilus lateralis tibiae
+
+# M.teres minor qaerdan boshlanadi ?
++ margo lateralis scapulae
+- crista tuberculi minoris ossis humeri
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- tuberositas deltoidea ossis humeri 
+
+# M.teres major qaerdan boshlanadi ?
++ angulus inferior scapulae
+- angulus superior scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- caput femoris
+
+# M.brachialis qaerdan boshlanadi ? 
++ septa intermuscularia brachii
+- caput fibulae
+- caput femoris
+- fossa infra scapula
+- epicondilus medialis tibiae
+
+# M.coracobrachialis qaerdan boshlanadi ?
++ processus coracoideus
+- crista tuberculi minoris ossis humeri
+- angulus scapulae
+- manubrium sterni
+- margo medialis scapulae
+
+# M.triceps brachii qaerdan boshlanadi ?
++ tuberculum infraglenoidale,caput laterale 
+- caput femoris
+- angulus superior scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# M.transversospinalis tarkibiga kiradi…
++ m.multifidi
+- m.spinalis
+- m.masseter
+- m.iliocostalis
+- m.longissimus
+
+# M.multifidi qayerdan boshlanadi   ?
++ processus transversae vertebrae
+- fovea costalis
+- Processus spinalis
+- processus accissorius
++ processus transversae vertebrae
+ 
+# M.biceps tarkibiga kiradi…
++ caput
+- intersectio tendinea
+- aponeurosis
+- venter
+- m.longissimus
+
+# M.serratus tarkibiga kiradi…
++ aponeurosis
+- venter
+- intersectio tendinea
+- caput
+- m.longissimus
+
+# Mm.dorsi ga qanday muskullar kiradi? 
++ m.multifidi
+- m.pektoralis major
+- m.serratus anterior
+- m.masseter
+- m.longissimus
+
+# M.erector spine tarkibiga qaysi muskul   kiradi ?
++ m.iliocostalis
+- m.obliquus capitis superior
+- m.sternohyoideus
+- m.trapezius
+- m.longissimus
+
+# M.erector spine tarkibiga qaysi muskul kirmaydi?
++ mm.intercostalis internus
+- m.iliocostalis lumborum
+- m.iliocostalis
+- m.longissimus
+- m.trapezius
+
+# M.palmaris longus kaerdan boshlanadi ?
++ epicondylus medialis 
+- tuberculum infraglenoidale
+- tuberositas ulnae
+- bursa olecrani
+- spina iliaca anterior superior
+
+# M.flexor carpi ulnaris kaerdan boshlanadi?
++ tuberositas humeri et olecranon
+- tuberculum infraglenoidale
+- tuberositas ulnae
+- bursa olecrani
+- epicondylus medialis 
+
+# M.flexor digitorum superficialis kaerdan boshlanadi?
++ epicondylus medialis,processus coronoideus
+- tuberositas ulnae
+- bursa olecrani
+- epicondylus medialis 
+- tuberculum major humeri
+
+# M.flexor digitorum profundus kaerdan boshlanadi?
++ facies anterior et lateralis, menbrana interossei
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- epicondylus medialis 
+- epicondylus medialis,processus coronoideus
+
+# M.brachioradialis kaerdan boshlanadi?
++ facies anterior et lateralis, membrane intermuscularia
+- tuberositas ulnae
+- facies anterior et lateralis humeri, membrane interossei
+- facies anterior et lateralis, menbrana interossei
+- epicondylus medialis 
+
+# M.pectoralis ma¬jor yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- margo medialis scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- processus coracoideus scapulae
+
+# M.palmaris brevis yopishish joyi.
++ retinaculum flexorum 
+- margo medialis scapulae
+- epicondylus medialis
+- olecranon
+- crista tuberculi minoris ossis humeri 
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ? 
++ m.abductor digiti minimi
+- m.iliocostalis lumborum
+- m.longissimu
+- m.trapezius
+- m.anconeus
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ?
++ m.flexor digiti minimi brevis, m.opponens digiti minimi
+- m.extensor pollicis longus
+- m.supinator,m.flexor pollicis brevis
+- m.iliocostalis lumborum
+- m.longissimus
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ? 
++ m.opponens digiti minimi,m.abductor digiti minimi
+- m.anconeus
+- m.trapezius
+- m.lumbricales,m.interossei dorsalis
+- m.longissimus
+
+# M.psoas minor yopishish joyi.
++ fascia iliaca
+- tuberositas ulnae
+- facies pelvina os sacri
+- facies anterior et lateralis humeri, membrane interossei
+- facies anterior et lateralis, menbrana interossei
+
+# M.gluteus medius  yopishish joyi.
++ trochanter major os femoris
+- processus coracoideus scapulae
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+
+# M. gluteus medius boshlanish joyi. 
++ facies externa iliaca
+- epicondylus medialis 
+- epicondylus medialis,processus coronoideus
+- tuberculum major humeri
+- tuberculum infraglenoidale,caput laterale
+
+# M. gluteus minimus boshlanish joyi
++ facies externa iliaca
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
+- olecranon
+
+# M.gluteus minimus  yopishish joyi.
++ trochanter major femoris
+- crista tuberculi minoris ossis humeri
+- tuberositas ulnae
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M. tensor fasciae latae  boshlanish joyi
++ spina iliaca anterior superior
+- spina iliaca posterior superior
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- tuber ischiadica
+
+# M. piriformis  boshlanish joyi
++ facies pelvina os sacri
+- processus coracoideus scapulae
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+
+# M.piriformis  yopishish joyi.
++ trochanter major femoris
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- facies anterior et lateralis humeri, membrane interossei
+- crista tuberculi minoris ossis humeri
+
+# M.obturatoris internus  yopishish joyi
++ fossa trochanterica
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- angulus superior scapulae
+- epicondilus medialis tibiae
+
+# M.obturatoris exterternus  yopishish joyi.
++ fossa trochanterica
+- spina iliaca posterior inferior
+- spina iliaca anterior inferior
+- facies anterior et lateralis, menbrana interossei
+- tuberositas deltoidea ossis humeri
+ 
+# M. quadratus femores  boshlanish joyi
++ spina ischiadica
+- processus coracoideus scapulae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- fossa trochanterica
+
+# M. quadratus femores yopishish joyi.
++ fossa trochanterica
+- facies pelvina os sacri
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+- margo medialis scapulae
+
+# M. sartorius  yopishish joyi.
++ tuberositas tibia
+- epycondylus lateralis et medialis
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+
+# M. sartorius  boshlanish joyi
++ spina iliaca anterior superior
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+- spina iliaca anterior inferior
+- spina iliaca posterior superior
+
+# M. semitendinosum  boshlanish joyi
++ spina ischiadica
+- tuberositas ulnae
+- facies anterior et lateralis humeri, membrane interossei
+- facies anterior et lateralis, menbrana interossei
+- septum intermusculare laterale femoris
+
+# m.subclavius qayerga yopishadi?
++ clavicula
+- tuberositas ulnae
+- membrana interossea
+- olecranon
+- costae prima
+
+# m.subclavius qayerdan boshlanadi 
++ clavicula   
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# m.obliquus internus abdominis qayerdan boshlanadi ? 
++ fascia thoracolumbalis
+- condilus medialis tibiae
+- crista anterior tibiae
+- condilus lateralis tibiae
+- crista tuberculi minoris ossis humeri
+
+# m.quadratus lumborum qayerdan boshlanadi ?
++ lig. Iliolumbale et protsessus transverses lumbalis
+- condilus lateralis tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- capitulum tibiae
+
+# m.rectus abdominis qayerdan boshlanadi ?
++ cartilage costae 5,11,7 
+- tuberositas infraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+
+# m.rectus abdominis qayerdan boshlanadi?
++ processus xiphoideus sterni
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# m.pyramidalis qayerdan boshlanadi? 
++ qov birlashmasi
+- linea alba
+- tuberositas humeri 
+- processus coracoideus scapulae
+- vagina musculi recti abdominis
+
+# caput longum m.triceps brachii ning boshlanish joyi
++ tuberculum infraglenoidale
+- bursa olecrani
+- _epicondylus medialis
+- epicondylus lateralis
+- linea alba
+
+# mm.abdominis tarkibiga qanday muskullar kiradi?
++ m.transversus
+- m.depressor anguli oris
+- m.serratus posterior
+- m.delthoidea
+- m.subclavius
+
+# M. Tibialis posterior  boshlanish joyi
++ tibia et membrana interossea
+- vagina musculi recti abdominis
+- bursa olecrani
+- epicondylus lateralis
+- linea alba
+
+# M. peroneus longus boshlanish joyi
++ caput fibulae et septum intermucularis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# M. Tibularis brevis boshlanish joyi
++ epyphisis distalis tibiae
+- tuberositas supraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas infraglenoidalis
+
+# m.interossei tarkibiga qanday muskullar kiradi?
++ m.interossei dorsalis, m.plantares
+- m.tibularis brevis, M. Tibialis posterior
+- m.peroneus longus 
+- m.lumbricales,m.interossei dorsalis
+- m.gracilis , m.semimembranosus
+
+# m.soleus qayerdan boshlanadi?
++ epyphisis procsimalis fibulae
+- vagina musculi recti abdominis
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+- area anterior tibiae
+
+# M. plantaris  boshlanish joyi
++ facies poplitea, capsula articularis genu
+- tuberositas infraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+
+# m.fibularis longus  boshlanish joyi
++ caput fibulae et septum intermucularis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# m.vastus intermedius boshlanish joyi
++ facies anterior os femoris
+- tuberositas tibiae
+- labium mediale linea aspera femoris
+- linea intertrochanterica
+- labium laterale linea aspera femoris
+
+# m.vastus medialis boshlanish joyi
++ labium mediale linea aspera femoris
+- tuberositas tibiae
+- facies anterior os femoris
+- linea intertrochanterica
+- labium laterale linea aspera femoris
+
+# m.vastus lateralis boshlanish joyi
++ linea intertrochanterica ,labium laterale linea aspera femoris
+- labium mediale linea aspera femoris
+- facies anterior os femoris
+- tuberositas tibiae
+- labium laterale linea aspera femoris
+
+# m.rectus femoris boshlanish joyi
++ margo superior acetabuli
+- labium laterale linea aspera femoris
+- facies anterior os femori
+- labium mediale linea aspera femoris
+- linea intertrochanterica ,labium laterale linea aspera femoris
+
+# Linea nuchae superior ga yopishadi.
++ m.splenius capitis
+- m.splenius cervicis
+- mm.rotatores
+- m.obliquus capitis superior
+- m.rectus capitis posterior major
+
+# Son kanalini lateral devori. 
++ v.femoralis 
+- annulus femoralis
+- hiatus saphenus
+- lig.inguinale i kray fascia lata  chekkasi 
+- glubokiy listok fascia lata – chuqur varag‘i
+
+# Son kanalining tashki xalkasi.
++ hiatus saphenus 
+- glubokiy listok fascia lata – chuqur varag‘i
+- annulus femoralis 
+- lig.inguinale i kray fascia lata  chekkasi
+- v.femoralis
+
+# Son kanalini ichki xalqasi.
++ annulus femoralis
+- hiatus saphenus
+- lig.inguinale i kray fascia lata  chekkasi
+- v.femoralis
+- glubokiy listok fascia lata– chuqur varag‘i
+
+# Canalis adducto¬rius ni lateral devori.
++ m.vastus medialis
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
+- hiatus tendineus
+
+# Canalis adductorius ni melial devori.
++ m.adductor magnus
+- lamina vastoadductoria
+- v.femoralis
+- hiatus tendineus
+- m.vastus medialis
+
+# Canalis adductoriusni old devori.
++ lamina vastoadductoria
+- hiatus tendineus
+- v.femoralis
+- m.adductor magnus
+- m.vastus medialis
+
+# Canalis adductorius ichidan  nimalar o‘tadi.
++ a.et v.femoralis
+- m.adductor magnus
+- hiatus tendineus
+- lamina vastoadductoria
+- m.vastus medialis
+
+# Canalis adductorius ni distal teshigi.
++ hiatus tendineus
+- m.vastus medialis
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
+
+# Chov kanalini yuqorigi devori. 
++ mm.obliqus internus abdominis et transversus abdominis 
+- lig.inguinalis 
+- aponevroz m.obliqus externus abdominis
+- fascia transversalis
+- mm.obliqus externus abdominis
+
+# Son kanalini old devori. 
++ lig.inguinale i kray fascia lata – chekkasi
+- annulus femoralis
+- hiatus saphenus  
+- v.femoralis
+- glubokiy listok fascialata – chukur varagi
+
+# Son kanalini orka devori. 
++ glubokiy listok fascialata – chukur varagi
+- v.femoralis
+- hiatus saphenus 
+- lig.inguinale i kray fascia lata  chekkasi
+- annulus femoralis
+
+# Son kanalini lateral devori. 
++ v.femoralis
+- glubokiy listok fascia lata – chukur varagi
+- hiatus saphenus
+- lig.inguinale i kray fascia lata  chekkasi 
+- annulus femoralis 
+
+# Son kanalini ichki xalkasi.
++ annulus femoralis
+- hiatus saphenus
+- lig.inguinale i kray fascia lata  chekkasi
+- v.femoralis
+- glubokiy listok fascia lata– chukur varagi
+
+# Canalis adductorius ni lateral devori.
++ m.vastus medialis
+- lamina vastoadductoria
+- a.et v.femoralis
+- m.adductor magnus
+- hiatus tendineus
+
+# Canalis adductorius ni melial devori.
++ m.adductor magnus
+- hiatus tendineus
+- v.femoralis
+- lamina vastoadductoria
+- m.vastus medialis
+
+# Canalis adductorius ni old devori.
++ lamina vastoadductoria
+- m.vastus medialis
+- v.femoralis
+- hiatus tendineus
+- m.adductor magnus
+
+# Canalis adductorius ichidan  nimalar o‘tadi.
++ a.et v.femoralis
+- hiatus tendineus
+- lamina vastoadductoria
+- m.adductor magnus
+- m.vastus medialis
+
+# Canalis adductorius ni distal teshigi.
++ hiatus tendineus
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
+- m.vastus medialis
+
+# Chov kanalini yuqorigi devori. 
++ mm.obliqus internus abdominis et transversus abdominis
+- aponevroz m.obliqus externus abdominis
+- lig.inguinalis  
+- fascia transversalis
+- mm.obliqus externus abdominis
+
+# M.quadricepsfemoris qaerga yopishadi?
++ tuberositas tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# M.semitendinosus  qaerga yopishadi?
++ tuberositas tibiae
+- caput fibulae
+- caput femoris
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# M.biceps brachii kaerdan boshlanadi? 
++ tuberculum supraglenoidale, processus carocoideus scapulae
+- tuberositas supraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae   
+- tuberositas infraglenoidalis
+
+# M.biceps brachii qaerga yopishadi?
++ tuberositas radii
+- olecranon
+- sredneytreti os radii  urtauchdanbiridan
+- tuberositas ulnae
+- membrana interossea
+
+# M.erector spinae tarkibiga kiradi? 
++ m.iliocostalis,m.spinalis, m.longissimus 
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.transversospinalis tarkibiga kiradi?
++ m.semispinalis,mm.rotatores, mm.muitifidi
+- mm.multifidi,m.iliocostalis  
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.pectoralis ma¬jor yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- processus coracoideus scapulae
+ 
+# Bo‘yin umurtqalarining boshqa umurtqalardan farqi:
++ foramina processus transversalia
+- tuberculum costae
+- foveae costales    
+- processus accessorius  
+- processus transversus 
+
+# Ko‘krakumurtkalariningboshkaumurtkalardanfarki:
++ foveae costales
+- processus accessorius
+- tuberculum anterior et posterior  
+- foramina  processus transversalia    
+- processus transversus 
+
+# Bel umurtkalarining boshka umurtkalardan farki:
++ processus accessorius, processus mamillaris
+- fossa olecrani
+- tuberculum anterior et posterior  
+- foveae costales  
+- foramina processus transversalia  
+
+# Qaysi xosila birinchi bo‘yin umurtkasida bo‘ladi?
++ arcus anterior
+- fovea costalis
+- processus spinosus
+- dens
+- processus accessorius
+
+# Qaysi xosila ko‘krak umurtkasida bo‘ladi?
++ foveae costales
+- processus accesorius
+- tuberculum conoideum 
+- arcus anterior 
+- fossa olecrani
+
+# Qaysi xosila ikkinchi bo‘yin umurtkasida bo‘ladi?
++ dens
+- foveae costales
+- incisurae costales
+- arcus anterior
+- processus accessorius
+ 
+# Cavitas glenoidalis kurak suyagida kaerda joylashadi? 
++ angulus lateralis
+- angulus superior
+- angulus inferior
+- angulus medialis
+- fossae subscapularis
+
+# Yelka suyagining proksimal qismda joylashgan:
++ caput humeri, tuberculum majus, crista tuberculi minoris
+- fossa olecrani, fossa radialis, fossa coronoidea
+- epicondylus lateralis, fossa radialis, trochlea 
+- capitulum humeri, trochlea, crista tuberculi majoris  
+- epicondylus mediali, fossa radialis, trochlea 
+
+# Yelka suyagining proksimal qismda joylashgan:
++ collum anatomicum, collum chirurgicum
+- epicondylus mediali, fossa radialis, trochlea
+- fossa olecrani, collum anatomicum 
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, fossa radialis, fossa coronoidea 
+
+# Yelka suyagining proksimal qismda joylashgan:
++ tuberculum minus, crista tuberculi majoris
+- capitulum humeri, trochlea, crista tuberculi majoris 
+- fossa olecrani, fossa radialis, fossa coronoidea 
+- epicondylus mediali, fossa radialis, trochlea 
+- capitulum humeri, fossa radialis, crista tuberculi majoris 
+
+# Yelka suyagining distal qismda joylashgan:
++ trochlea, capitulum humeri 
+- capitulum humeri, trochlea, crista tuberculi majoris
+- fossa olecrani, crista tuberculi majoris, fossa coronoidea 
+- epicondylus mediali, caput humeri, trochlea 
+- capitulum humeri, fossa radialis, crista tuberculi majoris
+ 
+# Yelka suyagining distal qismda joylashgan:
++ fossa coronoidea, fossa olecrani
+- collum chirurgicum, capitulum humeri
+- sulcus intertubercularis, fossa radialis
+- collum anatomicum, trochlea humeri 
+- caput humeri, fossa radialis
+
+# Yelka suyagining distal qismda joylashgan:
++ fossa radialis, trochlea humeri
+- fossa olecrani, tuberositas deltoidea
+- caput humeri, trochlea humeri 
+- collum anatomicum, capitulum humeri
+- caput humeri, fossa radialis
+
+# Tirsak suyakning proksimal qismda joylashgan:
++ olecranon, processus coronoideus
+- processus styloideus, olecranon
+- incisura ulnaris, circumferentia articularis
+- incisura radialis, incisura ulnaris
+- incisura trochlearis, incisura ulnaris
+
+# Tirsak suyakning proksimal qismda joylashgan:
++ incisura trochlearis, incisura radialis
+- incisura radialis, incisura ulnaris
+- incisura trochlearis, incisura ulnaris
+- processus styloidens, incisura trochlearis 
+- processus styloideus, olecranon
+
+# Tirsak suyagining distal qismda joylashgan:
++ processus styloidens, circumferentia articularis
+- processus coronoideus, olecranon 
+- incisura trochlearis, incisura radialis
+- processus styloidens, processus coronoideus 
+- incisura trochlearis, incisura ulnaris
+
+# Tirsak suyagining distal qismda joylashgan:
++ caput, processus styloideus
+- processus styloidens, processus coronoideus
+- circumferentia articularis, incisura ulnaris 
+- caput, incisura ulnaris
+- incisura radialis, incisura ulnaris 
+
+# Bilak suyagining proksimal qismda joylashgan:
++ caput, collum
+- caput, processus styloideus
+- circumferentia articularis, olecranon
+- incisura trochlearis, processus coronoideus
+- incisura radialis, tuberositas radii
+- foramen nutricium, facies lateralis
+
+# Bilak suyagining proksimal qismda joylashgan:
++ circumferentia articularis, caput
+- incisura ulnaris, processus styloideus
+- collum, processus styloideus 
+- caput, processus coronoideus 
+- circumferentia articularis, trochlea
+
+# Bilak suyagining distal qismda joylashgan:
++ processus styloideus, incisura ulnaris
+- incisura ulnaris, caput
+- incisura radialis, processus styloideus 
+- incisura radialis, facies articularis carpea 
+- corpus, facies posterior
+
+# Bilak suyagining distal qismda joylashgan:
++ facies articularis carpea, incisura ulnaris
+- incisura radialis, facies articularis carpea
+- caput radii, collum radii 
+- processus styloideus, incisura radialis
+- corpus, facies posterior
+- Cranium
+
+# Cranium viscerale xosil bulishida ishtirok etadi:
++ maxilla, os lacrimale
+- os temporale, os palatinum
+- os parietale
+- os frontale
+- os sphenoidale
+
+# Os palatinum da bo‘ladi:
++ lamina horizontalis
+- processus lacrimalis
+- foramen spinosum
+- foramen ovale
+- processus coronoideus 
+
+# Umurtqa tanalari nima orqali birikishadi?
++ disci intervertebrales
+- lig.longitudinale anterius
+- annulus fibrosus
+- nucleus pulposus
+- lig.longitudinale posterius 
+
+# Umurtqalar ravoklari orasidagi boglamlar?
++ ligg.flava
+- ligg.longitudinale
+- ligg.interspinalia 
+- ligg.supraspinale 
+- ligg.nuche  
+
+# Chakka pastki jag bugimi orasida nima joylashgan?
++ discus articularis
+- lig.laterale
+- lig.sphenomandibulare
+- lig.caput mandibule
+- cavitas glenoidalis
+
+# Chanok son bug'imi bug'im ichi boylami?
++ lig.capitis femoris
+- lig.ilifemorale
+- lig.pubofemorale
+- lig.ischiofemorale
+- lig.flava
+
+# Tizza bug'imi ichida nima joylashgan?
++ meniscus lateralis et medialis
+- lig.capitis femoris
+- labrum glenoidale 
+- labrum acetabularae   
+- lig.genu lateralis 
+
+# Tizza bug'imini bugim ichi boylami?
++ ligg.cruciata genus
+- lig.bifurcatum
+- ligg.collaterale tibiale 
+- lig.popliteum arcuatum 
+- lig.capitis femoris   
+
+# Qaysi bug'imlar art.tarsi transversa ni xosil kiladi?
++ art.calcanocuboidea, art.talonaviculare
+- art.cuneonavicularis, art.talonaviculare 
+- art.calcanocuboidea, art.cuneonavicularis 
+- art.tarsometatarseae, art.cuneonavicularis 
+- art.metatarsophalangeae, art.tarsometatarseae 
+
+# Oyok panjasi gumbazini qaysi boylam mustaxkamlaydi?
++ lig.plantare longum
+- lig.bifurcatum 
+- lig.calcanonaviculare 
+- lig.calcanocuboideum 
+- lig.metatarsea
+
+# M.quadriceps femoris qaerga yopishadi
++ tuberositas tibiae
+- condilus medialis tibiae
+- crista anterior tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# M.semitendinosus  qaerga yopishadi?
++ tuberositas tibiae
+- epicondilus medialis tibiae
+- caput femoris
+- caput fibulae
+- epicondilus lateralis tibiae
+
+# M.biceps brachii kaerdan boshlanadi?
++ tuberculum supraglenoidale, processus carocoideus scapulae 
+- tuberositas infraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis  
+
+# M.biceps brac¬hii qaerga yopishadi?
++ tuberositas radii
+- sredneytreti os radii  urtauchdanbiridan
+- tuberositas ulnae
+- membrana interossea
+- olecranon
+
+# M.erector spinae tarkibiga kiradi? 
++ m.iliocostalis,m.spinalis, m.longissimus
+- m.iliocostalis,m.rectus capitis posterior major  
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.transversospinalis tarkibiga kiradi?
++ m.semispinalis,mm.rotatores, mm.muitifidi
+- m.rectus capitis posterior major, m.spinalis  m.longissimus,
+- mm.multifidi,m.iliocostalis   
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.pectoralis major yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- margo medialis scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- processus coracoideus scapulae
+
+# Yumshoq tanglay tarkibiga kiruvchi mushaklar.
++ mm.palatopharyngeus,palatoglossus, levator veli palatini,tensor veli palatini,uvulae
+- m.palatoglossus,m.levator veli palatini,m.palatopharingeus,m.uvulae
+- m.palatoglossus, tensor veli palatini 
+- m.palatopharyngeus,m.uvulae 
+- m.levator veli palatini,m.depressor veli palatini  
+
+# M.transversus thoracis  
++ cartilago costae 
+- tuberositas deltoidea ossis humeri 
+- crista  tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M.subclavius qayerga yopishadi?
++ costae primae
+- tuberositas ulnae
+- membrana interossea
+- olecranon
+- clavicula
+
+# M.subclavius qayerdan boshlanadi ?
++ clavicula
+- processus coracoideus scapulae
+- tuberositas humeri  
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# M.obliquus internus abdominis qayerdan   boshlanadi ?
++ crista tuberculi minoris ossis humeri 
+- condilus lateralis tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- fascia thoracolumbalis
+
+# M.quadratus lumborum qayerdan boshlanadi ?
++ lig. Iliolumbale et protsessus transverses lumbalis
+- capitulum tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
+
+# M.rectus abdominis qayerdan boshlanadi? 
++ processus xiphoideus sterni      
+- tuberositas humeri
+- processus coracoideus scapulae
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# M.pyramidalis qayerdan boshlanadi?
++ qov birlashmasi
+- tuberositas humeri
+- linea alba
+- processus coracoideus scapulae
+- vagina musculi recti abdominis
+
+# Caput longum m.triceps brachii ning boshlanish joyi
++ tuberculum infraglenoidale
+- epicondylus lateralis
+- epicondylus medialis
+- bursa olecrani
+- linea alba
+
+# Mm.abdominis tarkibiga qanday muskullar kiradi? 
++ m.transversus
+- m.subclavius
+- m.serratus posterior
+- m.delthoidea
+- m.depressor anguli ori
+
+# Mm.abdominis tarkibiga qanday muskullar   kiradi?
++ m.quadratus lumborum
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.gastrocnemius
+
+# M.quadriceps femo¬ris qaerga yopishadi
++ tuberositas tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# M.semitendinosus  qaerga yopishadi?
++ tuberositas tibiae
+- caput fibulae
+- caput femoris
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# M.biceps brachii kaerdan boshlanadi? 
++ tuberculum supraglenoidale, processus carocoideus scapulae
+- tuberositas supraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae   
+- tuberositas infraglenoidalis
+
+# M.biceps brachii qaerga yopishadi?
++ tuberositas radii
+- olecranon
+- sredneytreti os radii  urtauchdanbiridan
+- tuberositas ulnae
+- membrana interossea
+
+# M.erector spinae tarkibiga kiradi? 
++ m.iliocostalis,m.spinalis, m.longissimus 
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.transversospinalis tarkibiga kiradi?
++ m.semispinalis,mm.rotatores, mm.muitifidi
+- mm.multifidi,m.iliocostalis  
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# M.pectoralis major yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Chanoq tarkibiga kiruvchi mushaklar
++ m.iliacus
+- m.multifidi,m.semispinalis
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+
+# Chanoq tarkibiga kiruvchi mushaklar
++ m.psoas major,m.psoas minor
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.gastrocnemius
+
+# Chanoq tarkibiga kiruvchi mushaklar
++ m.piriformis
+- m.palatoglossus, tensor veli palatini 
+- m.palatopharyngeus,m.uvulae 
+- m.levator veli palatini,m.depressor veli palatini 
+- m.palatoglossus,m.levator veli palatini,m.palatopharingeus,m.uvulae
+ 
+# Son tarkibiga kiruvchi mushaklar
++ m. vastus intermedius
+- m.rectus capitis posterior major, m.spinalis  m.longissimus,
+- mm.multifidi,m.iliocostalis  
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis
+
+# Son tarkibiga kiruvchi mushaklar
++ m.adductor brevis
+- m.multifidi
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores
+- m.extensor hallucis brevis
+
+# Son tarkibiga kiruvchi mushaklar
++ m.bicepis femoris
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores 
+- m.multifidi,m.semispinalis 
+
+# Son tarkibiga kiruvchi mushaklar  
++ m.semimembranous                      
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.gastrocnemius
+
+# M.deltoideus  kaerdan boshlanadi?
++ spina scapula, acromion
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- manubrium sterni
+
+# M.supraspinalis kaerdan boshlanadi?
++ trohanter major humeri
+- margo medialis scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- manubrium sterni
+
+# M.infraspinalis kaerdan boshlanadi ?
++ fossa infra scapula
+- epicondilus lateralis tibiae
+- caput femoris
+- caput fibulae
+- epicondilus medialis tibiae
+
+# M.teres minor kaerdan boshlanadi ?
++ margo lateralis scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+
+# M.teres major kaerdan boshlanadi ?
++ angulus inferior scapulae
+- angulus superior scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- caput femoris
+
+# M.subscapularis kaerdan boshlanadi ?
++ facies anterior scapulae
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- margo medialis scapulae
+- manubrium sterni
+
+# M.brachialis kaerdan boshlanadi ? 
++ septa intermuscularia brachii
+- fossa infra scapula
+- caput femoris
+- caput fibulae
+- epicondilus medialis tibiae
+
+# M.coracobrachialis kaerdan boshlanadi ?
++ processus coracoideus
+- margo medialis scapulae
+- angulus scapulae
+- manubrium sterni
+- crista tuberculi minoris ossis humeri
+
+# M.triceps brachii kaerdan boshlanadi ? 
++ tuberculum infraglenoidale,caput laterale
+- angulus superior scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- caput femoris
+
+# M.palmaris longus kayerdan boshlanadi ?
++ epicondylus medialis 
+- tuberositas ulnae
+- bursa olecrani
+- tuberculum infraglenoidale
+- spina iliaca anterior superior
+
+# M.flexor carpi ulnaris kayerdan boshlanadi?
++ tuberositas humeri et olecranon
+- tuberositas ulnae
+- bursa olecrani
+- epicondylus medialis 
+- tuberculum infraglenoidale
+
+# M.flexor digitorum superficialis kayerdan boshlanadi?
++ epicondylus medialis,processus coronoideus
+- bursa olecrani
+- tuberositas ulnae
+- epicondylus medialis 
+- tuberculum major humeri
+
+# m.flexor digitorum profundus kaerdan boshlanadi?
++ facies anterior et lateralis, menbrana interossei
+- epicondylus medialis
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae 
+- epicondylus medialis,processus coronoideus
+
+# m.brachioradialis kaerdan boshlanadi?
++ facies anterior et lateralis, membrane intermuscularia
+- epicondylus medialis
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
+ 
+# M.pectoralis ma¬jor yopishish joyi.
++ crista tuberculi majoris ossis humeri
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M.palmaris brevis yopishish joyi.
++ retinaculum flexorum
+- epicondylus medialis  
+- olecranon
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ? 
++ m.abductor digiti minimi
+- m.longissimu
+- m.iliocostalis lumborum
+- m.trapezius
+- m.anconeus
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ?
++ m.flexor digiti minimi brevis, m.opponens digiti minimi
+- m.iliocostalis lumborum
+- m.extensor pollicis longus
+- m.supinator,m.flexor pollicis brevis
+- m.longissimus
+
+# m.hypothenor tarkibiga qaysi muskul kiradi ?
++ m.opponens digiti minimi,m.abductor digiti minimi 
+- m.longissimus
+- m.trapezius
+- m.anconeus
+- m.lumbricales,m.interossei dorsalis
+
+# M.psoas minor yopishish joyi.
++ fascia iliaca
+- facies pelvina os sacri
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
+
+# M.gluteus medius  yopishish joyi.
++ trochanter major os femoris
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M. gluteus medius boshlanish joyi. 
++ facies externa iliaca
+- epicondylus medialis,processus coronoideus
+- epicondylus medialis 
+- tuberculum major humeri
+- tuberculum infraglenoidale,caput laterale
+
+# M. gluteus minimus boshlanish joyi
++ facies externa iliaca
+- facies anterior et lateralis, menbrana interossei
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- olecranon
+
+# M.gluteus minimus  yopishish joyi.
++ trochanter major femoris
+- processus coracoideus scapulae
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+
+# M. tensor fasciae latae  boshlanish joyi
++ spina iliaca anterior superior
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- spina iliaca posterior superior
+- tuber ischiadica
+
+# M. piriformis  boshlanish joyi
++ facies pelvina os sacri
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M.piriformis  yopishish joyi.
++ trochanter major femoris
+- spina iliaca posterior inferior
+- spina iliaca anterior inferior
+- facies anterior et lateralis humeri, membrane interossei
+- crista tuberculi minoris ossis humeri
+
+# M.obturatoris internus  yopishish joyi
++ fossa trochanterica
+- margo medialis scapulae
+- crista tuberculi minoris ossis humeri
+- angulus superior scapulae
+- epicondilus medialis tibiae
+
+# M.obturatoris exterternus  yopishish joyi.
++ fossa trochanterica
+- facies anterior et lateralis, menbrana interossei
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- tuberositas deltoidea ossis humeri 
+
+# M. quadratus femores  boshlanish joyi
++ spina ischiadica
+- fossa trochanterica
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# M. quadratus femores yopishish joyi.
++ fossa trochanterica
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+- margo medialis scapulae
+- facies pelvina os sacri
+
+# M. sartorius  yopishish joyi.
++ tuberositas tibia
+- epycondylus lateralis et medialis
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+
+# M. sartorius  boshlanish joyi
++ spina iliaca anterior superior
+- facies anterior et lateralis, menbrana interossei
+- spina iliaca posterior inferior 
+- spina iliaca anterior inferior
+- spina iliaca posterior superior
+
+# M. semitendinosum  boshlanish joyi
++ spina ischiadica
+- facies anterior et lateralis, menbrana interossei
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- septum intermusculare laterale femoris
+
+# m.subclavius qayerga yopishadi?
++ clavicula
+- tuberositas ulnae
+- membrana interossea
+- olecranon
+- costae prima
+
+# m.subclavius qayerdan boshlanadi
++ clavicula    
+- tuberositas humeri  
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# m.obliquus internus abdominis qayerdan boshlanadi ?
++ fascia thoracolumbalis 
+- condilus medialis tibiae
+- crista anterior tibiae
+- condilus lateralis tibiae
+- crista tuberculi minoris ossis humeri
+
+# m.rectus abdominis qayerdan boshlanadi?
++ processus xiphoideus sterni
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# caput longum m.triceps brachii ning boshlanish joyi
++ tuberculum infraglenoidale
+- bursa olecrani
+- _epicondylus medialis
+- epicondylus lateralis
+- linea alba
+
+# mm.abdominis tarkibiga qanday muskullar kiradi?
++ m.transversus     
+- m.depressor anguli oris
+- m.serratus posterior
+- m.delthoidea
+- m.subclavius
+
+# M. Tibialis posterior  boshlanish joyi
++ tibia et membrana interossea
+- vagina musculi recti abdominis
+- bursa olecrani
+- epicondylus lateralis
+- linea alba
+
+# M. peroneus longus boshlanish joyi
++ caput fibulae et septum intermucularis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# m.interossei tarkibiga qanday muskullar kiradi?
++ m.interossei dorsalis, m.plantares
+- m.tibularis brevis, M. Tibialis posterior
+- m.peroneus longus 
+- m.lumbricales,m.interossei dorsalis
+- m.gracilis , m.semimembranosus
+
+# m.soleus qayerdan boshlanadi?
++ epyphisis procsimalis fibulae
+- vagina musculi recti abdominis
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+- area anterior tibiae
+
+# M. plantaris  boshlanish joyi
++ facies poplitea, capsula articularis genu
+- tuberositas infraglenoidalis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+ 

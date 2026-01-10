@@ -1,0 +1,30 @@
+# Matematikada $x^2 + y^2 = z^2$ formulasi qanday nomlanadi?
++ Pifagor teoremasi
+- Eyler teoremasi
+- Nyuton teoremasi
+- Ferma teoremasi
+
+# Quyidagi tenglamani yeching: $2x + 5 = 15$
++ $x = 5$
+- $x = 10$
+- $x = 7$
+- $x = 3$
+
+# Quyidagi integrallardan qaysi biri to'g'ri?
++ $$\int_0^1 x dx = \frac{1}{2}$$
++ $$\int_0^1 x^2 dx = \frac{1}{3}$$
+- $$\int_0^1 x dx = 1$$
+- $$\int_0^1 x^2 dx = 1$$
+
+# JavaScriptda qanday o'zgaruvchi e'lon qilinadi?
++ let
++ var
++ const
+- int
+- string
+
+# React komponenti qanday yaratiladi?
++ function Component() { return <div>Hello</div>; }
++ const Component = () => <div>Hello</div>;
+- class Component extends React.Component
+- export default Component

@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "id": "tibbiy-kimyo-1-1",
+      "name": "Tibbiy kimyo(2025-2026)",
+      "fileName": "tibbiy_kimyo_1_1.docx",
+      "description": "TTDU 1-kurslar uchun 1-semest savol va javoblari"
+    },
+    {
+      "id": "anatomiya-1-1",
+      "name": "Odam anatomiya(2025-2026)",
+      "fileName": "odam_anatomiyasi_1_1.txt",
+      "description": "TTDU 1-kurslar uchun 1-semest savol va javoblari"
+    }
+  ]
+}

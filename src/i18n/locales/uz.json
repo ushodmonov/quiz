@@ -1,0 +1,69 @@
+{
+  "app": {
+    "title": "QUIZ",
+    "home": "Bosh sahifa"
+  },
+  "start": {
+    "title": "Testni boshlash",
+    "selectFile": "Fayl tanlang (TXT yoki Word)",
+    "selectFromCatalog": "Katalogdan tanlang",
+    "fileSelected": "Fayl tanlandi",
+    "testSelected": "Test tanlandi",
+    "totalQuestions": "Jami savollar",
+    "startQuestion": "Boshlanish savol raqami",
+    "questionCount": "Savollar soni",
+    "maxAvailable": "Maksimal",
+    "selectionMethod": "Savollarni tanlash usuli",
+    "sequential": "Ketma-ket",
+    "random": "Tasodifiy",
+    "startTest": "Testni boshlash",
+    "loading": "Fayl yuklanmoqda...",
+    "loadingCatalog": "Katalog yuklanmoqda...",
+    "noTestsAvailable": "Katalogda testlar mavjud emas",
+    "error": {
+      "fileRequired": "Iltimos, fayl yoki test tanlang",
+      "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
+      "noQuestions": "Savollar topilmadi. Fayl formati to'g'ri emas.",
+      "invalidStart": "Boshlanish savoli noto'g'ri",
+      "invalidCount": "Savollar soni noto'g'ri"
+    }
+  },
+  "test": {
+    "progress": "Savol {{current}} / {{total}}",
+    "questionNumber": "Savol №{{number}}",
+    "checkAnswer": "Javobni tekshirish",
+    "nextQuestion": "Keyingi savol",
+    "viewResults": "Natijalarni ko'rish",
+    "correct": "To'g'ri!",
+    "incorrect": "Noto'g'ri"
+  },
+  "results": {
+    "title": "Test natijalari",
+    "correct": "To'g'ri javoblar",
+    "incorrect": "Noto'g'ri javoblar",
+    "total": "Jami savollar",
+    "excellent": "A'lo",
+    "good": "Yaxshi",
+    "poor": "Qoniqarsiz",
+    "restart": "Testni qayta boshlash",
+    "nextTest": "Keyingi testga o'tish",
+    "backToStart": "Boshlash sahifasiga qaytish",
+    "wrongAnswers": "Noto'g'ri berilgan javoblar",
+    "question": "Savol",
+    "yourAnswer": "Sizning javobingiz",
+    "correctAnswer": "To'g'ri javob"
+  },
+  "resume": {
+    "title": "Oldingi test mavjud",
+    "message": "Davom ettirasizmi?",
+    "resume": "Davom ettirish",
+    "new": "Yangi test boshlash"
+  },
+  "common": {
+    "select": "Tanlash",
+    "close": "Yopish"
+  },
+  "footer": {
+    "contact": "Murojaat"
+  }
+}

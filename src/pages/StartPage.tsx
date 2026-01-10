@@ -1,0 +1,449 @@
+import React, { useState, useEffect } from 'react'
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormControl,
+  FormLabel,
+  Box,
+  Alert,
+  CircularProgress,
+  Chip,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Divider
+} from '@mui/material'
+import { CloudUpload, Description } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
+import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
+import { selectQuestions } from '../utils/questionUtils'
+import { clearProgress } from '../utils/storage'
+import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
+import type { QuizData } from '../types'
+
+interface StartPageProps {
+  onStart: (data: QuizData) => void
+}
+
+export default function StartPage({ onStart }: StartPageProps) {
+  const { t } = useTranslation()
+  const [tabValue, setTabValue] = useState(1)
+  const [file, setFile] = useState<File | null>(null)
+  const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(null)
+  const [testCatalog, setTestCatalog] = useState<TestCatalogItem[]>([])
+  const [startQuestion, setStartQuestion] = useState<string>('1')
+  const [questionCount, setQuestionCount] = useState<string>('10')
+  const [selectionMethod, setSelectionMethod] = useState<'sequential' | 'random'>('sequential')
+  const [loading, setLoading] = useState(false)
+  const [loadingCatalog, setLoadingCatalog] = useState(false)
+  const [error, setError] = useState('')
+  const [allQuestions, setAllQuestions] = useState<Array<{ text: string; answers: Array<{ text: string; isCorrect: boolean }>; isMultiSelect?: boolean }>>([])
+
+  useEffect(() => {
+    // Load test catalog when component mounts
+    const loadCatalog = async () => {
+      setLoadingCatalog(true)
+      try {
+        const catalog = await loadTestCatalog()
+        setTestCatalog(catalog.tests)
+      } catch (err) {
+        console.error('Failed to load test catalog:', err)
+      } finally {
+        setLoadingCatalog(false)
+      }
+    }
+    loadCatalog()
+  }, [])
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+
+    setFile(selectedFile)
+    setSelectedTest(null)
+    setError('')
+    setLoading(true)
+
+    try {
+      let questions = []
+      
+      if (selectedFile.name.endsWith('.txt')) {
+        const text = await selectedFile.text()
+        questions = parseTxtFile(text)
+      } else if (selectedFile.name.endsWith('.docx')) {
+        questions = await parseDocxFile(selectedFile)
+      } else {
+        setError(t('start.error.invalidFile'))
+        setLoading(false)
+        return
+      }
+
+      if (questions.length === 0) {
+        setError(t('start.error.noQuestions'))
+        setLoading(false)
+        return
+      }
+
+      questions = questions.map(q => ({
+        ...q,
+        isMultiSelect: isMultiSelect(q)
+      }))
+
+      setAllQuestions(questions)
+    } catch (err: any) {
+      setError(t('start.error.noQuestions') + ': ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleTestSelect = async (test: TestCatalogItem) => {
+    setSelectedTest(test)
+    setFile(null)
+    setError('')
+    setLoading(true)
+
+    try {
+      const questions = await loadTestQuestions(test.fileName)
+      
+      if (questions.length === 0) {
+        setError(t('start.error.noQuestions'))
+        setLoading(false)
+        return
+      }
+
+      const processedQuestions = questions.map(q => ({
+        ...q,
+        isMultiSelect: isMultiSelect(q)
+      }))
+
+      setAllQuestions(processedQuestions)
+    } catch (err: any) {
+      setError('Testni yuklashda xatolik: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleStart = () => {
+    if ((!file && !selectedTest) || allQuestions.length === 0) {
+      setError(t('start.error.fileRequired'))
+      return
+    }
+
+    const startNum = parseInt(startQuestion) || 1
+    const startIndex = startNum - 1
+    if (startIndex < 0 || startIndex >= allQuestions.length) {
+      setError(t('start.error.invalidStart'))
+      return
+    }
+
+    const count = parseInt(questionCount) || 1
+    if (count < 1 || startIndex + count > allQuestions.length) {
+      setError(t('start.error.invalidCount') + `: ${allQuestions.length - startIndex}`)
+      return
+    }
+
+    const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod)
+    
+    const fileId = file 
+      ? `${file.name}_${file.size}_${file.lastModified}`
+      : `${selectedTest?.id}_${selectedTest?.fileName}`
+
+    const fileName = file ? file.name : (selectedTest?.name || 'Test')
+
+    clearProgress()
+
+    onStart({
+      fileId,
+      fileName,
+      allQuestions,
+      selectedQuestions: selected,
+      startIndex,
+      currentQuestionIndex: 0,
+      selectionMethod,
+      answers: {},
+      score: { correct: 0, incorrect: 0 }
+    })
+  }
+
+  return (
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 128px)',
+        display: 'flex',
+        alignItems: 'center',
+        background: (theme) => theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        py: 4,
+      }}
+    >
+      <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2 } }}>
+        <Card
+          sx={{
+            background: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              gutterBottom 
+              align="center" 
+              sx={{ 
+                mb: { xs: 3, sm: 4 },
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, #90caf9 0%, #f48fb1 100%)'
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: 800,
+              }}
+            >
+              {t('start.title')}
+            </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+              <Tabs 
+                value={tabValue} 
+                onChange={(_, newValue) => {
+                  setTabValue(newValue)
+                  setFile(null)
+                  setSelectedTest(null)
+                  setAllQuestions([])
+                  setError('')
+                }}
+              >
+                <Tab label={t('start.selectFile')} />
+                <Tab label={t('start.selectFromCatalog')} />
+              </Tabs>
+            </Box>
+
+            {tabValue === 0 && (
+              <Box 
+                sx={{ 
+                  mb: { xs: 2, sm: 3 },
+                  p: { xs: 2, sm: 3 },
+                  border: '2px dashed',
+                  borderColor: 'primary.main',
+                  borderRadius: { xs: 2, sm: 3 },
+                  bgcolor: 'action.hover',
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    borderColor: 'primary.dark',
+                    bgcolor: 'action.selected',
+                    transform: { xs: 'none', sm: 'scale(1.01)' },
+                  },
+                }}
+              >
+                <input
+                  accept=".txt,.docx"
+                  style={{ display: 'none' }}
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+                <label htmlFor="file-upload">
+                  <Button
+                    variant="contained"
+                    component="span"
+                    startIcon={<CloudUpload />}
+                    fullWidth
+                    disabled={loading}
+                    sx={{ 
+                      py: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                    }}
+                  >
+                    {t('start.selectFile')}
+                  </Button>
+                </label>
+                {file && (
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                    <Chip 
+                      label={file.name} 
+                      color="primary" 
+                      sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                    />
+                    {allQuestions.length > 0 && (
+                      <Chip 
+                        label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
+                        color="success"
+                        sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                      />
+                    )}
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {tabValue === 1 && (
+              <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+                {loadingCatalog ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : testCatalog.length === 0 ? (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    {t('start.noTestsAvailable')}
+                  </Alert>
+                ) : (
+                  <Card variant="outlined">
+                    <List>
+                      {testCatalog.map((test, index) => (
+                        <React.Fragment key={test.id}>
+                          <ListItem disablePadding>
+                            <ListItemButton
+                              selected={selectedTest?.id === test.id}
+                              onClick={() => handleTestSelect(test)}
+                              disabled={loading}
+                            >
+                              <ListItemText
+                                primary={test.name}
+                                secondary={test.description || undefined}
+                              />
+                              <Description color="primary" />
+                            </ListItemButton>
+                          </ListItem>
+                          {index < testCatalog.length - 1 && <Divider />}
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  </Card>
+                )}
+                {selectedTest && allQuestions.length > 0 && (
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                    <Chip 
+                      label={selectedTest.name} 
+                      color="primary" 
+                      sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            )}
+
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+              <CircularProgress />
+            </Box>
+          )}
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
+          {allQuestions.length > 0 && (
+            <>
+              <TextField
+                fullWidth
+                label={t('start.startQuestion')}
+                type="number"
+                value={startQuestion}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const numValue = Number(value)
+                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= allQuestions.length)) {
+                    setStartQuestion(value)
+                    // Update questionCount max when startQuestion changes
+                    const currentCount = parseInt(questionCount) || 1
+                    const newMax = allQuestions.length - (numValue || 1) + 1
+                    if (currentCount > newMax) {
+                      setQuestionCount(newMax.toString())
+                    }
+                  }
+                }}
+                inputProps={{ min: 1, max: allQuestions.length }}
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
+
+              <TextField
+                fullWidth
+                label={t('start.questionCount')}
+                type="number"
+                value={questionCount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const startNum = parseInt(startQuestion) || 1
+                  const maxAvailable = allQuestions.length - startNum + 1
+                  if (value === '' || (!isNaN(Number(value)) && Number(value) >= 1 && Number(value) <= maxAvailable)) {
+                    setQuestionCount(value)
+                  }
+                }}
+                inputProps={{ min: 1, max: allQuestions.length - (parseInt(startQuestion) || 1) + 1 }}
+                helperText={`${t('start.maxAvailable')}: ${allQuestions.length - (parseInt(startQuestion) || 1) + 1}`}
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
+
+              <FormControl component="fieldset" sx={{ mb: { xs: 2, sm: 3 } }}>
+                <FormLabel component="legend" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  {t('start.selectionMethod')}
+                </FormLabel>
+                <RadioGroup
+                  row={false}
+                  sx={{
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 1, sm: 0 }
+                  }}
+                  value={selectionMethod}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectionMethod(e.target.value as 'sequential' | 'random')}
+                >
+                  <FormControlLabel 
+                    value="sequential" 
+                    control={<Radio size="small" />} 
+                    label={t('start.sequential')}
+                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                  />
+                  <FormControlLabel 
+                    value="random" 
+                    control={<Radio size="small" />} 
+                    label={t('start.random')}
+                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                  />
+                </RadioGroup>
+              </FormControl>
+
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={handleStart}
+                disabled={loading}
+                sx={{ 
+                  py: { xs: 1.5, sm: 2 },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #5e35b1 100%)',
+                  },
+                }}
+              >
+                {t('start.startTest')}
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
+      </Container>
+    </Box>
+  )
+}
