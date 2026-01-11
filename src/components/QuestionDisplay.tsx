@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert, useTheme, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material'
 import { InlineMath, BlockMath } from 'react-katex'
 import { useTranslation } from 'react-i18next'
@@ -602,7 +602,7 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                       {t('test.matching.correctMatches')}:
                     </Typography>
-                    {hasMultipleVariants ? (
+                    {hasMultipleVariants && firstLeftAnswer?.matchVariants ? (
                       // Show all variants
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {firstLeftAnswer.matchVariants.map((variant, variantIndex) => (
