@@ -107,9 +107,12 @@ export async function loadTestQuestions(filePath: string): Promise<Question[]> {
       .split('/')
       .map(segment => encodeURIComponent(segment))
       .join('/')
-    const response = await fetch(`${baseUrl}assets/${encodedPath}`)
+    const fullUrl = `${baseUrl}assets/${encodedPath}`
+    const response = await fetch(fullUrl)
     if (!response.ok) {
-      throw new Error(`Failed to load file: ${filePath}`)
+      // Provide more detailed error message
+      const statusText = response.statusText || `HTTP ${response.status}`
+      throw new Error(`Failed to load file: ${filePath} (${statusText}). URL: ${fullUrl}`)
     }
     
     // Check file extension
@@ -125,9 +128,14 @@ export async function loadTestQuestions(filePath: string): Promise<Question[]> {
     } else {
       throw new Error(`Unsupported file format: ${filePath}`)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load test questions:', error)
-    throw error
+    // Re-throw with more context
+    if (error instanceof Error) {
+      throw error
+    } else {
+      throw new Error(`Failed to load file: ${filePath}. ${error?.message || String(error)}`)
+    }
   }
 }
 
