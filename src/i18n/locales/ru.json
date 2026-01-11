@@ -100,12 +100,13 @@
     "contact": "Связь"
   },
   "contact": {
-    "donation": "Донат",
+    "donation": "Внести вклад в улучшение системы",
     "cardNumber": "Номер карты",
     "cardNumberPlaceholder": "Введите номер карты",
     "cardOwnerName": "Имя владельца карты",
     "cardOwnerNamePlaceholder": "Введите имя владельца карты",
-    "copy": "Копировать"
+    "copy": "Копировать",
+    "copied": "Скопировано"
   },
   "questions": {
     "allQuestions": "Все вопросы",

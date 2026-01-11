@@ -101,12 +101,13 @@
     "contact": "Murojaat"
   },
   "contact": {
-    "donation": "Donat",
+    "donation": "Tizimni yaxshilashga sarmoya kiritish",
     "cardNumber": "Karta raqami",
     "cardNumberPlaceholder": "Karta raqamini kiriting",
     "cardOwnerName": "Karta egasi ismi",
     "cardOwnerNamePlaceholder": "Karta egasi ismini kiriting",
-    "copy": "Nusxalash"
+    "copy": "Nusxalash",
+    "copied": "Nusxalandi"
   },
   "questions": {
     "allQuestions": "Barcha savollar",

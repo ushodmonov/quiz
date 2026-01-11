@@ -2,10 +2,10 @@
   "tests": [
     {
       "name": "Gistologiya(2025-2026)",
-      "semester": 2,
+      "semester": 3,
       "years": "2025-2026",
       "subject": "Gistologiya",
-      "courses": 1,
+      "courses": 2,
       "institute": "TTDU",
       "sub_catologs": [
         {

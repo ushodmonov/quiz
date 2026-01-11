@@ -8,12 +8,12 @@ import {
   Box,
   Link,
   Divider,
-  TextField,
   Card,
   CardContent,
-  InputAdornment
+  IconButton,
+  Tooltip
 } from '@mui/material'
-import { Telegram, Email, Close, CreditCard, AccountCircle } from '@mui/icons-material'
+import { Telegram, Email, Close, CreditCard, AccountCircle, ContentCopy, Check } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { CONTACT_INFO } from '../constants/contact'
 import { useState } from 'react'
@@ -25,18 +25,22 @@ interface ContactModalProps {
 
 export default function ContactModal({ open, onClose }: ContactModalProps) {
   const { t } = useTranslation()
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardOwnerName, setCardOwnerName] = useState('')
+  const [copiedCardNumber, setCopiedCardNumber] = useState(false)
+  const [copiedCardOwner, setCopiedCardOwner] = useState(false)
 
-  const handleCopyCardNumber = () => {
-    if (cardNumber) {
-      navigator.clipboard.writeText(cardNumber)
+  const handleCopyCardNumber = async () => {
+    if (CONTACT_INFO.donation?.cardNumber) {
+      await navigator.clipboard.writeText(CONTACT_INFO.donation.cardNumber)
+      setCopiedCardNumber(true)
+      setTimeout(() => setCopiedCardNumber(false), 2000)
     }
   }
 
-  const handleCopyCardOwnerName = () => {
-    if (cardOwnerName) {
-      navigator.clipboard.writeText(cardOwnerName)
+  const handleCopyCardOwnerName = async () => {
+    if (CONTACT_INFO.donation?.cardOwnerName) {
+      await navigator.clipboard.writeText(CONTACT_INFO.donation.cardOwnerName)
+      setCopiedCardOwner(true)
+      setTimeout(() => setCopiedCardOwner(false), 2000)
     }
   }
 
@@ -73,72 +77,108 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       <DialogContent sx={{ pt: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Donation Section */}
-          <Card
-            sx={{
-              bgcolor: (theme) => theme.palette.mode === 'dark' 
-                ? 'rgba(102, 126, 234, 0.1)' 
-                : 'rgba(102, 126, 234, 0.05)',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-            }}
-          >
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CreditCard color="primary" />
-                {t('contact.donation')}
-              </Typography>
-              
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                  label={t('contact.cardNumber')}
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
-                  placeholder={t('contact.cardNumberPlaceholder')}
-                  fullWidth
-                  size="small"
-                  InputProps={{
-                    endAdornment: cardNumber && (
-                      <InputAdornment position="end">
-                        <Button
-                          size="small"
-                          onClick={handleCopyCardNumber}
-                          sx={{ minWidth: 'auto', px: 1 }}
-                        >
-                          {t('contact.copy')}
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+          {CONTACT_INFO.donation && (
+            <Card
+              sx={{
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(102, 126, 234, 0.1)' 
+                  : 'rgba(102, 126, 234, 0.05)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CreditCard color="primary" />
+                  {t('contact.donation')}
+                </Typography>
                 
-                <TextField
-                  label={t('contact.cardOwnerName')}
-                  value={cardOwnerName}
-                  onChange={(e) => setCardOwnerName(e.target.value)}
-                  placeholder={t('contact.cardOwnerNamePlaceholder')}
-                  fullWidth
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <AccountCircle sx={{ color: 'text.secondary' }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: cardOwnerName && (
-                      <InputAdornment position="end">
-                        <Button
-                          size="small"
-                          onClick={handleCopyCardOwnerName}
-                          sx={{ minWidth: 'auto', px: 1 }}
-                        >
-                          {t('contact.copy')}
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Card Number */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.05)' 
+                        : 'rgba(0, 0, 0, 0.02)',
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <CreditCard sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        {t('contact.cardNumber')}
+                      </Typography>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          fontFamily: 'monospace',
+                          fontWeight: 500,
+                          letterSpacing: 1
+                        }}
+                      >
+                        {CONTACT_INFO.donation.cardNumber}
+                      </Typography>
+                    </Box>
+                    <Tooltip title={copiedCardNumber ? t('contact.copied') || 'Nusxalandi' : t('contact.copy')}>
+                      <IconButton
+                        size="small"
+                        onClick={handleCopyCardNumber}
+                        color={copiedCardNumber ? 'success' : 'default'}
+                        sx={{ ml: 1 }}
+                      >
+                        {copiedCardNumber ? <Check fontSize="small" /> : <ContentCopy fontSize="small" />}
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  
+                  {/* Card Owner Name */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: (theme) => theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.05)' 
+                        : 'rgba(0, 0, 0, 0.02)',
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <AccountCircle sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        {t('contact.cardOwnerName')}
+                      </Typography>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          fontWeight: 500,
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        {CONTACT_INFO.donation.cardOwnerName}
+                      </Typography>
+                    </Box>
+                    <Tooltip title={copiedCardOwner ? t('contact.copied') || 'Nusxalandi' : t('contact.copy')}>
+                      <IconButton
+                        size="small"
+                        onClick={handleCopyCardOwnerName}
+                        color={copiedCardOwner ? 'success' : 'default'}
+                        sx={{ ml: 1 }}
+                      >
+                        {copiedCardOwner ? <Check fontSize="small" /> : <ContentCopy fontSize="small" />}
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
 
           <Divider />
 
