@@ -1,6 +1,6 @@
 import { Container, Typography, Box, Card, CardContent, Divider, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Stack, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { ArrowBack, CheckCircle, Description, TableChart, Sort } from '@mui/icons-material'
+import { ArrowBack, CheckCircle, Description, TableChart, Sort, Link } from '@mui/icons-material'
 import { Button } from '@mui/material'
 
 interface TestFormatsPageProps {
@@ -431,6 +431,218 @@ export default function TestFormatsPage({ onBack }: TestFormatsPageProps) {
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
               <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
                 {t('formats.format3.note') || 'Eslatma: Bu format faqat "Укажите порядок следования" so\'zi bo\'lsa ishlaydi.'}
+              </Typography>
+            </Paper>
+          </CardContent>
+        </Card>
+
+        {/* Format 4: Moslik format */}
+        <Card elevation={2}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Link color="primary" sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {t('formats.format4.title') || 'Format 4: Moslik format'}
+              </Typography>
+            </Box>
+            
+            <Typography variant="body1" paragraph>
+              {t('formats.format4.description') || 'Bu format javoblarni moslik bo\'yicha bog\'lash kerak bo\'lganda ishlatiladi.'}
+            </Typography>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format4.structure') || 'Struktura:'}
+              </Typography>
+              <Box component="ol" sx={{ pl: 3 }}>
+                <li>
+                  <Typography variant="body2">
+                    Savol <strong>"Задание №"</strong> bilan boshlanadi (masalan: "Задание №1", "Задание №2")
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Savol matni bir nechta qatorda bo'lishi mumkin
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    <strong>"Укажите соответствие для всех ... вариантов ответа"</strong> qatori o'tkazib yuboriladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Javoblar jadval (table) ko'rinishida bo'ladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Fayl oxirida <strong>"Ответы:"</strong> bilan boshlanadigan jadval bo'ladi
+                  </Typography>
+                </li>
+              </Box>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format4.tableFormat') || 'Javoblar jadval formati:'}
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>1-ustun</strong></TableCell>
+                      <TableCell><strong>2-ustun</strong></TableCell>
+                      <TableCell><strong>3-ustun</strong></TableCell>
+                      <TableCell><strong>4-ustun</strong></TableCell>
+                      <TableCell><strong>5-ustun</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Indeks</TableCell>
+                      <TableCell>Moslik indeksi (2-3)</TableCell>
+                      <TableCell>Chap javob matni</TableCell>
+                      <TableCell>Moslik indeksi (4-5)</TableCell>
+                      <TableCell>O'ng javob matni</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>1</TableCell>
+                      <TableCell>1</TableCell>
+                      <TableCell>Birinchi chap javob</TableCell>
+                      <TableCell>4</TableCell>
+                      <TableCell>To'rtinchi o'ng javob</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>2</TableCell>
+                      <TableCell>2</TableCell>
+                      <TableCell>Ikkinchi chap javob</TableCell>
+                      <TableCell>3</TableCell>
+                      <TableCell>Uchinchi o'ng javob</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>3</TableCell>
+                      <TableCell>3</TableCell>
+                      <TableCell>Uchinchi chap javob</TableCell>
+                      <TableCell>2</TableCell>
+                      <TableCell>Ikkinchi o'ng javob</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>4</TableCell>
+                      <TableCell>4</TableCell>
+                      <TableCell>To'rtinchi chap javob</TableCell>
+                      <TableCell>1</TableCell>
+                      <TableCell>Birinchi o'ng javob</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format4.answersTable') || 'Javoblar jadvali (fayl oxirida):'}
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>1-ustun</strong></TableCell>
+                      <TableCell><strong>2-ustun</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Savol raqami</TableCell>
+                      <TableCell>To'g'ri moslik</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>#1</TableCell>
+                      <TableCell>1=4, 2=3, 3=2, 4=1</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>#2</TableCell>
+                      <TableCell>1=1, 2=2, 3=3</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontStyle: 'italic' }}>
+                {t('formats.format4.answersNote') || 'Format: "1=4" degani birinchi chap javob to\'rtinchi o\'ng javobga mos keladi'}
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format4.rules') || 'Qoidalar:'}
+              </Typography>
+              <Box component="ul" sx={{ pl: 3 }}>
+                <li>
+                  <Typography variant="body2">
+                    Javoblar jadvalida 5 ta ustun bo'lishi kerak
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    1-ustun: Indeks (faqat ko'rsatish uchun, ishlatilmaydi)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    2-ustun: Chap javoblar uchun moslik indeksi (3-ustundagi javobning indeksi)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    3-ustun: Chap javob matni
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    4-ustun: O'ng javoblar uchun moslik indeksi (5-ustundagi javobning indeksi)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    5-ustun: O'ng javob matni
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Fayl oxirida "Ответы:" bilan boshlanadigan jadval bo'lishi kerak
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Javoblar jadvalida: 1-ustun - savol raqami (#1, #2, ...), 2-ustun - to'g'ri moslik (masalan: "1=4, 2=3, 3=2, 4=1")
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Javoblar random qilinmaydi - ular asl tartibda ko'rsatiladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Foydalanuvchi har bir chap javob uchun mos o'ng javobni tanlaydi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Noto'g'ri javob berilganda, to'g'ri mosliklar ko'rsatiladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Kamida 1 ta chap va 1 ta o'ng javob bo'lishi kerak
+                  </Typography>
+                </li>
+              </Box>
+            </Box>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
+              <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
+                {t('formats.format4.note') || 'Eslatma: Bu format faqat "Укажите соответствие" so\'zi bo\'lsa ishlaydi. Javoblar random qilinmaydi.'}
               </Typography>
             </Paper>
           </CardContent>

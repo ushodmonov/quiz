@@ -29,6 +29,55 @@ export function selectQuestions(
 }
 
 export function calculateScore(question: Question, selectedAnswers: number[]): boolean {
+  // Handle matching format questions
+  if (question.isMatching) {
+    // selectedAnswers[leftIndex] = rightIndex
+    const leftAnswers = question.answers.filter(a => a.isLeftColumn)
+    
+    // Check if all left answers have a match
+    if (selectedAnswers.length < leftAnswers.length) {
+      return false
+    }
+    
+    // Check if we have multiple variants
+    const firstLeftAnswer = leftAnswers[0]
+    if (firstLeftAnswer?.matchVariants && firstLeftAnswer.matchVariants.length > 0) {
+      // Check against all variants - if any variant matches, the answer is correct
+      for (const variant of firstLeftAnswer.matchVariants) {
+        let variantMatches = true
+        for (let leftIdx = 0; leftIdx < leftAnswers.length; leftIdx++) {
+          const selectedRightIndex = selectedAnswers[leftIdx]
+          const correctRightIndex = variant[leftIdx]
+          
+          if (selectedRightIndex === undefined || correctRightIndex === undefined || selectedRightIndex !== correctRightIndex) {
+            variantMatches = false
+            break
+          }
+        }
+        // If this variant matches, return true
+        if (variantMatches) {
+          return true
+        }
+      }
+      // None of the variants matched
+      return false
+    } else {
+      // Single variant (backward compatibility)
+      // Check each left answer's match
+      for (let leftIdx = 0; leftIdx < leftAnswers.length; leftIdx++) {
+        const leftAnswer = leftAnswers[leftIdx]
+        const selectedRightIndex = selectedAnswers[leftIdx]
+        const correctRightIndex = leftAnswer.matchIndex !== undefined ? leftAnswer.matchIndex : -1
+        
+        if (selectedRightIndex === undefined || selectedRightIndex !== correctRightIndex) {
+          return false
+        }
+      }
+      
+      return true
+    }
+  }
+  
   // Handle sequence format questions
   if (question.isSequence) {
     // selectedAnswers[i] = answerIndex at position i

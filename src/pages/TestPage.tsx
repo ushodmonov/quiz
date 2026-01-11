@@ -72,8 +72,31 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     })
   }
 
+  const handleMatchingSelect = (leftIndex: number, rightIndex: number) => {
+    if (isAnswered) return
+
+    setSelectedAnswers((prev: number[]) => {
+      const newAnswers = [...prev]
+      // Ensure array is large enough
+      while (newAnswers.length <= leftIndex) {
+        newAnswers.push(-1)
+      }
+      newAnswers[leftIndex] = rightIndex
+      return newAnswers
+    })
+  }
+
   const handleSubmit = () => {
-    if (selectedAnswers.length === 0) return
+    if (currentQuestion.isMatching) {
+      // For matching: check if all left answers have a match
+      const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
+      const allMatched = leftAnswers.every((_, leftIdx) => 
+        selectedAnswers[leftIdx] !== undefined && selectedAnswers[leftIdx] !== -1
+      )
+      if (!allMatched) return
+    } else if (selectedAnswers.length === 0) {
+      return
+    }
 
     const correct = calculateScore(currentQuestion, selectedAnswers)
     setIsCorrect(correct)
@@ -131,9 +154,19 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     }
   }
 
-  const canSubmit = (currentQuestion.isSequence 
-    ? selectedAnswers.filter(a => a !== -1 && a !== undefined).length === currentQuestion.answers.length
-    : selectedAnswers.length > 0) && !isAnswered
+  const canSubmit = (() => {
+    if (isAnswered) return false
+    if (currentQuestion.isMatching) {
+      const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
+      return leftAnswers.every((_, leftIdx) => 
+        selectedAnswers[leftIdx] !== undefined && selectedAnswers[leftIdx] !== -1
+      )
+    } else if (currentQuestion.isSequence) {
+      return selectedAnswers.filter(a => a !== -1 && a !== undefined).length === currentQuestion.answers.length
+    } else {
+      return selectedAnswers.length > 0
+    }
+  })()
 
   return (
     <Box
@@ -200,6 +233,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
             isCorrect={isCorrect}
             onAnswerSelect={handleAnswerSelect}
             onSequenceSelect={handleSequenceSelect}
+            onMatchingSelect={handleMatchingSelect}
             questionNumber={currentQuestion.originalIndex !== undefined 
               ? currentQuestion.originalIndex + 1 
               : quizData.startIndex + quizData.currentQuestionIndex + 1}

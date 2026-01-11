@@ -38,7 +38,8 @@
       "noQuestions": "Savollar topilmadi. Fayl formati to'g'ri emas.",
       "invalidStart": "Boshlanish savoli noto'g'ri",
       "invalidCount": "Savollar soni noto'g'ri",
-      "noFileName": "Fayl nomi topilmadi"
+      "noFileName": "Fayl nomi topilmadi",
+      "noAnswers": "Javob variantlari mavjud emas!"
     }
   },
   "test": {
@@ -56,7 +57,17 @@
     "format": {
       "sequence": "Ketma ketlik",
       "multiSelect": "Ko'p tanlov",
-      "singleSelect": "Bitta tanlov"
+      "singleSelect": "Bitta tanlov",
+      "matching": "Moslik"
+    },
+    "matching": {
+      "leftColumn": "Chap ustun",
+      "rightColumn": "O'ng ustun",
+      "selectMatch": "Moslikni tanlang",
+      "none": "Tanlanmagan",
+      "correctMatches": "To'g'ri mosliklar",
+      "additionalVariants": "Qo'shimcha variantlar",
+      "variant": "Variant"
     }
   },
   "results": {
@@ -88,6 +99,14 @@
   },
   "footer": {
     "contact": "Murojaat"
+  },
+  "contact": {
+    "donation": "Donat",
+    "cardNumber": "Karta raqami",
+    "cardNumberPlaceholder": "Karta raqamini kiriting",
+    "cardOwnerName": "Karta egasi ismi",
+    "cardOwnerNamePlaceholder": "Karta egasi ismini kiriting",
+    "copy": "Nusxalash"
   },
   "questions": {
     "allQuestions": "Barcha savollar",
@@ -124,6 +143,16 @@
       "answersNote": "Format: \"1=2\" degani birinchi javob ikkinchi o'rinda bo'lishi kerak",
       "rules": "Qoidalar:",
       "note": "Eslatma: Bu format faqat \"Укажите порядок следования\" so'zi bo'lsa ishlaydi."
+    },
+    "format4": {
+      "title": "Format 4: Moslik format",
+      "description": "Bu format javoblarni moslik bo'yicha bog'lash kerak bo'lganda ishlatiladi.",
+      "structure": "Struktura:",
+      "tableFormat": "Javoblar jadval formati:",
+      "answersTable": "Javoblar jadvali (fayl oxirida):",
+      "answersNote": "Format: \"1=4\" degani birinchi chap javob to'rtinchi o'ng javobga mos keladi",
+      "rules": "Qoidalar:",
+      "note": "Eslatma: Bu format faqat \"Укажите соответствие\" so'zi bo'lsa ishlaydi. Javoblar random qilinmaydi."
     },
     "formulas": {
       "title": "LaTeX formulalar",

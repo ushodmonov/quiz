@@ -406,12 +406,32 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                       pt: { xs: 1, sm: 2 },
                       borderTop: (theme) => `1px solid ${theme.palette.divider}`,
                     }}>
+                      <Box>
                       <QuestionDisplay
                         question={question}
                         selectedAnswers={
-                          // For sequence questions, show correct order
-                          // selectedAnswers[position] = answerIndex format
-                          question.isSequence
+                          // For matching questions, show correct matches
+                          // selectedAnswers[leftIndex] = rightIndex format (rightIndex is absolute index)
+                          question.isMatching
+                            ? (() => {
+                                const leftAnswers = question.answers.filter(a => a.isLeftColumn)
+                                const result: number[] = []
+                                leftAnswers.forEach((leftAnswer, leftIdx) => {
+                                  // Use first variant if available, otherwise use matchIndex
+                                  if (leftAnswer.matchVariants && leftAnswer.matchVariants.length > 0) {
+                                    // Use first variant
+                                    const firstVariant = leftAnswer.matchVariants[0]
+                                    if (firstVariant[leftIdx] !== undefined) {
+                                      result[leftIdx] = firstVariant[leftIdx]
+                                    }
+                                  } else if (leftAnswer.matchIndex !== undefined && leftAnswer.matchIndex >= 0) {
+                                    // Fallback to matchIndex for backward compatibility
+                                    result[leftIdx] = leftAnswer.matchIndex
+                                  }
+                                })
+                                return result
+                              })()
+                            : question.isSequence
                             ? (() => {
                                 // Create array with correct order
                                 const sorted = question.answers
@@ -431,9 +451,11 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                         isCorrect={true}
                         onAnswerSelect={() => {}}
                         onSequenceSelect={() => {}}
+                        onMatchingSelect={() => {}}
                         questionNumber={questionNumber}
                         showAlert={false}
                       />
+                      </Box>
                     </AccordionDetails>
                   </Accordion>
                 )

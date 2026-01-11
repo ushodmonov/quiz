@@ -2,6 +2,9 @@ export interface Answer {
   text: string
   isCorrect: boolean
   orderNumber?: number // For sequence questions - the correct order position
+  matchIndex?: number // For matching questions - the index of the matching answer (0-based)
+  matchVariants?: Record<number, number>[] // For matching questions - multiple correct matching variants
+  isLeftColumn?: boolean // For matching questions - true if this is in left column (column 2-3), false if right column (column 4-5)
 }
 
 export interface Question {
@@ -9,6 +12,7 @@ export interface Question {
   answers: Answer[]
   isMultiSelect?: boolean
   isSequence?: boolean // For sequence/ordering questions
+  isMatching?: boolean // For matching questions
   originalIndex?: number
 }
 
