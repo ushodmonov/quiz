@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { AppBar as MuiAppBar, Toolbar, Typography, IconButton, Box, Menu, MenuItem, Button } from '@mui/material'
-import { Brightness4, Brightness7, Language as LanguageIcon, HelpOutline, MenuBook } from '@mui/icons-material'
+import { Brightness4, Brightness7, Language as LanguageIcon, HelpOutline, MenuBook, InfoOutlined } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
 import type { ThemeMode, Language } from '../types'
@@ -11,9 +11,10 @@ interface AppBarProps {
   onThemeToggle: () => void
   onLanguageChange: (lang: Language) => void
   onTitleClick?: () => void
+  onViewFormats?: () => void
 }
 
-export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick }: AppBarProps) {
+export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats }: AppBarProps) {
   const { t, i18n } = useTranslation()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const [contactModalOpen, setContactModalOpen] = useState(false)
@@ -73,6 +74,32 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: { xs: 0.5, sm: 1 }, alignItems: 'center' }}>
+          {onViewFormats && (
+            <>
+              <Button
+                color="inherit"
+                startIcon={<InfoOutlined fontSize="medium" />}
+                onClick={onViewFormats}
+                sx={{ 
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  px: { xs: 1.5, sm: 2.5 },
+                  py: { xs: 0.75, sm: 1 },
+                  display: { xs: 'none', sm: 'flex' }
+                }}
+              >
+                {t('formats.title') || 'Formatlar'}
+              </Button>
+              <IconButton
+                onClick={onViewFormats}
+                color="inherit"
+                size="medium"
+                sx={{ display: { xs: 'flex', sm: 'none' } }}
+                title={t('formats.title') || 'Formatlar'}
+              >
+                <InfoOutlined fontSize="medium" />
+              </IconButton>
+            </>
+          )}
           <Button
             color="inherit"
             startIcon={<HelpOutline fontSize="medium" />}

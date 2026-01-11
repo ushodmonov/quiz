@@ -10,27 +10,25 @@
       "sub_catologs": [
         {
           "name": "Bir javobli.docx",
-          "fileName": "ttdu_gistologiya_2_1_2025_2026/Bir javobli.docx",
-          "semester": 2,
-          "years": "2025-2026",
-          "subject": "Gistologiya",
-          "courses": 1,
-          "institute": "TTDU"
+          "path": "ttdu_gistologiya_2_1_2025_2026/Bir javobli.docx"
+        },
+        {
+          "name": "Ketma ketlik.docx",
+          "path": "ttdu_gistologiya_2_1_2025_2026/Ketma ketlik.docx"
         },
         {
           "name": "Ko'p javobli.docx",
-          "fileName": "ttdu_gistologiya_2_1_2025_2026/Ko'p javobli.docx",
-          "semester": 2,
-          "years": "2025-2026",
-          "subject": "Gistologiya",
-          "courses": 1,
-          "institute": "TTDU"
+          "path": "ttdu_gistologiya_2_1_2025_2026/Ko'p javobli.docx"
+        },
+        {
+          "name": "Moslik.docx",
+          "path": "ttdu_gistologiya_2_1_2025_2026/Moslik.docx"
         }
       ]
     },
     {
       "name": "Odam anatomiya",
-      "fileName": "ttdu_odam_anatomiyasi_1_1.txt",
+      "path": "ttdu_odam_anatomiyasi_1_1.txt",
       "semester": 1,
       "subject": "Odam anatomiya",
       "courses": 1,
@@ -38,7 +36,7 @@
     },
     {
       "name": "Tibbiy kimyo",
-      "fileName": "ttdu_tibbiy_kimyo_1_1.docx",
+      "path": "ttdu_tibbiy_kimyo_1_1.docx",
       "semester": 1,
       "subject": "Tibbiy kimyo",
       "courses": 1,

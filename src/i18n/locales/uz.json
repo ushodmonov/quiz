@@ -30,6 +30,8 @@
     "subTests": "sub-testlar",
     "semester": "Semestr",
     "viewAllQuestions": "Barcha savollarni ko'rish",
+    "viewFormats": "Test formatlari",
+    "loadAllSubTests": "Barcha testlarni ishlash",
     "error": {
       "fileRequired": "Iltimos, fayl yoki test tanlang",
       "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
@@ -46,7 +48,16 @@
     "nextQuestion": "Keyingi savol",
     "viewResults": "Natijalarni ko'rish",
     "correct": "To'g'ri!",
-    "incorrect": "Noto'g'ri"
+    "incorrect": "Noto'g'ri",
+    "sequence": {
+      "order": "Tartib",
+      "correctOrder": "To'g'ri tartib"
+    },
+    "format": {
+      "sequence": "Ketma ketlik",
+      "multiSelect": "Ko'p tanlov",
+      "singleSelect": "Bitta tanlov"
+    }
   },
   "results": {
     "title": "Test natijalari",
@@ -72,7 +83,8 @@
   },
   "common": {
     "select": "Tanlash",
-    "close": "Yopish"
+    "close": "Yopish",
+    "back": "Orqaga"
   },
   "footer": {
     "contact": "Murojaat"
@@ -86,5 +98,43 @@
     "found": "Topildi",
     "showing": "Ko'rsatilmoqda",
     "of": "dan"
+  },
+  "formats": {
+    "title": "Test Formatlari",
+    "supportedFormats": "Qo'llab-quvvatlanadigan formatlar",
+    "format1": {
+      "title": "Format 1: Oddiy format (TXT va DOCX)",
+      "description": "Bu format oddiy matn fayllari va Word hujjatlari uchun ishlatiladi.",
+      "rules": "Qoidalar:"
+    },
+    "format2": {
+      "title": "Format 2: DOCX Table format",
+      "description": "Bu format Word hujjatlarida jadval (table) ko'rinishida javoblar bo'lganda ishlatiladi.",
+      "structure": "Struktura:",
+      "tableFormat": "Jadval formati:",
+      "rules": "Qoidalar:",
+      "note": "Eslatma: Agar jadval formatida savollar topilmasa, tizim oddiy formatga o'tadi."
+    },
+    "format3": {
+      "title": "Format 3: Ketma ketlik format",
+      "description": "Bu format javoblarni ketma-ketlik bo'yicha tartibga solish kerak bo'lganda ishlatiladi.",
+      "structure": "Struktura:",
+      "tableFormat": "Javoblar jadval formati:",
+      "answersTable": "Javoblar jadvali (fayl oxirida):",
+      "answersNote": "Format: \"1=2\" degani birinchi javob ikkinchi o'rinda bo'lishi kerak",
+      "rules": "Qoidalar:",
+      "note": "Eslatma: Bu format faqat \"Укажите порядок следования\" so'zi bo'lsa ishlaydi."
+    },
+    "formulas": {
+      "title": "LaTeX formulalar",
+      "description": "Savol va javoblarda LaTeX formulalaridan foydalanish mumkin.",
+      "inline": "Inline formulalar:",
+      "block": "Block formulalar:"
+    },
+    "examples": {
+      "title": "Misollar",
+      "singleSelect": "Single-select savol:",
+      "multiSelect": "Multi-select savol:"
+    }
   }
 }

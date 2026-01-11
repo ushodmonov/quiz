@@ -1,12 +1,14 @@
 export interface Answer {
   text: string
   isCorrect: boolean
+  orderNumber?: number // For sequence questions - the correct order position
 }
 
 export interface Question {
   text: string
   answers: Answer[]
   isMultiSelect?: boolean
+  isSequence?: boolean // For sequence/ordering questions
   originalIndex?: number
 }
 

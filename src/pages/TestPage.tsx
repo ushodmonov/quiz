@@ -52,6 +52,26 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     }
   }
 
+  const handleSequenceSelect = (position: number, answerIndex: number) => {
+    if (isAnswered) return
+
+    setSelectedAnswers((prev: number[]) => {
+      const newAnswers = [...prev]
+      // Remove answerIndex from any previous position
+      const prevPosition = newAnswers.indexOf(answerIndex)
+      if (prevPosition !== -1) {
+        newAnswers[prevPosition] = -1 // Mark as empty
+      }
+      // Set answerIndex at the new position
+      // Ensure array is large enough
+      while (newAnswers.length <= position) {
+        newAnswers.push(-1)
+      }
+      newAnswers[position] = answerIndex
+      return newAnswers
+    })
+  }
+
   const handleSubmit = () => {
     if (selectedAnswers.length === 0) return
 
@@ -111,7 +131,9 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     }
   }
 
-  const canSubmit = selectedAnswers.length > 0 && !isAnswered
+  const canSubmit = (currentQuestion.isSequence 
+    ? selectedAnswers.filter(a => a !== -1 && a !== undefined).length === currentQuestion.answers.length
+    : selectedAnswers.length > 0) && !isAnswered
 
   return (
     <Box
@@ -177,6 +199,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
             isAnswered={isAnswered}
             isCorrect={isCorrect}
             onAnswerSelect={handleAnswerSelect}
+            onSequenceSelect={handleSequenceSelect}
             questionNumber={currentQuestion.originalIndex !== undefined 
               ? currentQuestion.originalIndex + 1 
               : quizData.startIndex + quizData.currentQuestionIndex + 1}

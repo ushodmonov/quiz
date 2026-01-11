@@ -103,23 +103,10 @@ function generateTestCatalog() {
       
       for (const subFile of subFiles) {
         if (subFile.toLowerCase().endsWith('.docx') || subFile.toLowerCase().endsWith('.txt')) {
-          const metadata = extractMetadata(subFile, item.name)
           const subTestItem = {
             name: subFile, // Use full file name
-            fileName: `${item.name}/${subFile}`,
-            semester: metadata.semester,
-            years: metadata.years,
-            subject: metadata.subject,
-            courses: metadata.courses,
-            institute: 'TTDU'
+            path: `${item.name}/${subFile}`
           }
-          
-          // Remove null/undefined values
-          Object.keys(subTestItem).forEach(key => {
-            if (subTestItem[key] === null || subTestItem[key] === undefined) {
-              delete subTestItem[key]
-            }
-          })
           
           subTests.push(subTestItem)
         }
@@ -160,7 +147,7 @@ function generateTestCatalog() {
         
         const testItem = {
           name: name,
-          fileName: item.name,
+          path: item.name,
           semester: metadata.semester,
           years: metadata.years,
           subject: metadata.subject,
@@ -193,7 +180,7 @@ function generateTestCatalog() {
     if (test.sub_catologs && test.sub_catologs.length > 0) {
       console.log(`   ${index + 1}. ${test.subject || test.name} (${test.sub_catologs.length} sub-tests)`)
     } else {
-      console.log(`   ${index + 1}. ${test.subject || test.name} (${test.fileName})`)
+      console.log(`   ${index + 1}. ${test.subject || test.name} (${test.path})`)
     }
   })
   console.log(`\n📝 Catalog saved to: ${catalogPath}`)

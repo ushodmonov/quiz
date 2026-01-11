@@ -3,7 +3,7 @@ import type { Question } from '../types'
 export interface TestCatalogItem {
   id: string  // Auto-generated if not provided in JSON
   name: string
-  fileName?: string  // Optional, because sub catalogs might not have fileName
+  path?: string  // Optional, file path relative to assets folder
   description?: string
   semester?: string | number  // Qaysi semestr (e.g., "1", "2", or 1, 2)
   years?: string  // Qaysi yillar (e.g., "2025-2026")
@@ -16,12 +16,12 @@ export interface TestCatalogItem {
 
 /**
  * Generate ID from test item fields
- * Priority: fileName > subject > name
+ * Priority: path > subject > name
  */
 function generateTestId(test: Omit<TestCatalogItem, 'id'>, parentId?: string): string {
-  // If fileName exists, use it as base (remove extension)
-  if (test.fileName) {
-    const baseName = test.fileName.replace(/\.(txt|docx)$/i, '')
+  // If path exists, use it as base (remove extension)
+  if (test.path) {
+    const baseName = test.path.replace(/\.(txt|docx)$/i, '')
     const id = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     return parentId ? `${parentId}-${id}` : id
   }
@@ -98,28 +98,32 @@ export async function loadTestCatalog(): Promise<TestCatalog> {
 /**
  * Load questions from a test file in assets
  */
-export async function loadTestQuestions(fileName: string): Promise<Question[]> {
+export async function loadTestQuestions(filePath: string): Promise<Question[]> {
   try {
     const baseUrl = getBaseUrl()
-    const response = await fetch(`${baseUrl}assets/${fileName}`)
+    // Encode the filePath to handle special characters and paths
+    // Split by '/' to encode each segment separately, then join back
+    const encodedPath = filePath
+      .split('/')
+      .map(segment => encodeURIComponent(segment))
+      .join('/')
+    const response = await fetch(`${baseUrl}assets/${encodedPath}`)
     if (!response.ok) {
-      throw new Error(`Failed to load file: ${fileName}`)
+      throw new Error(`Failed to load file: ${filePath}`)
     }
     
     // Check file extension
-    if (fileName.toLowerCase().endsWith('.txt')) {
+    if (filePath.toLowerCase().endsWith('.txt')) {
       const text = await response.text()
       const { parseTxtFile } = await import('./fileParser')
       return parseTxtFile(text)
-    } else if (fileName.toLowerCase().endsWith('.docx')) {
+    } else if (filePath.toLowerCase().endsWith('.docx')) {
       const arrayBuffer = await response.arrayBuffer()
-      // Use mammoth directly with arrayBuffer
-      const mammoth = await import('mammoth')
-      const result = await mammoth.extractRawText({ arrayBuffer })
-      const { parseTxtFile } = await import('./fileParser')
-      return parseTxtFile(result.value)
+      // Use parseDocxFileFromBuffer to properly parse DOCX with table support
+      const { parseDocxFileFromBuffer } = await import('./fileParser')
+      return parseDocxFileFromBuffer(arrayBuffer)
     } else {
-      throw new Error(`Unsupported file format: ${fileName}`)
+      throw new Error(`Unsupported file format: ${filePath}`)
     }
   } catch (error) {
     console.error('Failed to load test questions:', error)

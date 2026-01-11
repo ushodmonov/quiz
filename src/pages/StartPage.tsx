@@ -28,7 +28,7 @@ import {
   AccordionSummary,
   AccordionDetails
 } from '@mui/material'
-import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
@@ -146,7 +146,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       
       return (
         (test.subject || test.name || '').toLowerCase().includes(query) ||
-        (test.fileName && test.fileName.toLowerCase().includes(query)) ||
+        (test.path && test.path.toLowerCase().includes(query)) ||
         (test.institute && test.institute.toLowerCase().includes(query)) ||
         (test.semester && test.semester.toString().toLowerCase().includes(query)) ||
         (test.years && test.years.toLowerCase().includes(query)) ||
@@ -227,12 +227,51 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   }
 
   const handleTestSelect = async (test: TestCatalogItem) => {
-    // Don't select if test has sub catalogs but no fileName
-    if (hasSubCatalogs(test) && !test.fileName) {
+    // If test has sub catalogs, load all sub catalogs
+    if (hasSubCatalogs(test)) {
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length === 0) {
+        return
+      }
+
+      setSelectedTest(test)
+      setFile(null)
+      setError('')
+      setLoading(true)
+
+      try {
+        // Load questions from all sub catalogs
+        const allQuestionsPromises = subCatalogs
+          .filter(subTest => subTest.path)
+          .map(subTest => loadTestQuestions(subTest.path!))
+        
+        const questionsArrays = await Promise.all(allQuestionsPromises)
+        
+        // Combine all questions from all sub catalogs
+        const allLoadedQuestions = questionsArrays.flat()
+        
+        if (allLoadedQuestions.length === 0) {
+          setError(t('start.error.noQuestions'))
+          setLoading(false)
+          return
+        }
+
+        const processedQuestions = allLoadedQuestions.map(q => ({
+          ...q,
+          isMultiSelect: isMultiSelect(q)
+        }))
+
+        setAllQuestions(processedQuestions)
+      } catch (err: any) {
+        setError('Testni yuklashda xatolik: ' + err.message)
+      } finally {
+        setLoading(false)
+      }
       return
     }
 
-    if (!test.fileName) {
+    // Regular test without sub catalogs
+    if (!test.path) {
       setError(t('start.error.noFileName') || 'Fayl nomi topilmadi')
       return
     }
@@ -243,7 +282,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     setLoading(true)
 
     try {
-      const questions = await loadTestQuestions(test.fileName)
+      const questions = await loadTestQuestions(test.path)
       
       if (questions.length === 0) {
         setError(t('start.error.noQuestions'))
@@ -287,7 +326,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     
     const fileId = file 
       ? `${file.name}_${file.size}_${file.lastModified}`
-      : `${selectedTest?.id}_${selectedTest?.fileName}`
+      : `${selectedTest?.id}_${selectedTest?.path}`
 
     const fileName = file ? file.name : (selectedTest?.name || 'Test')
 
@@ -508,6 +547,19 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           </Box>
                                         </AccordionSummary>
                                         <AccordionDetails sx={{ p: 0, pt: 0 }}>
+                                          <Box sx={{ bgcolor: 'action.hover', p: 1 }}>
+                                            <Button
+                                              variant="contained"
+                                              size="small"
+                                              startIcon={<PlayArrow />}
+                                              onClick={() => handleTestSelect(test)}
+                                              disabled={loading}
+                                              fullWidth
+                                              sx={{ mb: 1 }}
+                                            >
+                                              {t('start.loadAllSubTests') || 'Barcha sub-testlarni yuklash'}
+                                            </Button>
+                                          </Box>
                                           <List sx={{ bgcolor: 'action.hover' }}>
                                             {subCatalogs.map((subTest, subIndex) => (
                                               <Fragment key={subTest.id}>
@@ -520,7 +572,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                   >
                                                     <ListItemText
                                                       primary={subTest.name}
-                                                      secondary={formatTestSecondary(subTest)}
                                                     />
                                                     <Description color="primary" />
                                                   </ListItemButton>
@@ -537,7 +588,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                       <ListItemButton
                                         selected={selectedTest?.id === test.id}
                                         onClick={() => handleTestSelect(test)}
-                                        disabled={loading || !test.fileName}
+                                        disabled={loading || !test.path}
                                       >
                                         <ListItemText
                                           primary={test.subject || test.name}

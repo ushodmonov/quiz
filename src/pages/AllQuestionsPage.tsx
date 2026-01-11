@@ -408,11 +408,31 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                     }}>
                       <QuestionDisplay
                         question={question}
-                        selectedAnswers={[]}
+                        selectedAnswers={
+                          // For sequence questions, show correct order
+                          // selectedAnswers[position] = answerIndex format
+                          question.isSequence
+                            ? (() => {
+                                // Create array with correct order
+                                const sorted = question.answers
+                                  .map((answer, index) => ({ answer, index }))
+                                  .sort((a, b) => (a.answer.orderNumber || 0) - (b.answer.orderNumber || 0))
+                                // Create array where position = answerIndex
+                                const result: number[] = []
+                                sorted.forEach(({ index }) => {
+                                  const position = (question.answers[index].orderNumber || 0) - 1 // Convert to 0-based
+                                  result[position] = index
+                                })
+                                return result
+                              })()
+                            : []
+                        }
                         isAnswered={true}
-                        isCorrect={false}
+                        isCorrect={true}
                         onAnswerSelect={() => {}}
+                        onSequenceSelect={() => {}}
                         questionNumber={questionNumber}
+                        showAlert={false}
                       />
                     </AccordionDetails>
                   </Accordion>

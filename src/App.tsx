@@ -5,6 +5,7 @@ import StartPage from './pages/StartPage'
 import TestPage from './pages/TestPage'
 import ResultsPage from './pages/ResultsPage'
 import AllQuestionsPage from './pages/AllQuestionsPage'
+import TestFormatsPage from './pages/TestFormatsPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions } from './utils/storage'
@@ -15,7 +16,7 @@ import type { QuizData, QuizResults, ThemeMode, Language, Question } from './typ
 
 function App() {
   const { i18n } = useTranslation()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
@@ -153,6 +154,14 @@ function App() {
     setCurrentPage('start')
   }
 
+  const handleViewFormats = () => {
+    setCurrentPage('formats')
+  }
+
+  const handleBackFromFormats = () => {
+    setCurrentPage('start')
+  }
+
   const handleThemeToggle = () => {
     const newMode = themeMode === 'light' ? 'dark' : 'light'
     setThemeMode(newMode)
@@ -176,6 +185,7 @@ function App() {
           onThemeToggle={handleThemeToggle}
           onLanguageChange={handleLanguageChange}
           onTitleClick={handleBackToStart}
+          onViewFormats={currentPage === 'start' ? handleViewFormats : undefined}
         />
         <Box sx={{ flexGrow: 1 }}>
           <ResumeModal
@@ -184,7 +194,13 @@ function App() {
             onNew={handleNewQuiz}
           />
           {currentPage === 'start' && (
-            <StartPage onStart={handleStartQuiz} onViewAllQuestions={handleViewAllQuestions} />
+            <StartPage 
+              onStart={handleStartQuiz} 
+              onViewAllQuestions={handleViewAllQuestions}
+            />
+          )}
+          {currentPage === 'formats' && (
+            <TestFormatsPage onBack={handleBackFromFormats} />
           )}
           {currentPage === 'questions' && (
             <AllQuestionsPage questions={allQuestions} onBack={handleBackFromQuestions} />
