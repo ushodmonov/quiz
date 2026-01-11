@@ -21,13 +21,14 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
   const { t } = useTranslation()
 
   // Shuffle answers randomly but keep track of original indices
+  // Include questionNumber in dependencies to ensure answers are shuffled each time question is displayed
   const shuffledAnswers = useMemo(() => {
     const answersWithIndex: ShuffledAnswer[] = question.answers.map((answer, index) => ({
       ...answer,
       originalIndex: index
     }))
     
-    // Create a shuffled copy
+    // Create a shuffled copy using Fisher-Yates shuffle algorithm
     const shuffled = [...answersWithIndex]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -35,7 +36,7 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
     }
     
     return shuffled
-  }, [question.answers])
+  }, [question.answers, questionNumber, question.text])
 
   // Get answer color based on original index
   const getAnswerColor = (shuffledIndex: number): 'success' | 'error' | 'default' => {

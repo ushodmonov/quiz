@@ -75,6 +75,31 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
               </Link>
             </Box>
           </Box>
+
+          {CONTACT_INFO.telegramChannel.url && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Telegram color="primary" />
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  Telegram Kanal
+                </Typography>
+                <Link
+                  href={CONTACT_INFO.telegramChannel.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: 'primary.main',
+                    textDecoration: 'none',
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                  }}
+                >
+                  {CONTACT_INFO.telegramChannel.name || CONTACT_INFO.telegramChannel.url}
+                </Link>
+              </Box>
+            </Box>
+          )}
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Email color="primary" />

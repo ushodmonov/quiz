@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, Fragment, useMemo } from 'react'
 import {
   Container,
   Card,
@@ -21,9 +21,14 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Divider
+  Divider,
+  InputAdornment,
+  Pagination,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material'
-import { CloudUpload, Description } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
@@ -48,7 +53,57 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [loading, setLoading] = useState(false)
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [error, setError] = useState('')
+  const [catalogSearchQuery, setCatalogSearchQuery] = useState('')
+  const [catalogPage, setCatalogPage] = useState(1)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [allQuestions, setAllQuestions] = useState<Array<{ text: string; answers: Array<{ text: string; isCorrect: boolean }>; isMultiSelect?: boolean }>>([])
+
+  const TESTS_PER_PAGE = 10
+
+  const handleCategoryToggle = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories)
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId)
+    } else {
+      newExpanded.add(categoryId)
+    }
+    setExpandedCategories(newExpanded)
+  }
+
+  const hasSubCatalogs = (test: TestCatalogItem): boolean => {
+    return !!(test.sub_catalogs && test.sub_catalogs.length > 0) || !!(test.sub_catologs && test.sub_catologs.length > 0)
+  }
+
+  const getSubCatalogs = (test: TestCatalogItem): TestCatalogItem[] => {
+    return test.sub_catalogs || test.sub_catologs || []
+  }
+
+  const formatTestInfo = (test: TestCatalogItem): string => {
+    const parts: string[] = []
+    if (test.institute) {
+      parts.push(test.institute)
+    }
+    if (test.courses) {
+      let coursesText = ''
+      if (Array.isArray(test.courses)) {
+        coursesText = test.courses.map(c => `${c}-kurs`).join(', ')
+      } else {
+        coursesText = `${test.courses}-kurs`
+      }
+      parts.push(coursesText)
+    }
+    if (test.semester) {
+      parts.push(`${t('start.semester') || 'Semestr'}: ${test.semester}`)
+    }
+    if (test.years) {
+      parts.push(test.years)
+    }
+    return parts.join(' • ')
+  }
+
+  const formatTestSecondary = (test: TestCatalogItem): string => {
+    return formatTestInfo(test)
+  }
 
   useEffect(() => {
     // Load test catalog when component mounts
@@ -65,6 +120,69 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
     loadCatalog()
   }, [])
+
+  // Filter catalog based on search query (including sub catalogs)
+  const filteredCatalog = useMemo(() => {
+    if (!catalogSearchQuery.trim()) {
+      return testCatalog
+    }
+
+    const query = catalogSearchQuery.toLowerCase()
+    
+    const matchesTest = (test: TestCatalogItem): boolean => {
+      // Check courses field
+      let coursesMatch = false
+      if (test.courses) {
+        if (Array.isArray(test.courses)) {
+          coursesMatch = test.courses.some(c => 
+            c.toString().toLowerCase().includes(query) || 
+            `${c}-kurs`.toLowerCase().includes(query)
+          )
+        } else {
+          const coursesStr = test.courses.toString().toLowerCase()
+          coursesMatch = coursesStr.includes(query) || `${test.courses}-kurs`.toLowerCase().includes(query)
+        }
+      }
+      
+      return (
+        (test.subject || test.name || '').toLowerCase().includes(query) ||
+        (test.fileName && test.fileName.toLowerCase().includes(query)) ||
+        (test.institute && test.institute.toLowerCase().includes(query)) ||
+        (test.semester && test.semester.toString().toLowerCase().includes(query)) ||
+        (test.years && test.years.toLowerCase().includes(query)) ||
+        coursesMatch
+      )
+    }
+    
+    return testCatalog.filter(test => {
+      // Check main test
+      const matchesMain = matchesTest(test)
+      
+      // Check sub catalogs
+      const subCatalogs = getSubCatalogs(test)
+      const hasMatchingSubs = subCatalogs.some(subTest => matchesTest(subTest))
+      
+      return matchesMain || hasMatchingSubs
+    })
+  }, [testCatalog, catalogSearchQuery])
+
+  // Pagination for catalog
+  const catalogTotalPages = Math.max(1, Math.ceil(filteredCatalog.length / TESTS_PER_PAGE))
+  const catalogStartIndex = (catalogPage - 1) * TESTS_PER_PAGE
+  const catalogEndIndex = catalogStartIndex + TESTS_PER_PAGE
+  const paginatedCatalog = filteredCatalog.slice(catalogStartIndex, catalogEndIndex)
+
+  // Reset page if current page is out of bounds
+  useEffect(() => {
+    if (catalogPage > catalogTotalPages && catalogTotalPages > 0) {
+      setCatalogPage(catalogTotalPages)
+    }
+  }, [catalogPage, catalogTotalPages])
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setCatalogPage(1)
+  }, [catalogSearchQuery])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -109,6 +227,16 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   }
 
   const handleTestSelect = async (test: TestCatalogItem) => {
+    // Don't select if test has sub catalogs but no fileName
+    if (hasSubCatalogs(test) && !test.fileName) {
+      return
+    }
+
+    if (!test.fileName) {
+      setError(t('start.error.noFileName') || 'Fayl nomi topilmadi')
+      return
+    }
+
     setSelectedTest(test)
     setFile(null)
     setError('')
@@ -318,28 +446,137 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                         sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
                       />
                     </Box>
-                    <Card variant="outlined">
-                      <List>
-                        {testCatalog.map((test, index) => (
-                          <Fragment key={test.id}>
-                            <ListItem disablePadding>
-                              <ListItemButton
-                                selected={selectedTest?.id === test.id}
-                                onClick={() => handleTestSelect(test)}
-                                disabled={loading}
-                              >
-                                <ListItemText
-                                  primary={test.name}
-                                  secondary={test.description || undefined}
-                                />
-                                <Description color="primary" />
-                              </ListItemButton>
-                            </ListItem>
-                            {index < testCatalog.length - 1 && <Divider />}
-                          </Fragment>
-                        ))}
-                      </List>
-                    </Card>
+                    
+                    <TextField
+                      fullWidth
+                      placeholder={t('start.searchTests') || 'Testlarni qidirish...'}
+                      value={catalogSearchQuery}
+                      onChange={(e) => setCatalogSearchQuery(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Search color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ mb: 2 }}
+                    />
+
+                    {filteredCatalog.length === 0 ? (
+                      <Alert severity="info">
+                        {t('start.noTestsFound') || 'Testlar topilmadi'}
+                      </Alert>
+                    ) : (
+                      <>
+                        <Card variant="outlined">
+                          <List>
+                            {paginatedCatalog.map((test, index) => {
+                              const hasSubs = hasSubCatalogs(test)
+                              const subCatalogs = getSubCatalogs(test)
+                              const isExpanded = expandedCategories.has(test.id)
+                              
+                              return (
+                                <Fragment key={test.id}>
+                                  {hasSubs ? (
+                                    <>
+                                      <Accordion 
+                                        expanded={isExpanded}
+                                        onChange={() => handleCategoryToggle(test.id)}
+                                        sx={{ 
+                                          boxShadow: 'none',
+                                          '&:before': { display: 'none' },
+                                          '&.Mui-expanded': { margin: 0 }
+                                        }}
+                                      >
+                                        <AccordionSummary
+                                          expandIcon={<ExpandMore />}
+                                          sx={{ 
+                                            px: 2,
+                                            '&:hover': { bgcolor: 'action.hover' }
+                                          }}
+                                        >
+                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                            {isExpanded ? (
+                                              <FolderOpen color="primary" fontSize="small" />
+                                            ) : (
+                                              <Folder color="primary" fontSize="small" />
+                                            )}
+                                            <ListItemText
+                                              primary={test.subject || test.name}
+                                              secondary={formatTestSecondary(test)}
+                                            />
+                                          </Box>
+                                        </AccordionSummary>
+                                        <AccordionDetails sx={{ p: 0, pt: 0 }}>
+                                          <List sx={{ bgcolor: 'action.hover' }}>
+                                            {subCatalogs.map((subTest, subIndex) => (
+                                              <Fragment key={subTest.id}>
+                                                <ListItem disablePadding>
+                                                  <ListItemButton
+                                                    selected={selectedTest?.id === subTest.id}
+                                                    onClick={() => handleTestSelect(subTest)}
+                                                    disabled={loading}
+                                                    sx={{ pl: 4 }}
+                                                  >
+                                                    <ListItemText
+                                                      primary={subTest.name}
+                                                      secondary={formatTestSecondary(subTest)}
+                                                    />
+                                                    <Description color="primary" />
+                                                  </ListItemButton>
+                                                </ListItem>
+                                                {subIndex < subCatalogs.length - 1 && <Divider />}
+                                              </Fragment>
+                                            ))}
+                                          </List>
+                                        </AccordionDetails>
+                                      </Accordion>
+                                    </>
+                                  ) : (
+                                    <ListItem disablePadding>
+                                      <ListItemButton
+                                        selected={selectedTest?.id === test.id}
+                                        onClick={() => handleTestSelect(test)}
+                                        disabled={loading || !test.fileName}
+                                      >
+                                        <ListItemText
+                                          primary={test.subject || test.name}
+                                          secondary={formatTestSecondary(test)}
+                                        />
+                                        <Description color="primary" />
+                                      </ListItemButton>
+                                    </ListItem>
+                                  )}
+                                  {index < paginatedCatalog.length - 1 && <Divider />}
+                                </Fragment>
+                              )
+                            })}
+                          </List>
+                        </Card>
+                        
+                        {catalogTotalPages > 1 && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                            <Pagination
+                              count={catalogTotalPages}
+                              page={catalogPage}
+                              onChange={(_, page) => setCatalogPage(page)}
+                              color="primary"
+                              size="small"
+                              showFirstButton
+                              showLastButton
+                            />
+                          </Box>
+                        )}
+                        
+                        {filteredCatalog.length > TESTS_PER_PAGE && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('start.showing') || 'Ko\'rsatilmoqda'}: {catalogStartIndex + 1}-{Math.min(catalogEndIndex, filteredCatalog.length)} {t('start.of') || 'dan'} {filteredCatalog.length}
+                            </Typography>
+                          </Box>
+                        )}
+                      </>
+                    )}
                   </>
                 )}
                 {selectedTest && allQuestions.length > 0 && (

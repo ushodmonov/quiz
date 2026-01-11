@@ -20,15 +20,23 @@
     "loading": "Загрузка файла...",
     "loadingCatalog": "Загрузка каталога...",
     "noTestsAvailable": "В каталоге нет тестов",
+    "searchTests": "Поиск тестов...",
+    "noTestsFound": "Тесты не найдены",
+    "showing": "Показано",
+    "of": "из",
     "test": "тест",
     "tests": "тестов",
+    "subTest": "подтест",
+    "subTests": "подтестов",
+    "semester": "Семестр",
     "viewAllQuestions": "Просмотреть все вопросы",
     "error": {
       "fileRequired": "Пожалуйста, выберите файл или тест",
       "invalidFile": "Принимаются только TXT или DOCX файлы",
       "noQuestions": "Вопросы не найдены. Формат файла неверен.",
       "invalidStart": "Номер начального вопроса неверен",
-      "invalidCount": "Количество вопросов неверно"
+      "invalidCount": "Количество вопросов неверно",
+      "noFileName": "Имя файла не найдено"
     }
   },
   "test": {

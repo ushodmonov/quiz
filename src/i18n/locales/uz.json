@@ -20,15 +20,23 @@
     "loading": "Fayl yuklanmoqda...",
     "loadingCatalog": "Katalog yuklanmoqda...",
     "noTestsAvailable": "Katalogda testlar mavjud emas",
+    "searchTests": "Testlarni qidirish...",
+    "noTestsFound": "Testlar topilmadi",
+    "showing": "Ko'rsatilmoqda",
+    "of": "dan",
     "test": "test",
     "tests": "test",
+    "subTest": "sub-test",
+    "subTests": "sub-testlar",
+    "semester": "Semestr",
     "viewAllQuestions": "Barcha savollarni ko'rish",
     "error": {
       "fileRequired": "Iltimos, fayl yoki test tanlang",
       "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
       "noQuestions": "Savollar topilmadi. Fayl formati to'g'ri emas.",
       "invalidStart": "Boshlanish savoli noto'g'ri",
-      "invalidCount": "Savollar soni noto'g'ri"
+      "invalidCount": "Savollar soni noto'g'ri",
+      "noFileName": "Fayl nomi topilmadi"
     }
   },
   "test": {

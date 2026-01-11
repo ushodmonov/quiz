@@ -1,7 +1,11 @@
 export const CONTACT_INFO = {
   telegram: {
-    username: 'shodmonov_uchqun',
-    url: 'https://t.me/shodmonov_uchqun'
+    username: 'a_shodmanov',
+    url: 'https://t.me/a_shodmanov'
+  },
+  telegramChannel: {
+    name: '@test_quiz_maker',
+    url: 'https://t.me/test_quiz_maker'
   },
   email: {
     address: 'shodmonov.uchqun@gmail.com',

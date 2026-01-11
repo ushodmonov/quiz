@@ -1,16 +1,48 @@
 {
   "tests": [
     {
-      "id": "tibbiy-kimyo-1-1",
-      "name": "Tibbiy kimyo(2025-2026)",
-      "fileName": "tibbiy_kimyo_1_1.docx",
-      "description": "TTDU 1-kurslar uchun 1-semest savol va javoblari"
+      "name": "Gistologiya(2025-2026)",
+      "semester": 2,
+      "years": "2025-2026",
+      "subject": "Gistologiya",
+      "courses": 1,
+      "institute": "TTDU",
+      "sub_catologs": [
+        {
+          "name": "Bir javobli.docx",
+          "fileName": "ttdu_gistologiya_2_1_2025_2026/Bir javobli.docx",
+          "semester": 2,
+          "years": "2025-2026",
+          "subject": "Gistologiya",
+          "courses": 1,
+          "institute": "TTDU"
+        },
+        {
+          "name": "Ko'p javobli.docx",
+          "fileName": "ttdu_gistologiya_2_1_2025_2026/Ko'p javobli.docx",
+          "semester": 2,
+          "years": "2025-2026",
+          "subject": "Gistologiya",
+          "courses": 1,
+          "institute": "TTDU"
+        }
+      ]
     },
     {
-      "id": "anatomiya-1-1",
-      "name": "Odam anatomiya(2025-2026)",
-      "fileName": "odam_anatomiyasi_1_1.txt",
-      "description": "TTDU 1-kurslar uchun 1-semest savol va javoblari"
+      "name": "Odam anatomiya",
+      "fileName": "ttdu_odam_anatomiyasi_1_1.txt",
+      "semester": 1,
+      "subject": "Odam anatomiya",
+      "courses": 1,
+      "institute": "TTDU"
+    },
+    {
+      "name": "Tibbiy kimyo",
+      "fileName": "ttdu_tibbiy_kimyo_1_1.docx",
+      "semester": 1,
+      "subject": "Tibbiy kimyo",
+      "courses": 1,
+      "institute": "TTDU"
     }
   ]
 }
