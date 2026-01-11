@@ -35,16 +35,11 @@ export default function InstallModal({ open, onClose, deferredPrompt }: InstallM
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [isIOS, setIsIOS] = useState(false)
-  const [isAndroid, setIsAndroid] = useState(false)
 
   useEffect(() => {
     // Check if user is on iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(iOS)
-
-    // Check if user is on Android
-    const android = /Android/.test(navigator.userAgent)
-    setIsAndroid(android)
   }, [])
 
   const handleInstall = async () => {
