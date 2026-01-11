@@ -81,7 +81,16 @@ function getBaseUrl(): string {
 export async function loadTestCatalog(): Promise<TestCatalog> {
   try {
     const baseUrl = getBaseUrl()
-    const response = await fetch(`${baseUrl}assets/test-catalog.json`)
+    // Add cache-busting parameter to prevent caching issues
+    const cacheBuster = `?v=${Date.now()}`
+    const response = await fetch(`${baseUrl}assets/test-catalog.json${cacheBuster}`, {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
     if (!response.ok) {
       return { tests: [] }
     }
@@ -108,7 +117,16 @@ export async function loadTestQuestions(filePath: string): Promise<Question[]> {
       .map(segment => encodeURIComponent(segment))
       .join('/')
     const fullUrl = `${baseUrl}assets/${encodedPath}`
-    const response = await fetch(fullUrl)
+    // Add cache-busting parameter to prevent caching issues
+    const cacheBuster = `?v=${Date.now()}`
+    const response = await fetch(fullUrl + cacheBuster, {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
     if (!response.ok) {
       // Provide more detailed error message
       const statusText = response.statusText || `HTTP ${response.status}`
