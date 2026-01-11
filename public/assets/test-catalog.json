@@ -7,6 +7,7 @@
       "subject": "Gistologiya",
       "courses": 2,
       "institute": "TTDU",
+      "language": "uz/ru",
       "sub_catologs": [
         {
           "name": "Bir javobli.docx",
@@ -32,7 +33,8 @@
       "semester": 1,
       "subject": "Odam anatomiya",
       "courses": 1,
-      "institute": "TTDU"
+      "institute": "TTDU",
+      "language": "uz"
     },
     {
       "name": "Tibbiy kimyo",
@@ -40,7 +42,8 @@
       "semester": 1,
       "subject": "Tibbiy kimyo",
       "courses": 1,
-      "institute": "TTDU"
+      "institute": "TTDU",
+      "language": "uz"
     }
   ]
 }

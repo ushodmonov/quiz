@@ -8,6 +8,7 @@ import AllQuestionsPage from './pages/AllQuestionsPage'
 import TestFormatsPage from './pages/TestFormatsPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
+import InstallPrompt from './components/InstallPrompt'
 import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
@@ -225,6 +226,7 @@ function App() {
             />
           )}
         </Box>
+        <InstallPrompt />
       </Box>
     </ThemeProvider>
   )

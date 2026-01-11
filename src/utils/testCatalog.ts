@@ -10,6 +10,7 @@ export interface TestCatalogItem {
   subject?: string  // Qaysi fandanligi (e.g., "Tibbiy kimyo", "Odam anatomiya")
   courses?: string | number | (string | number)[]  // Qaysi kurslar uchun (e.g., 1, "1", [1, 2], "1-kurs")
   institute?: string  // Qaysi institut uchun (e.g., "TTDU", "Toshkent Tibbiyot Universiteti")
+  language?: string  // Til (e.g., "uz", "ru", "uz/ru")
   sub_catalogs?: TestCatalogItem[]  // Support both spellings
   sub_catologs?: TestCatalogItem[]  // Typo version for backward compatibility
 }

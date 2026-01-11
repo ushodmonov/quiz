@@ -3,6 +3,20 @@
     "title": "QUIZ",
     "home": "Bosh sahifa"
   },
+  "drawer": {
+    "selected": "Tanlangan",
+    "theme": "Tema",
+    "dark": "Qorong'i",
+    "light": "Yorug'",
+    "language": "Til",
+    "appearance": "Ko'rinish",
+    "contactDescription": "Murojaat va yordam",
+    "install": "Ilovani o'rnatish",
+    "installApp": "Mini app o'rnatish",
+    "installAndroid": "Android uchun o'rnatish",
+    "installIOS": "iOS uchun qo'llanma",
+    "installNotAvailable": "O'rnatish mavjud emas"
+  },
   "start": {
     "title": "Testni boshlash",
     "selectFile": "Fayl tanlang (TXT yoki Word)",
@@ -32,6 +46,17 @@
     "viewAllQuestions": "Barcha savollarni ko'rish",
     "viewFormats": "Test formatlari",
     "loadAllSubTests": "Barcha testlarni ishlash",
+    "filter": {
+      "title": "Filter",
+      "institute": "Institut",
+      "course": "Kurs",
+      "language": "Til",
+      "all": "Barchasi",
+      "courseLabel": "kurs",
+      "uzbek": "O'zbekcha",
+      "russian": "Ruscha",
+      "uzbekRussian": "O'zbekcha/Ruscha"
+    },
     "error": {
       "fileRequired": "Iltimos, fayl yoki test tanlang",
       "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
@@ -100,6 +125,18 @@
   "footer": {
     "contact": "Murojaat"
   },
+  "install": {
+    "title": "Ilovani o'rnatish",
+    "androidDescription": "Ilovani qurilmangizga o'rnatib, tezroq kirish imkoniyatiga ega bo'ling",
+    "iosDescription": "Ilovani iPhone yoki iPad'ingizga qo'shing",
+    "iosSteps": "Qadamlar",
+    "iosStep1": "Safari brauzerida pastki qismdagi Share tugmasini bosing",
+    "iosStep2": "\"Home Screen\" yoki \"Ekran sahifasiga qo'shish\" ni tanlang",
+    "iosStep3": "\"Add\" yoki \"Qo'shish\" tugmasini bosing",
+    "button": "O'rnatish",
+    "dismiss": "Yopish",
+    "androidInstructions": "Quyidagi tugmani bosib ilovani o'rnatishingiz mumkin"
+  },
   "contact": {
     "donation": "Tizimni yaxshilashga sarmoya kiritish",
     "cardNumber": "Karta raqami",
@@ -107,7 +144,10 @@
     "cardOwnerName": "Karta egasi ismi",
     "cardOwnerNamePlaceholder": "Karta egasi ismini kiriting",
     "copy": "Nusxalash",
-    "copied": "Nusxalandi"
+    "copied": "Nusxalandi",
+    "support": "Qo'llab-quvvatlash",
+    "contactMethods": "Bog'lanish usullari",
+    "telegramChannel": "Telegram Kanal"
   },
   "questions": {
     "allQuestions": "Barcha savollar",
@@ -121,6 +161,7 @@
   },
   "formats": {
     "title": "Test Formatlari",
+    "description": "Test formatlari haqida ma'lumot",
     "supportedFormats": "Qo'llab-quvvatlanadigan formatlar",
     "format1": {
       "title": "Format 1: Oddiy format (TXT va DOCX)",

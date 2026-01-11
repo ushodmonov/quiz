@@ -26,9 +26,12 @@ import {
   Pagination,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  MenuItem,
+  Select,
+  InputLabel
 } from '@mui/material'
-import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
@@ -56,6 +59,10 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [catalogSearchQuery, setCatalogSearchQuery] = useState('')
   const [catalogPage, setCatalogPage] = useState(1)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+  const [selectedInstitute, setSelectedInstitute] = useState<string>('')
+  const [selectedCourse, setSelectedCourse] = useState<string>('')
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('')
+  const [showFilters, setShowFilters] = useState(false)
   const [allQuestions, setAllQuestions] = useState<Array<{ text: string; answers: Array<{ text: string; isCorrect: boolean }>; isMultiSelect?: boolean }>>([])
 
   const TESTS_PER_PAGE = 10
@@ -98,6 +105,17 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     if (test.years) {
       parts.push(test.years)
     }
+    if (test.language) {
+      let languageLabel = test.language
+      if (test.language === 'uz') {
+        languageLabel = t('start.filter.uzbek') || 'O\'zbekcha'
+      } else if (test.language === 'ru') {
+        languageLabel = t('start.filter.russian') || 'Ruscha'
+      } else if (test.language === 'uz/ru') {
+        languageLabel = t('start.filter.uzbekRussian') || 'O\'zbekcha/Ruscha'
+      }
+      parts.push(languageLabel)
+    }
     return parts.join(' • ')
   }
 
@@ -121,12 +139,68 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     loadCatalog()
   }, [])
 
-  // Filter catalog based on search query (including sub catalogs)
+  // Get unique institutes and courses from catalog
+  const uniqueInstitutes = useMemo(() => {
+    const institutes = new Set<string>()
+    testCatalog.forEach(test => {
+      if (test.institute) {
+        institutes.add(test.institute)
+      }
+    })
+    return Array.from(institutes).sort()
+  }, [testCatalog])
+
+  const uniqueCourses = useMemo(() => {
+    const courses = new Set<string>()
+    testCatalog.forEach(test => {
+      if (test.courses) {
+        if (Array.isArray(test.courses)) {
+          test.courses.forEach(c => courses.add(c.toString()))
+        } else {
+          courses.add(test.courses.toString())
+        }
+      }
+    })
+    return Array.from(courses).sort((a, b) => parseInt(a) - parseInt(b))
+  }, [testCatalog])
+
+  const uniqueLanguages = useMemo(() => {
+    const languages = new Set<string>()
+    testCatalog.forEach(test => {
+      if (test.language) {
+        languages.add(test.language)
+      }
+    })
+    return Array.from(languages).sort()
+  }, [testCatalog])
+
+  // Filter catalog based on search query, institute, course, and language (including sub catalogs)
   const filteredCatalog = useMemo(() => {
-    if (!catalogSearchQuery.trim()) {
-      return testCatalog
+    let filtered = testCatalog
+
+    // Filter by institute
+    if (selectedInstitute) {
+      filtered = filtered.filter(test => test.institute === selectedInstitute)
     }
 
+    // Filter by course
+    if (selectedCourse) {
+      filtered = filtered.filter(test => {
+        if (!test.courses) return false
+        if (Array.isArray(test.courses)) {
+          return test.courses.some(c => c.toString() === selectedCourse)
+        }
+        return test.courses.toString() === selectedCourse
+      })
+    }
+
+    // Filter by language
+    if (selectedLanguage) {
+      filtered = filtered.filter(test => test.language === selectedLanguage)
+    }
+
+    // Filter by search query
+    if (catalogSearchQuery.trim()) {
     const query = catalogSearchQuery.toLowerCase()
     
     const matchesTest = (test: TestCatalogItem): boolean => {
@@ -154,7 +228,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       )
     }
     
-    return testCatalog.filter(test => {
+      filtered = filtered.filter(test => {
       // Check main test
       const matchesMain = matchesTest(test)
       
@@ -164,7 +238,10 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       
       return matchesMain || hasMatchingSubs
     })
-  }, [testCatalog, catalogSearchQuery])
+    }
+
+    return filtered
+  }, [testCatalog, catalogSearchQuery, selectedInstitute, selectedCourse, selectedLanguage])
 
   // Pagination for catalog
   const catalogTotalPages = Math.max(1, Math.ceil(filteredCatalog.length / TESTS_PER_PAGE))
@@ -478,28 +555,119 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 600 }}>
                         {t('start.selectFromCatalog')}
                       </Typography>
-                      <Chip 
-                        label={`${testCatalog.length} ${testCatalog.length === 1 ? t('start.test') : t('start.tests')}`}
-                        color="primary"
-                        variant="outlined"
-                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Chip 
+                          label={`${testCatalog.length} ${testCatalog.length === 1 ? t('start.test') : t('start.tests')}`}
+                          color="primary"
+                          variant="outlined"
+                          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
+                        />
+                        <Button
+                          variant="outlined"
+                          startIcon={<FilterList />}
+                          onClick={() => setShowFilters(!showFilters)}
+                          sx={{ 
+                            minWidth: 'auto',
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                          }}
+                        >
+                          {t('start.filter.title') || 'Filter'}
+                        </Button>
+                      </Box>
                     </Box>
                     
-                    <TextField
-                      fullWidth
-                      placeholder={t('start.searchTests') || 'Testlarni qidirish...'}
-                      value={catalogSearchQuery}
-                      onChange={(e) => setCatalogSearchQuery(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Search color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{ mb: 2 }}
-                    />
+                    <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        placeholder={t('start.searchTests') || 'Testlarni qidirish...'}
+                        value={catalogSearchQuery}
+                        onChange={(e) => setCatalogSearchQuery(e.target.value)}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Search color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                      
+                      {showFilters && (
+                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', pt: 1 }}>
+                          <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+                            <InputLabel>{t('start.filter.institute') || 'Institut'}</InputLabel>
+                            <Select
+                              value={selectedInstitute}
+                              onChange={(e) => {
+                                setSelectedInstitute(e.target.value)
+                                setCatalogPage(1) // Reset to first page when filter changes
+                              }}
+                              label={t('start.filter.institute') || 'Institut'}
+                            >
+                              <MenuItem value="">
+                                <em>{t('start.filter.all') || 'Barchasi'}</em>
+                              </MenuItem>
+                              {uniqueInstitutes.map(institute => (
+                                <MenuItem key={institute} value={institute}>
+                                  {institute}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          
+                          <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+                            <InputLabel>{t('start.filter.course') || 'Kurs'}</InputLabel>
+                            <Select
+                              value={selectedCourse}
+                              onChange={(e) => {
+                                setSelectedCourse(e.target.value)
+                                setCatalogPage(1) // Reset to first page when filter changes
+                              }}
+                              label={t('start.filter.course') || 'Kurs'}
+                            >
+                              <MenuItem value="">
+                                <em>{t('start.filter.all') || 'Barchasi'}</em>
+                              </MenuItem>
+                              {uniqueCourses.map(course => (
+                                <MenuItem key={course} value={course}>
+                                  {course}-{t('start.filter.courseLabel') || 'kurs'}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
+                          <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+                            <InputLabel>{t('start.filter.language') || 'Til'}</InputLabel>
+                            <Select
+                              value={selectedLanguage}
+                              onChange={(e) => {
+                                setSelectedLanguage(e.target.value)
+                                setCatalogPage(1) // Reset to first page when filter changes
+                              }}
+                              label={t('start.filter.language') || 'Til'}
+                            >
+                              <MenuItem value="">
+                                <em>{t('start.filter.all') || 'Barchasi'}</em>
+                              </MenuItem>
+                              {uniqueLanguages.map(language => {
+                                let label = language
+                                if (language === 'uz') {
+                                  label = t('start.filter.uzbek') || 'O\'zbekcha'
+                                } else if (language === 'ru') {
+                                  label = t('start.filter.russian') || 'Ruscha'
+                                } else if (language === 'uz/ru') {
+                                  label = t('start.filter.uzbekRussian') || 'O\'zbekcha/Ruscha'
+                                }
+                                return (
+                                  <MenuItem key={language} value={language}>
+                                    {label}
+                                  </MenuItem>
+                                )
+                              })}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      )}
+                    </Box>
 
                     {filteredCatalog.length === 0 ? (
                       <Alert severity="info">
@@ -541,7 +709,28 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                               <Folder color="primary" fontSize="small" />
                                             )}
                                             <ListItemText
-                                              primary={test.subject || test.name}
+                                              primary={
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                  <span>{test.subject || test.name}</span>
+                                                  {test.language && (
+                                                    <Chip
+                                                      label={
+                                                        test.language === 'uz'
+                                                          ? t('start.filter.uzbek') || 'O\'zbekcha'
+                                                          : test.language === 'ru'
+                                                          ? t('start.filter.russian') || 'Ruscha'
+                                                          : test.language === 'uz/ru'
+                                                          ? t('start.filter.uzbekRussian') || 'O\'zbekcha/Ruscha'
+                                                          : test.language
+                                                      }
+                                                      size="small"
+                                                      color="primary"
+                                                      variant="outlined"
+                                                      sx={{ fontSize: '0.7rem', height: 20 }}
+                                                    />
+                                                  )}
+                                                </Box>
+                                              }
                                               secondary={formatTestSecondary(test)}
                                             />
                                           </Box>
@@ -591,7 +780,28 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                         disabled={loading || !test.path}
                                       >
                                         <ListItemText
-                                          primary={test.subject || test.name}
+                                          primary={
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                              <span>{test.subject || test.name}</span>
+                                              {test.language && (
+                                                <Chip
+                                                  label={
+                                                    test.language === 'uz'
+                                                      ? t('start.filter.uzbek') || 'O\'zbekcha'
+                                                      : test.language === 'ru'
+                                                      ? t('start.filter.russian') || 'Ruscha'
+                                                      : test.language === 'uz/ru'
+                                                      ? t('start.filter.uzbekRussian') || 'O\'zbekcha/Ruscha'
+                                                      : test.language
+                                                  }
+                                                  size="small"
+                                                  color="primary"
+                                                  variant="outlined"
+                                                  sx={{ fontSize: '0.7rem', height: 20 }}
+                                                />
+                                              )}
+                                            </Box>
+                                          }
                                           secondary={formatTestSecondary(test)}
                                         />
                                         <Description color="primary" />

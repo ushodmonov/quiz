@@ -3,6 +3,20 @@
     "title": "QUIZ",
     "home": "Главная страница"
   },
+  "drawer": {
+    "selected": "Выбрано",
+    "theme": "Тема",
+    "dark": "Темная",
+    "light": "Светлая",
+    "language": "Язык",
+    "appearance": "Внешний вид",
+    "contactDescription": "Связь и помощь",
+    "install": "Установка приложения",
+    "installApp": "Установить мини-приложение",
+    "installAndroid": "Установка для Android",
+    "installIOS": "Инструкция для iOS",
+    "installNotAvailable": "Установка недоступна"
+  },
   "start": {
     "title": "Начать тест",
     "selectFile": "Выберите файл (TXT или Word)",
@@ -32,6 +46,17 @@
     "viewAllQuestions": "Просмотреть все вопросы",
     "viewFormats": "Форматы тестов",
     "loadAllSubTests": "Работать со всеми тестами",
+    "filter": {
+      "title": "Фильтр",
+      "institute": "Институт",
+      "course": "Курс",
+      "language": "Язык",
+      "all": "Все",
+      "courseLabel": "курс",
+      "uzbek": "Узбекский",
+      "russian": "Русский",
+      "uzbekRussian": "Узбекский/Русский"
+    },
     "error": {
       "fileRequired": "Пожалуйста, выберите файл или тест",
       "invalidFile": "Принимаются только TXT или DOCX файлы",
@@ -99,6 +124,18 @@
   "footer": {
     "contact": "Связь"
   },
+  "install": {
+    "title": "Установить приложение",
+    "androidDescription": "Установите приложение на ваше устройство для быстрого доступа",
+    "iosDescription": "Добавьте приложение на ваш iPhone или iPad",
+    "iosSteps": "Шаги",
+    "iosStep1": "Нажмите кнопку Share внизу в браузере Safari",
+    "iosStep2": "Выберите \"На экран \"Домой\"\" или \"Add to Home Screen\"",
+    "iosStep3": "Нажмите кнопку \"Добавить\" или \"Add\"",
+    "button": "Установить",
+    "dismiss": "Закрыть",
+    "androidInstructions": "Нажмите кнопку ниже, чтобы установить приложение"
+  },
   "contact": {
     "donation": "Внести вклад в улучшение системы",
     "cardNumber": "Номер карты",
@@ -106,7 +143,10 @@
     "cardOwnerName": "Имя владельца карты",
     "cardOwnerNamePlaceholder": "Введите имя владельца карты",
     "copy": "Копировать",
-    "copied": "Скопировано"
+    "copied": "Скопировано",
+    "support": "Поддержка",
+    "contactMethods": "Способы связи",
+    "telegramChannel": "Telegram Канал"
   },
   "questions": {
     "allQuestions": "Все вопросы",
@@ -120,6 +160,7 @@
   },
   "formats": {
     "title": "Форматы тестов",
+    "description": "Информация о форматах тестов",
     "supportedFormats": "Поддерживаемые форматы",
     "format1": {
       "title": "Формат 1: Простой формат (TXT и DOCX)",
