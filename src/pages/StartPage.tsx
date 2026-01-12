@@ -273,11 +273,17 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     try {
       let questions = []
       
-      if (selectedFile.name.endsWith('.txt')) {
+      const fileName = selectedFile.name.toLowerCase()
+      if (fileName.endsWith('.txt')) {
         const text = await selectedFile.text()
         questions = parseTxtFile(text)
-      } else if (selectedFile.name.endsWith('.docx')) {
+      } else if (fileName.endsWith('.docx')) {
         questions = await parseDocxFile(selectedFile)
+      } else if (fileName.endsWith('.doc')) {
+        // .doc files are not supported
+        setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
+        setLoading(false)
+        return
       } else {
         setError(t('start.error.invalidFile'))
         setLoading(false)
@@ -297,7 +303,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
       setAllQuestions(questions)
     } catch (err: any) {
-      setError(t('start.error.noQuestions') + ': ' + err.message)
+      setError(t('start.error.noQuestions') + ': ' + (err.message || 'Noma\'lum xatolik'))
     } finally {
       setLoading(false)
     }

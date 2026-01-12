@@ -2,6 +2,14 @@ import mammoth from 'mammoth'
 import type { Question, Answer } from '../types'
 
 export function parseTxtFile(content: string): Question[] {
+  // Check if content uses the new format (==== and ++++ separators)
+  const hasNewFormat = content.includes('====') && content.includes('++++')
+  
+  if (hasNewFormat) {
+    return parseNewFormat(content)
+  }
+  
+  // Original format parsing
   const lines = content.split('\n')
   const questions: Question[] = []
   let currentQuestion: Question | null = null
@@ -54,6 +62,53 @@ export function parseTxtFile(content: string): Question[] {
     questions.push(currentQuestion)
   }
 
+  return questions
+}
+
+/**
+ * Parse new format where:
+ * - Questions are separated by ++++
+ * - Options are separated by ====
+ * - Correct answer is marked with # at the beginning
+ */
+function parseNewFormat(content: string): Question[] {
+  const questions: Question[] = []
+  
+  // Split by ++++ to get individual questions
+  const questionBlocks = content.split('++++').map(block => block.trim()).filter(Boolean)
+  
+  for (const block of questionBlocks) {
+    // Split by ==== to get question text and options
+    const parts = block.split('====').map(part => part.trim()).filter(Boolean)
+    
+    if (parts.length < 2) {
+      // Need at least question text and one option
+      continue
+    }
+    
+    const questionText = parts[0]
+    const options = parts.slice(1)
+    
+    if (options.length < 2) {
+      // Need at least 2 options
+      continue
+    }
+    
+    const answers: Answer[] = options.map(option => {
+      const isCorrect = option.startsWith('#')
+      const text = isCorrect ? option.substring(1).trim() : option.trim()
+      return {
+        text,
+        isCorrect
+      }
+    })
+    
+    questions.push({
+      text: questionText,
+      answers
+    })
+  }
+  
   return questions
 }
 
@@ -361,6 +416,17 @@ function parseTableFromHTML(html: string): { index: string, isCorrect: boolean, 
  * Parse DOCX file from ArrayBuffer
  */
 export async function parseDocxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise<Question[]> {
+  // Get raw text for question text extraction
+  const textResult = await mammoth.extractRawText({ arrayBuffer })
+  const rawText = textResult.value
+  
+  // Check if content uses the new format (==== and ++++ separators)
+  // If so, use parseTxtFile directly as it handles this format
+  const hasNewFormat = rawText.includes('====') && rawText.includes('++++')
+  if (hasNewFormat) {
+    return parseTxtFile(rawText)
+  }
+  
   // Get HTML to extract table structure
   let htmlResult
   try {
@@ -368,10 +434,6 @@ export async function parseDocxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise
   } catch (error) {
     console.warn('Failed to convert to HTML, falling back to raw text:', error)
   }
-  
-  // Get raw text for question text extraction
-  const textResult = await mammoth.extractRawText({ arrayBuffer })
-  const rawText = textResult.value
   
   // Check format type
   const isSequenceFormat = rawText.includes('Укажите порядок следования') || rawText.includes('порядок следования')

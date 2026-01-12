@@ -61,6 +61,7 @@
       "fileRequired": "Iltimos, fayl yoki test tanlang",
       "invalidFile": "Faqat TXT yoki DOCX fayllar qabul qilinadi",
       "noQuestions": "Savollar topilmadi. Fayl formati to'g'ri emas.",
+      "oldDocFormat": "Eski .doc format qo'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o'tkazing.",
       "invalidStart": "Boshlanish savoli noto'g'ri",
       "invalidCount": "Savollar soni noto'g'ri",
       "noFileName": "Fayl nomi topilmadi",
@@ -163,6 +164,13 @@
     "title": "Test Formatlari",
     "description": "Test formatlari haqida ma'lumot",
     "supportedFormats": "Qo'llab-quvvatlanadigan formatlar",
+    "format0": {
+      "title": "Format 0: Yangi format (==== va ++++ separatorlar)",
+      "description": "Bu format eng sodda va qulay formatdir. Savollar ++++ bilan ajratiladi, javoblar esa ==== bilan ajratiladi.",
+      "rules": "Qoidalar:",
+      "example": "Misol:",
+      "note": "💡 Maslahat: Bu format eng qulay va sodda formatdir. Yangi testlar yaratishda bu formatdan foydalanish tavsiya etiladi."
+    },
     "format1": {
       "title": "Format 1: Oddiy format (TXT va DOCX)",
       "description": "Bu format oddiy matn fayllari va Word hujjatlari uchun ishlatiladi.",

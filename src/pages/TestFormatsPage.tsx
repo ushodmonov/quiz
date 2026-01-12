@@ -64,6 +64,119 @@ export default function TestFormatsPage({ onBack }: TestFormatsPageProps) {
           </CardContent>
         </Card>
 
+        {/* Format 0: Yangi format (==== va ++++ separatorlar) */}
+        <Card elevation={2} sx={{ border: '2px solid', borderColor: 'primary.main' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Description color="primary" sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {t('formats.format0.title') || 'Format 0: Yangi format (==== va ++++ separatorlar)'}
+              </Typography>
+              <Chip label="YANGI" color="primary" size="small" sx={{ ml: 'auto' }} />
+            </Box>
+            
+            <Typography variant="body1" paragraph>
+              {t('formats.format0.description') || 'Bu format eng sodda va qulay formatdir. Savollar ++++ bilan ajratiladi, javoblar esa ==== bilan ajratiladi.'}
+            </Typography>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mb: 3 }}>
+              <Typography component="pre" sx={{ fontFamily: 'monospace', fontSize: '0.875rem', whiteSpace: 'pre-wrap', color: 'text.primary' }}>
+{`Savol matni bu yerda yoziladi====
+# To'g'ri javob 1====
+Noto'g'ri javob 1====
+Noto'g'ri javob 2====
+# To'g'ri javob 2 (multi-select uchun)
+++++
+Ikkinchi savol matni====
+# To'g'ri javob====
+Noto'g'ri javob 1====
+Noto'g'ri javob 2====
+Noto'g'ri javob 3
+++++`}
+              </Typography>
+            </Paper>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format0.rules') || 'Qoidalar:'}
+              </Typography>
+              <Box component="ul" sx={{ pl: 3 }}>
+                <li>
+                  <Typography variant="body2">
+                    <strong>++++</strong> - Savollar orasidagi separator (har bir savol ++++ bilan ajratiladi)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    <strong>====</strong> - Savol matni va javoblar orasidagi separator
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Savol matni birinchi bo'lakda (==== dan oldin) yoziladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Har bir javob ==== bilan ajratiladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    <strong>#</strong> - To'g'ri javob belgisi (javob boshida # belgisi bo'lishi kerak)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Agar javob boshida <strong>#</strong> bo'lmasa, u noto'g'ri javob hisoblanadi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Har bir savolda kamida 2 ta javob bo'lishi kerak
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Agar bir nechta javobda <strong>#</strong> belgisi bo'lsa, multi-select savol bo'ladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Bu format TXT va DOCX fayllarida ishlaydi
+                  </Typography>
+                </li>
+              </Box>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format0.example') || 'Misol:'}
+              </Typography>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50' }}>
+                <Typography variant="body2" paragraph sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+{`Quvvati 200 kVt kam bo'lgan konveyerlarda qo'llanadigan dvigatel turi qaysi variantda to'g'ri keltirilgan?====
+# Asinxron dvigatel====
+Sinxron dvigatel====
+Doimiy tok dvigateli====
+Universal dvigatel
+++++
+Ikkinchi savol matni bu yerda yoziladi====
+# To'g'ri javob====
+Noto'g'ri javob 1====
+Noto'g'ri javob 2`}
+                </Typography>
+              </Paper>
+            </Box>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText', mt: 2 }}>
+              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                {t('formats.format0.note') || '💡 Maslahat: Bu format eng qulay va sodda formatdir. Yangi testlar yaratishda bu formatdan foydalanish tavsiya etiladi.'}
+              </Typography>
+            </Paper>
+          </CardContent>
+        </Card>
+
         {/* Format 1: Oddiy TXT format */}
         <Card elevation={2}>
           <CardContent>
