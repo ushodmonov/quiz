@@ -3,7 +3,8 @@ import type { Question } from '../types'
 export interface TestCatalogItem {
   id: string  // Auto-generated if not provided in JSON
   name: string
-  path?: string  // Optional, file path relative to assets folder
+  path?: string  // Optional, file path relative to assets folder or full URL (e.g., Google Drive URL)
+  fileType?: 'txt' | 'docx'  // Optional file type override. If not provided, will auto-detect from URL/Content-Type
   description?: string
   semester?: string | number  // Qaysi semestr (e.g., "1", "2", or 1, 2)
   years?: string  // Qaysi yillar (e.g., "2025-2026")
@@ -106,54 +107,207 @@ export async function loadTestCatalog(): Promise<TestCatalog> {
 }
 
 /**
- * Load questions from a test file in assets
+ * Convert Google Drive/Docs sharing links to direct download URLs
  */
-export async function loadTestQuestions(filePath: string): Promise<Question[]> {
+function convertGoogleUrlToDirectDownload(url: string): string {
+  // Google Docs sharing link: https://docs.google.com/document/d/FILE_ID/edit?...
+  const docsMatch = url.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/)
+  if (docsMatch) {
+    const fileId = docsMatch[1]
+    return `https://docs.google.com/document/d/${fileId}/export?format=docx`
+  }
+  
+  // Google Drive file link: https://drive.google.com/file/d/FILE_ID/view?...
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+  if (driveMatch) {
+    const fileId = driveMatch[1]
+    return `https://drive.google.com/uc?export=download&id=${fileId}`
+  }
+  
+  // If already a direct download link, return as-is
+  if (url.includes('drive.google.com/uc?export=download') || 
+      (url.includes('docs.google.com/document') && url.includes('/export?'))) {
+    return url
+  }
+  
+  // Not a Google URL, return as-is
+  return url
+}
+
+/**
+ * Simple cache for remote files using localStorage
+ */
+const CACHE_PREFIX = 'quiz_file_cache_'
+const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+function getCachedFile(filePath: string): { data: string | ArrayBuffer, type: 'text' | 'buffer' } | null {
   try {
-    const baseUrl = getBaseUrl()
-    // Encode the filePath to handle special characters and paths
-    // Split by '/' to encode each segment separately, then join back
-    const encodedPath = filePath
-      .split('/')
-      .map(segment => encodeURIComponent(segment))
-      .join('/')
-    const fullUrl = `${baseUrl}assets/${encodedPath}`
-    // Add cache-busting parameter to prevent caching issues
-    const cacheBuster = `?v=${Date.now()}`
-    const response = await fetch(fullUrl + cacheBuster, {
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+    const cacheKey = CACHE_PREFIX + btoa(filePath).replace(/[+/=]/g, '')
+    const cached = localStorage.getItem(cacheKey)
+    if (!cached) return null
+    
+    const { data, type, timestamp } = JSON.parse(cached)
+    if (Date.now() - timestamp > CACHE_EXPIRY) {
+      localStorage.removeItem(cacheKey)
+      return null
+    }
+    
+    if (type === 'buffer') {
+      // Convert base64 back to ArrayBuffer
+      const binaryString = atob(data)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
       }
-    })
+      return { data: bytes.buffer, type: 'buffer' }
+    }
+    
+    return { data, type: 'text' }
+  } catch {
+    return null
+  }
+}
+
+function setCachedFile(filePath: string, data: string | ArrayBuffer, type: 'text' | 'buffer'): void {
+  try {
+    const cacheKey = CACHE_PREFIX + btoa(filePath).replace(/[+/=]/g, '')
+    let serialized: string
+    
+    if (type === 'buffer') {
+      // Convert ArrayBuffer to base64
+      const bytes = new Uint8Array(data as ArrayBuffer)
+      let binary = ''
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i])
+      }
+      serialized = btoa(binary)
+    } else {
+      serialized = data as string
+    }
+    
+    const cacheData = {
+      data: serialized,
+      type,
+      timestamp: Date.now()
+    }
+    
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+  } catch (error) {
+    console.warn('Failed to cache file:', error)
+  }
+}
+
+/**
+ * Load questions from a test file in assets or remote URL
+ * Supports both local files (relative paths) and remote URLs (Google Drive, etc.)
+ */
+export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'docx'): Promise<Question[]> {
+  try {
+    // Check if filePath is already a full URL (http:// or https://)
+    const isFullUrl = /^https?:\/\//i.test(filePath)
+    
+    let fullUrl: string
+    if (isFullUrl) {
+      // Convert Google Drive/Docs sharing links to direct download URLs
+      fullUrl = convertGoogleUrlToDirectDownload(filePath)
+      
+      // Try to load from cache first for remote files
+      const cached = getCachedFile(filePath)
+      if (cached) {
+        if (cached.type === 'text') {
+          const { parseTxtFile } = await import('./fileParser')
+          return parseTxtFile(cached.data as string)
+        } else {
+          const { parseDocxFileFromBuffer } = await import('./fileParser')
+          return parseDocxFileFromBuffer(cached.data as ArrayBuffer)
+        }
+      }
+    } else {
+      // Relative path - prepend base URL and assets folder
+      const baseUrl = getBaseUrl()
+      // Encode the filePath to handle special characters and paths
+      const encodedPath = filePath
+        .split('/')
+        .map(segment => encodeURIComponent(segment))
+        .join('/')
+      fullUrl = `${baseUrl}assets/${encodedPath}`
+    }
+    
+    // For local assets, add cache-busting. For remote URLs, don't add cache-busting
+    const requestUrl = isFullUrl ? fullUrl : `${fullUrl}?v=${Date.now()}`
+    
+    let response: Response
+    try {
+      response = await fetch(requestUrl, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+    } catch (fetchError: any) {
+      // Check if it's a CORS error
+      if (fetchError.message?.includes('Failed to fetch') || 
+          fetchError.message?.includes('CORS') ||
+          fetchError.name === 'TypeError') {
+        throw new Error(
+          `CORS xatolik: Google Drive fayl yuklanmadi. ` +
+          `Fayl "Anyone with the link can view" rejimida bo'lishi kerak. ` +
+          `Yoki to'g'ridan-to'g'ri yuklab olish havolasidan foydalaning: ` +
+          `https://drive.google.com/uc?export=download&id=FILE_ID`
+        )
+      }
+      throw fetchError
+    }
+    
     if (!response.ok) {
-      // Provide more detailed error message
       const statusText = response.statusText || `HTTP ${response.status}`
       throw new Error(`Failed to load file: ${filePath} (${statusText}). URL: ${fullUrl}`)
     }
     
-    // Check file extension
-    if (filePath.toLowerCase().endsWith('.txt')) {
+    // Detect file type
+    let detectedFileType: 'txt' | 'docx' = fileType || 'docx'
+    const contentType = response.headers.get('content-type') || ''
+    const urlLower = filePath.toLowerCase()
+    
+    if (!fileType) {
+      if (urlLower.endsWith('.txt') || contentType.includes('text/plain')) {
+        detectedFileType = 'txt'
+      } else if (urlLower.endsWith('.docx') || 
+                 contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
+                 contentType.includes('application/octet-stream')) {
+        detectedFileType = 'docx'
+      }
+    }
+    
+    // Parse based on detected file type
+    if (detectedFileType === 'txt') {
       const text = await response.text()
+      // Cache remote files
+      if (isFullUrl) {
+        setCachedFile(filePath, text, 'text')
+      }
       const { parseTxtFile } = await import('./fileParser')
       return parseTxtFile(text)
-    } else if (filePath.toLowerCase().endsWith('.docx')) {
+    } else {
       const arrayBuffer = await response.arrayBuffer()
-      // Use parseDocxFileFromBuffer to properly parse DOCX with table support
+      // Cache remote files
+      if (isFullUrl) {
+        setCachedFile(filePath, arrayBuffer, 'buffer')
+      }
       const { parseDocxFileFromBuffer } = await import('./fileParser')
       return parseDocxFileFromBuffer(arrayBuffer)
-    } else {
-      throw new Error(`Unsupported file format: ${filePath}`)
     }
   } catch (error: any) {
     console.error('Failed to load test questions:', error)
-    // Re-throw with more context
     if (error instanceof Error) {
-      throw error
+      if (error.message.includes('CORS') || error.message.includes('xatolik')) {
+        throw error
+      }
+      throw new Error(`Testni yuklashda xatolik: ${error.message}`)
     } else {
-      throw new Error(`Failed to load file: ${filePath}. ${error?.message || String(error)}`)
+      throw new Error(`Testni yuklashda xatolik: ${error?.message || String(error)}`)
     }
   }
 }

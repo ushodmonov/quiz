@@ -31,7 +31,7 @@ import {
   Select,
   InputLabel
 } from '@mui/material'
-import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
@@ -121,6 +121,62 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
   const formatTestSecondary = (test: TestCatalogItem): string => {
     return formatTestInfo(test)
+  }
+
+  /**
+   * Check if file path is a local asset (not a URL)
+   */
+  const isLocalAsset = (path?: string): boolean => {
+    if (!path) return false
+    return !/^https?:\/\//i.test(path)
+  }
+
+  /**
+   * Download local asset file
+   */
+  const handleDownloadFile = async (test: TestCatalogItem, event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent test selection
+    
+    if (!test.path || !isLocalAsset(test.path)) {
+      setError('Bu fayl yuklab olinmaydi (faqat lokal fayllar)')
+      return
+    }
+
+    try {
+      const baseUrl = import.meta.env.BASE_URL || '/'
+      const finalBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+      const encodedPath = test.path
+        .split('/')
+        .map(segment => encodeURIComponent(segment))
+        .join('/')
+      const fileUrl = `${finalBaseUrl}assets/${encodedPath}`
+      
+      // Fetch the file
+      const response = await fetch(fileUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${response.statusText}`)
+      }
+
+      // Get file content
+      const blob = await response.blob()
+      
+      // Get filename from path
+      const filename = test.path.split('/').pop() || test.name || 'file'
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error: any) {
+      setError(`Fayl yuklab olishda xatolik: ${error.message}`)
+    }
   }
 
   useEffect(() => {
@@ -326,7 +382,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
         // Load questions from all sub catalogs
         const allQuestionsPromises = subCatalogs
           .filter(subTest => subTest.path)
-          .map(subTest => loadTestQuestions(subTest.path!))
+          .map(subTest => loadTestQuestions(subTest.path!, subTest.fileType))
         
         const questionsArrays = await Promise.all(allQuestionsPromises)
         
@@ -365,7 +421,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     setLoading(true)
 
     try {
-      const questions = await loadTestQuestions(test.path)
+      const questions = await loadTestQuestions(test.path, test.fileType)
       
       if (questions.length === 0) {
         setError(t('start.error.noQuestions'))
@@ -765,10 +821,25 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                     disabled={loading}
                                                     sx={{ pl: 4 }}
                                                   >
+                                                    <Box sx={{ mr: 1.5 }}>
+                                                      <Description color="primary" />
+                                                    </Box>
                                                     <ListItemText
                                                       primary={subTest.name}
                                                     />
-                                                    <Description color="primary" />
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                                                      {isLocalAsset(subTest.path) && (
+                                                        <Button
+                                                          size="small"
+                                                          variant="outlined"
+                                                          onClick={(e) => handleDownloadFile(subTest, e)}
+                                                          sx={{ minWidth: 'auto', px: 1 }}
+                                                          title="Faylni yuklab olish"
+                                                        >
+                                                          <Download fontSize="small" />
+                                                        </Button>
+                                                      )}
+                                                    </Box>
                                                   </ListItemButton>
                                                 </ListItem>
                                                 {subIndex < subCatalogs.length - 1 && <Divider />}
@@ -785,6 +856,9 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                         onClick={() => handleTestSelect(test)}
                                         disabled={loading || !test.path}
                                       >
+                                        <Box sx={{ mr: 1.5 }}>
+                                          <Description color="primary" />
+                                        </Box>
                                         <ListItemText
                                           primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
@@ -810,7 +884,19 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           }
                                           secondary={formatTestSecondary(test)}
                                         />
-                                        <Description color="primary" />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                                          {isLocalAsset(test.path) && (
+                                            <Button
+                                              size="small"
+                                              variant="outlined"
+                                              onClick={(e) => handleDownloadFile(test, e)}
+                                              sx={{ minWidth: 'auto', px: 1 }}
+                                              title="Faylni yuklab olish"
+                                            >
+                                              <Download fontSize="small" />
+                                            </Button>
+                                          )}
+                                        </Box>
                                       </ListItemButton>
                                     </ListItem>
                                   )}

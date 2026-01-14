@@ -58,7 +58,21 @@ function App() {
 
     // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange)
-    return () => window.removeEventListener('hashchange', handleHashChange)
+    
+    // Also listen for popstate (back/forward button)
+    const handlePopState = () => {
+      if (window.location.hash === '' || !window.location.hash) {
+        if (currentPage === 'questions') {
+          setCurrentPage('start')
+        }
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+      window.removeEventListener('popstate', handlePopState)
+    }
   }, [currentPage])
 
   const handleStartQuiz = (data: QuizData) => {

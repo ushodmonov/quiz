@@ -201,11 +201,34 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <IconButton 
                     onClick={() => {
-                      // If opened in new tab, try to close it, otherwise go back
-                      if (window.opener) {
+                      // If opened in new tab, try to close it
+                      if (window.opener && !window.opener.closed) {
+                        // Try to close the window
                         window.close()
+                        // If close() doesn't work (blocked by browser), navigate parent window
+                        setTimeout(() => {
+                          if (!window.closed && window.opener && !window.opener.closed) {
+                            try {
+                              // Navigate parent window back to start (remove hash)
+                              const baseUrl = window.opener.location.origin + window.opener.location.pathname
+                              window.opener.location.href = baseUrl
+                            } catch (e) {
+                              // Cross-origin error - can't access parent location
+                              // Just try to close again
+                              window.close()
+                            }
+                          }
+                        }, 100)
                       } else {
-                        onBack()
+                        // Same tab - navigate back
+                        if (window.location.hash === '#questions') {
+                          // Remove hash to trigger hashchange event
+                          const baseUrl = window.location.origin + window.location.pathname
+                          window.location.href = baseUrl
+                        } else {
+                          // Use callback
+                          onBack()
+                        }
                       }
                     }} 
                     color="primary" 
