@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   isTelegramWebApp,
   getTelegramWebApp,
@@ -18,6 +18,7 @@ export const useTelegramWebApp = () => {
   const [isTelegram, setIsTelegram] = useState(false)
   const [user, setUser] = useState<ReturnType<typeof getTelegramUser>>(null)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light')
+  const colorSchemeRef = useRef<'light' | 'dark'>('light')
 
   useEffect(() => {
     const checkTelegram = isTelegramWebApp()
@@ -34,18 +35,42 @@ export const useTelegramWebApp = () => {
       // Get color scheme
       const tg = getTelegramWebApp()
       if (tg) {
-        setColorScheme(tg.colorScheme)
+        const initialScheme = tg.colorScheme
+        setColorScheme(initialScheme)
+        colorSchemeRef.current = initialScheme
 
-        // Telegram doesn't have a direct event for theme change,
-        // but we can check periodically or on visibility change
+        // Listen for theme changes using visibility change and focus events
         const checkTheme = () => {
-          if (tg.colorScheme !== colorScheme) {
-            setColorScheme(tg.colorScheme)
+          const currentScheme = tg.colorScheme
+          if (currentScheme !== colorSchemeRef.current) {
+            colorSchemeRef.current = currentScheme
+            setColorScheme(currentScheme)
           }
         }
 
-        const interval = setInterval(checkTheme, 1000)
-        return () => clearInterval(interval)
+        // Check theme when page becomes visible
+        const handleVisibilityChange = () => {
+          if (!document.hidden) {
+            checkTheme()
+          }
+        }
+
+        // Check theme when window gets focus
+        const handleFocus = () => {
+          checkTheme()
+        }
+
+        // Check periodically (as fallback)
+        const interval = setInterval(checkTheme, 2000)
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        window.addEventListener('focus', handleFocus)
+
+        return () => {
+          clearInterval(interval)
+          document.removeEventListener('visibilitychange', handleVisibilityChange)
+          window.removeEventListener('focus', handleFocus)
+        }
       }
     }
   }, [])

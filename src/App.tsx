@@ -31,15 +31,24 @@ function App() {
   }, [language, i18n])
 
   // Sync theme with Telegram if running in Telegram
+  // This effect runs when Telegram colorScheme changes
   useEffect(() => {
     if (telegram.isTelegram && telegram.colorScheme) {
       const telegramTheme = telegram.colorScheme === 'dark' ? 'dark' : 'light'
+      // Only sync if theme actually changed in Telegram
       if (telegramTheme !== themeMode) {
         setThemeMode(telegramTheme)
         saveTheme(telegramTheme)
+        
+        // Update Telegram header and background colors
+        const headerColor = telegramTheme === 'dark' ? '#1e1e1e' : '#667eea'
+        const bgColor = telegramTheme === 'dark' ? '#0f0c29' : '#667eea'
+        telegram.setHeaderColor(headerColor)
+        telegram.setBackgroundColor(bgColor)
       }
     }
-  }, [telegram.isTelegram, telegram.colorScheme, themeMode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [telegram.colorScheme]) // Only depend on colorScheme to avoid infinite loop
 
   // Set Telegram header and background colors
   useEffect(() => {
@@ -200,7 +209,15 @@ function App() {
   const handleViewAllQuestions = (questions: Question[]) => {
     // Save questions to localStorage
     saveAllQuestions(questions)
-    // Open in new tab
+    
+    // In Telegram Mini App, don't open new tab - use same tab
+    if (telegram.isTelegram) {
+      setAllQuestions(questions)
+      setCurrentPage('questions')
+      return
+    }
+    
+    // Open in new tab for regular browser
     const baseUrl = window.location.origin + import.meta.env.BASE_URL
     const newTab = window.open(`${baseUrl}#questions`, '_blank')
     if (!newTab) {
@@ -227,6 +244,14 @@ function App() {
     const newMode = themeMode === 'light' ? 'dark' : 'light'
     setThemeMode(newMode)
     saveTheme(newMode)
+    
+    // Update Telegram header and background colors immediately
+    if (telegram.isTelegram) {
+      const headerColor = newMode === 'dark' ? '#1e1e1e' : '#667eea'
+      const bgColor = newMode === 'dark' ? '#0f0c29' : '#667eea'
+      telegram.setHeaderColor(headerColor)
+      telegram.setBackgroundColor(bgColor)
+    }
   }
 
   const handleLanguageChange = (lang: Language) => {

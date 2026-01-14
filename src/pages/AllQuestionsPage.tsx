@@ -21,6 +21,7 @@ import { Search, ExpandMore, ArrowBack } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import QuestionDisplay from '../components/QuestionDisplay'
 import { loadAllQuestions } from '../utils/storage'
+import { isTelegramWebApp } from '../utils/telegramWebApp'
 import type { Question } from '../types'
 
 interface AllQuestionsPageProps {
@@ -201,6 +202,12 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <IconButton 
                     onClick={() => {
+                      // In Telegram Mini App, always use callback (same tab)
+                      if (isTelegramWebApp()) {
+                        onBack()
+                        return
+                      }
+                      
                       // If opened in new tab, try to close it
                       if (window.opener && !window.opener.closed) {
                         // Try to close the window
