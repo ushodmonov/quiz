@@ -29,6 +29,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
 import InstallModal from './InstallModal'
+import { isTelegramWebApp } from '../utils/telegramWebApp'
 import type { ThemeMode, Language } from '../types'
 
 interface AppBarProps {
@@ -86,7 +87,8 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
     return /Android/.test(navigator.userAgent)
   }
 
-  const canInstall = !isInstalled && (isIOS() || isAndroid())
+  // Don't show install option if running in Telegram Mini App
+  const canInstall = !isTelegramWebApp() && !isInstalled && (isIOS() || isAndroid())
 
   const handleLanguageSelect = (lang: Language) => {
     i18n.changeLanguage(lang)

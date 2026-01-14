@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Box, Card, CardContent, Typography, Button, IconButton } from '@mui/material'
 import { Close, GetApp, PhoneAndroid, PhoneIphone } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
+import { isTelegramWebApp } from '../utils/telegramWebApp'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -16,6 +17,11 @@ export default function InstallPrompt() {
   const [isAndroid, setIsAndroid] = useState(false)
 
   useEffect(() => {
+    // Don't show install prompt if running in Telegram Mini App
+    if (isTelegramWebApp()) {
+      return
+    }
+
     // Check if user is on iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
     setIsIOS(iOS)
@@ -87,6 +93,11 @@ export default function InstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false)
     localStorage.setItem('pwa-install-dismissed', Date.now().toString())
+  }
+
+  // Don't show if running in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return null
   }
 
   if (!showPrompt || (!isIOS && !isAndroid && !deferredPrompt)) {
