@@ -15,4 +15,29 @@ body {
 
 #root {
   min-height: 100vh;
+  /* Telegram Web App viewport height support */
+  min-height: var(--tg-viewport-height, 100vh);
+}
+
+/* Telegram Web App theme variables */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #667eea;
+  --tg-theme-button-color: #667eea;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f1f1f1;
+  --tg-viewport-height: 100vh;
+}
+
+/* Telegram Web App specific styles */
+[data-telegram-theme="dark"] {
+  --tg-theme-bg-color: #1e1e1e;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-hint-color: #707579;
+  --tg-theme-link-color: #90caf9;
+  --tg-theme-button-color: #90caf9;
+  --tg-theme-button-text-color: #000000;
+  --tg-theme-secondary-bg-color: #2d2d2d;
 }

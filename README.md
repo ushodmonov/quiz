@@ -16,6 +16,8 @@ Quiz veb-sayti - TXT va Word fayllardan savollar yuklab, testlar ishlatish imkon
 - ✅ Ikki til: O'zbek/Rus
 - ✅ Mobil va desktop mosligi
 - ✅ 10,000+ savol bilan ishlashga mos
+- ✅ **Telegram Mini App qo'llab-quvvatlash**
+- ✅ **GitHub Pages bilan ishlash**
 
 ## Test katalogini qo'shish
 
@@ -71,6 +73,60 @@ Formulalarni LaTeX formatida yozing:
 - Inline: `$x^2 + y^2 = z^2$`
 - Block: `$$\int_0^\infty e^{-x} dx = 1$$`
 
+## Telegram Mini App sifatida ishlatish
+
+Ilova Telegram Mini App sifatida ham ishlaydi. Telegram Web App SDK integratsiya qilingan.
+
+### Telegram Mini App sozlash
+
+1. **BotFather** orqali yangi bot yarating yoki mavjud botni tanlang
+2. Bot sozlamalarida **Menu Button** yoki **Web App** qo'shing
+3. Web App URL ni kiriting (masalan: `https://username.github.io/quiz/`)
+4. Ilova avtomatik ravishda Telegram muhitini aniqlaydi va:
+   - Telegram temasi bilan sinxronlashadi
+   - Telegram back button ishlaydi
+   - Haptic feedback qo'llab-quvvatlaydi
+   - Telegram header va background ranglarini sozlaydi
+
+## GitHub Pages ga deploy qilish
+
+### Avtomatik deploy (GitHub Actions)
+
+1. Repository sozlamalarida **Actions** ni yoqing
+2. `main` yoki `master` branch ga push qiling
+3. GitHub Actions avtomatik ravishda build qiladi va deploy qiladi
+
+### Qo'lda deploy
+
+```bash
+# Build qilish
+npm run build
+
+# GitHub Pages uchun base path ni sozlash
+# Agar repository nomi 'quiz' bo'lsa:
+export VITE_BASE_PATH=/quiz/
+npm run build
+
+# Agar username.github.io bo'lsa:
+export VITE_BASE_PATH=/
+npm run build
+
+# dist/ papkasini GitHub Pages ga deploy qiling
+```
+
+### Base path sozlash
+
+`vite.config.ts` da base path o'zgartiriladi:
+
+```typescript
+const base = process.env.VITE_BASE_PATH || '/'
+```
+
+Yoki `.env` faylida:
+```
+VITE_BASE_PATH=/quiz/
+```
+
 ## Texnik stack
 
 - React 18 + TypeScript
@@ -79,3 +135,4 @@ Formulalarni LaTeX formatida yozing:
 - KaTeX (formula render qilish)
 - Mammoth (Word fayllarni o'qish)
 - i18next (ko'p tillilik)
+- Telegram Web App SDK

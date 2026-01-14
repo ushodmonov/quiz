@@ -12,11 +12,13 @@ import InstallPrompt from './components/InstallPrompt'
 import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
+import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import './i18n/config'
 import type { QuizData, QuizResults, ThemeMode, Language, Question } from './types'
 
 function App() {
   const { i18n } = useTranslation()
+  const telegram = useTelegramWebApp()
   const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
@@ -27,6 +29,47 @@ function App() {
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language, i18n])
+
+  // Sync theme with Telegram if running in Telegram
+  useEffect(() => {
+    if (telegram.isTelegram && telegram.colorScheme) {
+      const telegramTheme = telegram.colorScheme === 'dark' ? 'dark' : 'light'
+      if (telegramTheme !== themeMode) {
+        setThemeMode(telegramTheme)
+        saveTheme(telegramTheme)
+      }
+    }
+  }, [telegram.isTelegram, telegram.colorScheme, themeMode])
+
+  // Set Telegram header and background colors
+  useEffect(() => {
+    if (telegram.isTelegram) {
+      const headerColor = themeMode === 'dark' ? '#1e1e1e' : '#667eea'
+      const bgColor = themeMode === 'dark' ? '#0f0c29' : '#667eea'
+      telegram.setHeaderColor(headerColor)
+      telegram.setBackgroundColor(bgColor)
+    }
+  }, [telegram.isTelegram, themeMode, telegram])
+
+  // Handle Telegram back button
+  useEffect(() => {
+    if (!telegram.isTelegram) return
+
+    let cleanup: (() => void) | undefined
+
+    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats') {
+      cleanup = telegram.showBackButton(() => {
+        telegram.haptic.impact('light')
+        handleBackToStart()
+      })
+    } else {
+      telegram.hideBackButton()
+    }
+
+    return () => {
+      if (cleanup) cleanup()
+    }
+  }, [currentPage, telegram])
 
   useEffect(() => {
     if (hasProgress() && currentPage === 'start') {
@@ -76,6 +119,7 @@ function App() {
   }, [currentPage])
 
   const handleStartQuiz = (data: QuizData) => {
+    telegram.haptic.impact('medium')
     clearProgress()
     setQuizData(data)
     setCurrentPage('test')
@@ -97,6 +141,7 @@ function App() {
 
   const handleTestComplete = (results: QuizResults) => {
     if (quizData) {
+      telegram.haptic.notification('success')
       setQuizData({ ...quizData, results })
       setCurrentPage('results')
     }
@@ -178,12 +223,14 @@ function App() {
   }
 
   const handleThemeToggle = () => {
+    telegram.haptic.selection()
     const newMode = themeMode === 'light' ? 'dark' : 'light'
     setThemeMode(newMode)
     saveTheme(newMode)
   }
 
   const handleLanguageChange = (lang: Language) => {
+    telegram.haptic.selection()
     setLanguage(lang)
     saveLanguage(lang)
   }

@@ -3,7 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  
+      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -32,12 +33,12 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
         env:
-          # Repository nomi uchun base path
-          # Masalan: repository 'quiz' bo'lsa, base path '/quiz/' bo'ladi
-          # Agar 'username.github.io' repository bo'lsa, DEPLOYMENT.md faylida ko'rsatilganidek o'zgartiring
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          # GitHub Pages uchun base path ni aniqlash
+          # Agar repository nomi 'quiz' bo'lsa, base path '/quiz/' bo'ladi
+          # Agar username.github.io bo'lsa, base path '/' bo'ladi
+          VITE_BASE_PATH: ${{ github.repository == format('{0}/{0}.github.io', github.repository_owner) && '/' || format('/{0}/', github.event.repository.name) }}
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
