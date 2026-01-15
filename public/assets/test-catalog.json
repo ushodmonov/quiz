@@ -8,6 +8,7 @@
       "courses": 2,
       "institute": "TTDU",
       "language": "uz/ru",
+      "work_it_all": true,
       "sub_catologs": [
         {
           "name": "Bir javobli.docx",
@@ -28,19 +29,30 @@
       ]
     },
     {
+      "name": "Tibbiy kimyo",
+      "semester": 1,
+      "years": "2025-2026",
+      "subject": "Tibbiy kimyo",
+      "courses": 1,
+      "institute": "TTDU",
+      "language": "uz",
+      "work_it_all": false,
+      "sub_catologs": [
+        {
+          "name": "830 talik savollar",
+          "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx"
+        },
+        {
+          "name": "1113 talik savollar",
+          "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo_2.docx"
+        }
+      ]
+    },
+    {
       "name": "Odam anatomiya",
       "path": "tests/ttdu/1/odam_anatomiyasi/1_semester/odam_anatomiyasi.txt",
       "semester": 1,
       "subject": "Odam anatomiya",
-      "courses": 1,
-      "institute": "TTDU",
-      "language": "uz"
-    },
-    {
-      "name": "Tibbiy kimyo",
-      "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx",
-      "semester": 1,
-      "subject": "Tibbiy kimyo",
       "courses": 1,
       "institute": "TTDU",
       "language": "uz"

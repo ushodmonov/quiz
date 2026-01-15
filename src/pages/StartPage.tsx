@@ -798,19 +798,21 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           </Box>
                                         </AccordionSummary>
                                         <AccordionDetails sx={{ p: 0, pt: 0 }}>
-                                          <Box sx={{ bgcolor: 'action.hover', p: 1 }}>
-                                            <Button
-                                              variant="contained"
-                                              size="small"
-                                              startIcon={<PlayArrow />}
-                                              onClick={() => handleTestSelect(test)}
-                                              disabled={loading}
-                                              fullWidth
-                                              sx={{ mb: 1 }}
-                                            >
-                                              {t('start.loadAllSubTests') || 'Barcha sub-testlarni yuklash'}
-                                            </Button>
-                                          </Box>
+                                          {test.work_it_all === true && (
+                                            <Box sx={{ bgcolor: 'action.hover', p: 1 }}>
+                                              <Button
+                                                variant="contained"
+                                                size="small"
+                                                startIcon={<PlayArrow />}
+                                                onClick={() => handleTestSelect(test)}
+                                                disabled={loading}
+                                                fullWidth
+                                                sx={{ mb: 1 }}
+                                              >
+                                                {t('start.loadAllSubTests') || 'Barcha sub-testlarni yuklash'}
+                                              </Button>
+                                            </Box>
+                                          )}
                                           <List sx={{ bgcolor: 'action.hover' }}>
                                             {subCatalogs.map((subTest, subIndex) => (
                                               <Fragment key={subTest.id}>
