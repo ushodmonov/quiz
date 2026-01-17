@@ -6,25 +6,25 @@
       "years": "2025-2026",
       "subject": "Gistologiya",
       "courses": 2,
-      "institute": "TTDU",
+      "institute": "TMA(TTA)",
       "language": "uz/ru",
       "work_it_all": true,
       "sub_catologs": [
         {
           "name": "Bir javobli.docx",
-          "path": "tests/ttdu/2/gistologiya/3_semester/Bir javobli.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Bir javobli.docx"
         },
         {
           "name": "Ketma ketlik.docx",
-          "path": "tests/ttdu/2/gistologiya/3_semester/Ketma ketlik.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Ketma ketlik.docx"
         },
         {
           "name": "Ko'p javobli.docx",
-          "path": "tests/ttdu/2/gistologiya/3_semester/Ko'p javobli.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Ko'p javobli.docx"
         },
         {
           "name": "Moslik.docx",
-          "path": "tests/ttdu/2/gistologiya/3_semester/Moslik.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Moslik.docx"
         }
       ]
     },
@@ -34,27 +34,36 @@
       "years": "2025-2026",
       "subject": "Tibbiy kimyo",
       "courses": 1,
-      "institute": "TTDU",
+      "institute": "TMA(TTA)",
       "language": "uz",
       "work_it_all": false,
       "sub_catologs": [
         {
           "name": "830 talik savollar",
-          "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx"
+          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx"
         },
         {
           "name": "1113 talik savollar",
-          "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo_2.docx"
+          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo_2.docx"
         }
       ]
     },
     {
       "name": "Odam anatomiya",
-      "path": "tests/ttdu/1/odam_anatomiyasi/1_semester/odam_anatomiyasi.txt",
+      "path": "tests/tma/1/odam_anatomiyasi/1_semester/odam_anatomiyasi.txt",
       "semester": 1,
       "subject": "Odam anatomiya",
       "courses": 1,
-      "institute": "TTDU",
+      "institute": "TMA(TTA)",
+      "language": "uz"
+    },
+    {
+      "name": "Tibbiy Biologiya",
+      "path": "tests/tma/1/tibbiy_biologiya/1_semester/tibbiy_biologiya.txt",
+      "semester": 1,
+      "subject": "Tibbiy Biologiya",
+      "courses": 1,
+      "institute": "TMA(TTA)",
       "language": "uz"
     }
   ]

@@ -1,7 +1,31 @@
 import mammoth from 'mammoth'
 import type { Question, Answer } from '../types'
 
+/**
+ * Fix encoding issues by replacing corrupted characters with correct ones
+ * Replaces Unicode replacement character (U+FFFD) with apostrophe
+ * Also fixes common encoding issues for Uzbek/Cyrillic text
+ */
+function fixEncoding(content: string): string {
+  // Replace Unicode replacement character (U+FFFD) with apostrophe
+  let fixed = content.replace(/\uFFFD/g, "'")
+  
+  // Fix other common encoding issues
+  // Windows-1251 to UTF-8 conversion issues
+  // Common patterns: replace corrupted apostrophes and quotes
+  fixed = fixed.replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'") // Various apostrophe-like characters
+  fixed = fixed.replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"') // Various quote-like characters
+  
+  return fixed
+}
+
 export function parseTxtFile(content: string): Question[] {
+  // Fix encoding issues before parsing
+  content = fixEncoding(content)
+  
+  // Normalize line endings (handle both \r\n and \n)
+  content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  
   // Check if content uses the new format (==== and ++++ separators)
   const hasNewFormat = content.includes('====') && content.includes('++++')
   
@@ -16,44 +40,78 @@ export function parseTxtFile(content: string): Question[] {
   let currentAnswer: Answer | null = null
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+    // Trim the line but preserve it for checking
+    const originalLine = lines[i]
+    const line = originalLine.trim()
     
+    // Skip empty lines but finalize current answer
     if (!line) {
-      if (currentAnswer) {
-        if (currentQuestion) {
-          currentQuestion.answers.push(currentAnswer)
-        }
+      if (currentAnswer && currentQuestion) {
+        currentQuestion.answers.push(currentAnswer)
         currentAnswer = null
       }
       continue
     }
 
+    // Check for question marker (handle both # and variations)
     if (line.startsWith('#')) {
-      if (currentQuestion && currentQuestion.answers.length >= 2) {
-        questions.push(currentQuestion)
+      // Save previous question if it has at least 2 answers
+      if (currentQuestion) {
+        // Add the last answer if it exists
+        if (currentAnswer) {
+          currentQuestion.answers.push(currentAnswer)
+          currentAnswer = null
+        }
+        // Only add question if it has at least 2 answers
+        if (currentQuestion.answers.length >= 2) {
+          questions.push(currentQuestion)
+        }
       }
-      currentQuestion = {
-        text: line.substring(1).trim(),
-        answers: []
+      // Start new question
+      const questionText = line.substring(1).trim()
+      if (questionText) {
+        currentQuestion = {
+          text: questionText,
+          answers: []
+        }
+      } else {
+        currentQuestion = null
       }
       currentAnswer = null
-    } else if (line.startsWith('+') || line.startsWith('-')) {
+    } 
+    // Check for answer markers (handle both + and - with possible whitespace)
+    // Also handle cases where there might be invisible characters or BOM
+    else if (line.startsWith('+') || line.startsWith('-') || 
+             /^[\u200B-\u200D\uFEFF]*[+-]/.test(line)) {
+      // Save previous answer if exists
       if (currentAnswer && currentQuestion) {
         currentQuestion.answers.push(currentAnswer)
       }
-      const isCorrect = line.startsWith('+')
-      const answerText = line.substring(1).trim()
-      currentAnswer = {
-        text: answerText,
-        isCorrect
+      // Create new answer - handle both + and - markers
+      const isCorrect = line.startsWith('+') || /^[\u200B-\u200D\uFEFF]*\+/.test(line)
+      // Remove the marker and any invisible characters
+      const answerText = line.replace(/^[\u200B-\u200D\uFEFF]*[+-]\s*/, '').trim()
+      if (answerText) {
+        currentAnswer = {
+          text: answerText,
+          isCorrect
+        }
+      } else {
+        currentAnswer = null
       }
-    } else if (currentAnswer) {
+    } 
+    // Continuation of current answer text (multi-line answer)
+    else if (currentAnswer && currentQuestion) {
       currentAnswer.text += ' ' + line
-    } else if (currentQuestion && currentQuestion.text) {
+    } 
+    // Continuation of question text (multi-line question)
+    else if (currentQuestion && currentQuestion.text) {
       currentQuestion.text += ' ' + line
     }
+    // Ignore lines that don't match any pattern (skip them)
   }
 
+  // Finalize last answer and question
   if (currentAnswer && currentQuestion) {
     currentQuestion.answers.push(currentAnswer)
   }
@@ -141,8 +199,14 @@ function parseMatchingTableFromHTML(html: string): { leftIndex: number, leftText
         const col3Text = cells[2].textContent?.trim() || ''
 
         if (rowIndex > 0) {
-          if (col2Text && isNaN(Number(col2Text))) allLeftTexts.set(rowIndex, col2Text.replace(/\s*\/\s*/g, ' / '))
-          if (col3Text && isNaN(Number(col3Text))) allRightTexts.set(rowIndex, col3Text.replace(/\s*\/\s*/g, ' / '))
+          if (col2Text && isNaN(Number(col2Text))) {
+            const fixedText = fixEncoding(col2Text.replace(/\s*\/\s*/g, ' / '))
+            allLeftTexts.set(rowIndex, fixedText)
+          }
+          if (col3Text && isNaN(Number(col3Text))) {
+            const fixedText = fixEncoding(col3Text.replace(/\s*\/\s*/g, ' / '))
+            allRightTexts.set(rowIndex, fixedText)
+          }
         }
       }
     })
@@ -153,9 +217,11 @@ function parseMatchingTableFromHTML(html: string): { leftIndex: number, leftText
       if (cells.length >= 5) {
         // 5-column format
         const leftIndex = parseInt(cells[1].textContent?.trim() || '0')
-        const leftText = (cells[2].textContent?.trim() || '').replace(/\s*\/\s*/g, ' / ')
+        let leftText = (cells[2].textContent?.trim() || '').replace(/\s*\/\s*/g, ' / ')
+        leftText = fixEncoding(leftText)
         const rightIndex = parseInt(cells[3].textContent?.trim() || '0') || leftIndex
-        const rightText = (cells[4].textContent?.trim() || '').replace(/\s*\/\s*/g, ' / ')
+        let rightText = (cells[4].textContent?.trim() || '').replace(/\s*\/\s*/g, ' / ')
+        rightText = fixEncoding(rightText)
 
         if (leftIndex > 0 && leftText) {
           tableAnswers.push({ leftIndex, leftText, rightIndex, rightText })
@@ -277,6 +343,9 @@ function parseSequenceTableFromHTML(html: string): { index: string, orderNumber:
         // Column 3: Answer text
         let text = cells[2].textContent?.trim() || ''
         
+        // Fix encoding issues
+        text = fixEncoding(text)
+        
         // Handle text with '/' separator
         if (text.includes('/')) {
           text = text.replace(/\s*\/\s*/g, ' / ')
@@ -389,6 +458,9 @@ function parseTableFromHTML(html: string): { index: string, isCorrect: boolean, 
         // Column 3: Answer text
         let text = cells[2].textContent?.trim() || ''
         
+        // Fix encoding issues
+        text = fixEncoding(text)
+        
         // Handle text with '/' separator (e.g., "Вazal/Базальный")
         if (text.includes('/')) {
           text = text.replace(/\s*\/\s*/g, ' / ')
@@ -418,7 +490,10 @@ function parseTableFromHTML(html: string): { index: string, isCorrect: boolean, 
 export async function parseDocxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise<Question[]> {
   // Get raw text for question text extraction
   const textResult = await mammoth.extractRawText({ arrayBuffer })
-  const rawText = textResult.value
+  let rawText = textResult.value
+  
+  // Fix encoding issues before parsing
+  rawText = fixEncoding(rawText)
   
   // Check if content uses the new format (==== and ++++ separators)
   // If so, use parseTxtFile directly as it handles this format

@@ -1,4 +1,4 @@
-﻿ # Umurtkalarda nima bo‘lmaydi?  
+﻿# Umurtkalarda nima bo‘lmaydi?  
 + saput
 - arcus
 - processus
