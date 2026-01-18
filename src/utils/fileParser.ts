@@ -53,8 +53,8 @@ export function parseTxtFile(content: string): Question[] {
       continue
     }
 
-    // Check for question marker (handle both # and variations)
-    if (line.startsWith('#')) {
+    // Check for question marker (handle both # and ?)
+    if (line.startsWith('#') || line.startsWith('?')) {
       // Save previous question if it has at least 2 answers
       if (currentQuestion) {
         // Add the last answer if it exists

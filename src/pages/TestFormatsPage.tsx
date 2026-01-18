@@ -177,18 +177,116 @@ Noto'g'ri javob 2`}
           </CardContent>
         </Card>
 
-        {/* Format 1: Oddiy TXT format */}
+        {/* Format 1: Question mark format */}
+        <Card elevation={2} sx={{ border: '2px solid', borderColor: 'primary.main' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Description color="primary" sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {t('formats.format1.title') || 'Format 1: Savol belgisi format (? belgisi)'}
+              </Typography>
+              <Chip label="YANGI" color="primary" size="small" sx={{ ml: 'auto' }} />
+            </Box>
+            
+            <Typography variant="body1" paragraph>
+              {t('formats.format1.description') || 'Bu format savollar ? belgisi bilan boshlanadigan formatdir. TXT va DOCX fayllarida ishlaydi.'}
+            </Typography>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mb: 3 }}>
+              <Typography component="pre" sx={{ fontFamily: 'monospace', fontSize: '0.875rem', whiteSpace: 'pre-wrap', color: 'text.primary' }}>
+{`? Savol matni bu yerda yoziladi
++ To'g'ri javob 1
+- Noto'g'ri javob 1
+- Noto'g'ri javob 2
++ To'g'ri javob 2 (multi-select uchun)
+
+? Ikkinchi savol
++ To'g'ri javob
+- Noto'g'ri javob 1
+- Noto'g'ri javob 2
+- Noto'g'ri javob 3`}
+              </Typography>
+            </Paper>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format1.rules') || 'Qoidalar:'}
+              </Typography>
+              <Box component="ul" sx={{ pl: 3 }}>
+                <li>
+                  <Typography variant="body2">
+                    <strong>?</strong> - Savolni boshlash belgisi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    <strong>+</strong> - To'g'ri javob belgisi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    <strong>-</strong> - Noto'g'ri javob belgisi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Savol matni va javoblar bir nechta qatorda bo'lishi mumkin
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Har bir savolda kamida 2 ta javob bo'lishi kerak
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Agar bir nechta <strong>+</strong> belgisi bo'lsa, multi-select savol bo'ladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Bu format TXT va DOCX fayllarida ishlaydi
+                  </Typography>
+                </li>
+              </Box>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format1.example') || 'Misol:'}
+              </Typography>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50' }}>
+                <Typography variant="body2" paragraph sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+{`? Nafasning organizm uchun asosiy moxiyati:
++ Organizm to'qima va hujayralarini kislorod bilan ta'minlab, CO2 ajratish
+- organizm to'qima va hujayralarini vitaminlar bilan ta'minlash
+- organizm to'qima va hujayralarini oziq moddalar bilan ta'minlash
+- organizm to'qima va hujayralarini suv va mikroelementlar bilan ta'minlash
+- Organizm to'qima va hujayralarini karbonat angidrid bilan ta'minlab, kislorodni ajratish`}
+                </Typography>
+              </Paper>
+            </Box>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText', mt: 2 }}>
+              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                {t('formats.format1.note') || '💡 Maslahat: Bu format Format 0 va Format 2 ga o\'xshash, lekin savollar ? belgisi bilan boshlanadi.'}
+              </Typography>
+            </Paper>
+          </CardContent>
+        </Card>
+
+        {/* Format 2: Oddiy TXT format */}
         <Card elevation={2}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Description color="primary" sx={{ fontSize: '2rem' }} />
               <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                {t('formats.format1.title') || 'Format 1: Oddiy format (TXT va DOCX)'}
+                {t('formats.format2.title') || 'Format 2: Oddiy format (# belgisi)'}
               </Typography>
             </Box>
             
             <Typography variant="body1" paragraph>
-              {t('formats.format1.description') || 'Bu format oddiy matn fayllari va Word hujjatlari uchun ishlatiladi.'}
+              {t('formats.format2.description') || 'Bu format oddiy matn fayllari va Word hujjatlari uchun ishlatiladi. Savollar # belgisi bilan boshlanadi.'}
             </Typography>
 
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mb: 3 }}>
@@ -209,7 +307,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format1.rules') || 'Qoidalar:'}
+                {t('formats.format2.rules') || 'Qoidalar:'}
               </Typography>
               <Box component="ul" sx={{ pl: 3 }}>
                 <li>
@@ -247,23 +345,23 @@ Noto'g'ri javob 2`}
           </CardContent>
         </Card>
 
-        {/* Format 2: DOCX table format */}
+        {/* Format 3: DOCX table format */}
         <Card elevation={2}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <TableChart color="primary" sx={{ fontSize: '2rem' }} />
               <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                {t('formats.format2.title') || 'Format 2: DOCX Table format'}
+                {t('formats.format3.title') || 'Format 3: DOCX Table format'}
               </Typography>
             </Box>
             
             <Typography variant="body1" paragraph>
-              {t('formats.format2.description') || 'Bu format Word hujjatlarida jadval (table) ko\'rinishida javoblar bo\'lganda ishlatiladi.'}
+              {t('formats.format3.description') || 'Bu format Word hujjatlarida jadval (table) ko\'rinishida javoblar bo\'lganda ishlatiladi.'}
             </Typography>
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format2.structure') || 'Struktura:'}
+                {t('formats.format3.structure') || 'Struktura:'}
               </Typography>
               <Box component="ol" sx={{ pl: 3 }}>
                 <li>
@@ -291,7 +389,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format2.tableFormat') || 'Jadval formati:'}
+                {t('formats.format3.tableFormat') || 'Jadval formati:'}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table>
@@ -330,7 +428,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format2.rules') || 'Qoidalar:'}
+                {t('formats.format3.rules') || 'Qoidalar:'}
               </Typography>
               <Box component="ul" sx={{ pl: 3 }}>
                 <li>
@@ -368,29 +466,29 @@ Noto'g'ri javob 2`}
 
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
               <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
-                {t('formats.format2.note') || 'Eslatma: Agar jadval formatida savollar topilmasa, tizim oddiy formatga o\'tadi.'}
+                {t('formats.format3.note') || 'Eslatma: Agar jadval formatida savollar topilmasa, tizim oddiy formatga o\'tadi.'}
               </Typography>
             </Paper>
           </CardContent>
         </Card>
 
-        {/* Format 3: Ketma ketlik format */}
+        {/* Format 4: Ketma ketlik format */}
         <Card elevation={2}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Sort color="primary" sx={{ fontSize: '2rem' }} />
               <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                {t('formats.format3.title') || 'Format 3: Ketma ketlik format'}
+                {t('formats.format4.title') || 'Format 4: Ketma ketlik format'}
               </Typography>
             </Box>
             
             <Typography variant="body1" paragraph>
-              {t('formats.format3.description') || 'Bu format javoblarni ketma-ketlik bo\'yicha tartibga solish kerak bo\'lganda ishlatiladi.'}
+              {t('formats.format4.description') || 'Bu format javoblarni ketma-ketlik bo\'yicha tartibga solish kerak bo\'lganda ishlatiladi.'}
             </Typography>
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format3.structure') || 'Struktura:'}
+                {t('formats.format4.structure') || 'Struktura:'}
               </Typography>
               <Box component="ol" sx={{ pl: 3 }}>
                 <li>
@@ -423,7 +521,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format3.tableFormat') || 'Javoblar jadval formati:'}
+                {t('formats.format4.tableFormat') || 'Javoblar jadval formati:'}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table>
@@ -462,7 +560,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format3.answersTable') || 'Javoblar jadvali (fayl oxirida):'}
+                {t('formats.format4.answersTable') || 'Javoblar jadvali (fayl oxirida):'}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table>
@@ -489,13 +587,13 @@ Noto'g'ri javob 2`}
                 </Table>
               </TableContainer>
               <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontStyle: 'italic' }}>
-                {t('formats.format3.answersNote') || 'Format: "1=2" degani birinchi javob ikkinchi o\'rinda bo\'lishi kerak'}
+                {t('formats.format4.answersNote') || 'Format: "1=2" degani birinchi javob ikkinchi o\'rinda bo\'lishi kerak'}
               </Typography>
             </Box>
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format3.rules') || 'Qoidalar:'}
+                {t('formats.format4.rules') || 'Qoidalar:'}
               </Typography>
               <Box component="ul" sx={{ pl: 3 }}>
                 <li>
@@ -543,29 +641,29 @@ Noto'g'ri javob 2`}
 
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
               <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
-                {t('formats.format3.note') || 'Eslatma: Bu format faqat "Укажите порядок следования" so\'zi bo\'lsa ishlaydi.'}
+                {t('formats.format4.note') || 'Eslatma: Bu format faqat "Укажите порядок следования" so\'zi bo\'lsa ishlaydi.'}
               </Typography>
             </Paper>
           </CardContent>
         </Card>
 
-        {/* Format 4: Moslik format */}
+        {/* Format 5: Moslik format */}
         <Card elevation={2}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Link color="primary" sx={{ fontSize: '2rem' }} />
               <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                {t('formats.format4.title') || 'Format 4: Moslik format'}
+                {t('formats.format5.title') || 'Format 5: Moslik format'}
               </Typography>
             </Box>
             
             <Typography variant="body1" paragraph>
-              {t('formats.format4.description') || 'Bu format javoblarni moslik bo\'yicha bog\'lash kerak bo\'lganda ishlatiladi.'}
+              {t('formats.format5.description') || 'Bu format javoblarni moslik bo\'yicha bog\'lash kerak bo\'lganda ishlatiladi.'}
             </Typography>
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format4.structure') || 'Struktura:'}
+                {t('formats.format5.structure') || 'Struktura:'}
               </Typography>
               <Box component="ol" sx={{ pl: 3 }}>
                 <li>
@@ -598,7 +696,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format4.tableFormat') || 'Javoblar jadval formati:'}
+                {t('formats.format5.tableFormat') || 'Javoblar jadval formati:'}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table>
@@ -654,7 +752,7 @@ Noto'g'ri javob 2`}
 
             <Box sx={{ mb: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format4.answersTable') || 'Javoblar jadvali (fayl oxirida):'}
+                {t('formats.format5.answersTable') || 'Javoblar jadvali (fayl oxirida):'}
               </Typography>
               <TableContainer component={Paper} variant="outlined">
                 <Table>
@@ -681,13 +779,13 @@ Noto'g'ri javob 2`}
                 </Table>
               </TableContainer>
               <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', fontStyle: 'italic' }}>
-                {t('formats.format4.answersNote') || 'Format: "1=4" degani birinchi chap javob to\'rtinchi o\'ng javobga mos keladi'}
+                {t('formats.format5.answersNote') || 'Format: "1=4" degani birinchi chap javob to\'rtinchi o\'ng javobga mos keladi'}
               </Typography>
             </Box>
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {t('formats.format4.rules') || 'Qoidalar:'}
+                {t('formats.format5.rules') || 'Qoidalar:'}
               </Typography>
               <Box component="ul" sx={{ pl: 3 }}>
                 <li>
@@ -755,7 +853,7 @@ Noto'g'ri javob 2`}
 
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
               <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
-                {t('formats.format4.note') || 'Eslatma: Bu format faqat "Укажите соответствие" so\'zi bo\'lsa ishlaydi. Javoblar random qilinmaydi.'}
+                {t('formats.format5.note') || 'Eslatma: Bu format faqat "Укажите соответствие" so\'zi bo\'lsa ishlaydi. Javoblar random qilinmaydi.'}
               </Typography>
             </Paper>
           </CardContent>
