@@ -34,25 +34,25 @@
       "years": "2025-2026",
       "subject": "Fiziologiya",
       "courses": 2,
-      "institute": "TMA(TTA)",
+      "institute": "TSMU",
       "language": "uz",
       "work_it_all": true,
       "sub_catologs": [
         {
           "name": "1ta javobli.txt",
-          "path": "tests/tma/2/fiziologiya/3_semester/1ta javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/1ta javobli.txt"
         },
         {
           "name": "2ta to'g'ri javobli.txt",
-          "path": "tests/tma/2/fiziologiya/3_semester/2ta to'g'ri javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/2ta to'g'ri javobli.txt"
         },
         {
           "name": "3ta to'g'ri javobli.txt",
-          "path": "tests/tma/2/fiziologiya/3_semester/3ta to'g'ri javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/3ta to'g'ri javobli.txt"
         },
         {
           "name": "Moslik.txt",
-          "path": "tests/tma/2/fiziologiya/3_semester/Moslik.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/Moslik.txt"
         }
       ]
     },
