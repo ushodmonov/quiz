@@ -80,6 +80,7 @@
       "name": "Odam anatomiya",
       "path": "tests/tma/1/odam_anatomiyasi/1_semester/odam_anatomiyasi.txt",
       "semester": 1,
+      "years": "2025-2026",
       "subject": "Odam anatomiya",
       "courses": 1,
       "institute": "TMA(TTA)",
@@ -87,6 +88,7 @@
     },
     {
       "name": "Tibbiy Biologiya",
+      "years": "2025-2026",
       "path": "tests/tma/1/tibbiy_biologiya/1_semester/tibbiy_biologiya.txt",
       "semester": 1,
       "subject": "Tibbiy Biologiya",
@@ -95,7 +97,8 @@
       "language": "uz"
     },
     {
-      "name": "Tibbiy Kimyp",
+      "name": "Tibbiy Kimyo",
+      "years": "2025-2026",
       "path": "tests/bsmi/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.txt",
       "semester": 1,
       "subject": "Tibbiy Kimyo",
@@ -105,12 +108,23 @@
     },
     {
       "name": "Anatomiya",
+      "years": "2025-2026",
       "path": "tests/bsmi/2/anatomiya/3_semester/anatomiya.txt",
       "semester": 2,
       "subject": "Anatomiya",
       "courses": 3,
       "institute": "BSMI(BuxDTI)",
       "language": "uz"
+    },
+    {
+      "name": "Odam Anatomiya",
+      "years": "2025-2026",
+      "path": "tests/tma/1/odam_anatomiyasi/1_semester/odam_anatomiyasi_ru.txt",
+      "semester": 1,
+      "subject": "Odam Anatomiya",
+      "courses": 1,
+      "institute": "TMA(TTA)",
+      "language": "ru"
     }
   ]
 }

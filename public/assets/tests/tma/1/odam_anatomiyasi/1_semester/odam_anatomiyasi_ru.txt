@@ -1,0 +1,1157 @@
+﻿ # Шейные позвонки отличаются от дpугих позвонков наличием:
+- foveae costales  
+- tuberculum costae  
++ foramina processus transversalia
+- processus accessorius  
+- processus transversus
+
+# Поясничные позвонки отличаются от дpугих позвонков наличием:
+- tuberculum anterior et posterior  
++ processus accessorius, processus mamillaris
+- foveae costales  
+- foramina processus transversalia  
+- fossa olecrani
+
+# Укажите части, пpинадлежащие пеpвому шейному позвонку? 
+- fovea costalis
++ arcus anterior
+- processus spinosus
+- dens
+- processus accessorius
+
+# Укажите части, пpинадлежащие гpудному позвонку?
+- processus accesorius
+- tuberculum conoideum 
++ foveae costales
+- аrcusanterior
+- fossaolecrani
+
+# Укажите части, пpинадлежащие II шейному позвонку?
+- incisurae costales
++ dens
+- foveae costales
+- arcus anterior
+- processusaccessorius
+
+# Что отсутствует в кpестцовой кос¬ти? 
++ fovea
+- apex
+- foramen
+- cristae
+- processus articularis
+
+# Что отсутствует в гpудине?
+- incisurae costales I
+- incisura clavicularis 
+- incisurae costales II
++ incisuraearticulares
+- incisurajugularis
+
+# Что отсутствует в pебpе?
+- corpus
++ рrocessus
+- caput
+- collum
+- angulus
+
+# Что отсутствует в ключице?
++ processus coracoideus
+- tuberculum conoideum 
+- extremitas acromialis 
+- extremitas sternalis 
+- facies articularis sterni
+
+# Где pасполагается на лопатке cavitas glenoidalis? 
+- angulus inferior
++ angulus lateralis
+- angulus superior
+- angulus medialis
+- fossae subscapularis
+ 
+# На дистальном конце локтевой кости pасполагаются:
+- processus coronoideus, olecranon 
++ processus styloidens, circumferentia articularis
+- incisura trochlearis, incisura radialis
+- processus styloidens, processus coronoideus 
+- incisuratrochlearis, incisuraulnaris
+
+# На дистальном конце локтевой кости pасполагаются:
++ caput, processus styloideus
+- circumferentia articularis, incisura ulnaris 
+- processus styloidens, processus coronoideus
+- caput, incisura ulnaris
+- incisura radialis, incisura ulnaris 
+
+# На пpоксимальном конце лучевой кости pасполагаются:
+- circumferentia articularis, olecranon
+- incisura trochlearis, processus coronoideus
+- caput, processus styloideus
+- foramen nutricium, facies lateralis
+- incisura radialis, tuberositas radii
++ caput, collum
+
+# На пpоксимальном конце лучевой кости pасполагаются:
+- collum, processus styloideus 
+- caput, processus coronoideus 
++ circumferentia articularis, caput
+- circumferentia articularis, trochlea
+- incisuraulnaris, processusstyloideus
+
+# На дистальном конце лучевой кости pасполагаются:
+- incisura ulnaris, caput
++ processus styloideus, incisura ulnaris
+- incisura radialis, processus styloideus 
+- incisura radialis, facies articularis carpea 
+- corpus, faciesposterior
+
+# На дистальном конце лучевой кости pасполагаются:
+- incisura radialis, facies articularis carpea
+- caput radii, collum radii 
+- processus styloideus, incisura radialis
++ facies articularis carpea, incisura ulnaris
+- corpus, facies posterior
+- Cranium
+
+# В образовании neurocranium участвуют:
++ os occipitale, os sphenoidale, os temporale
+- maxilla, os nasale
+- vomer, os zygomaticum
+- mandibula, concha nasalis inferior
+- os palatinum
+
+# В образовании neurocranium участвуют: 
+- maxilla, os nasale
+- vomer, os zygomaticum
++ os temporale, os parietale, os frontale
+- mandibula, concha nasalis inferior
+- os palatinum, os frontale
+
+# В образовании neurocranium участвуют:
++ os frontale, os ethmoidale, os occipitale
+- maxilla, os nasale
+- vomer, os zygomaticum
+- mandibula, concha nasalis inferior
+- os palatinum
+
+# В образовании neurocranium участвуют:
+- maxilla
+- os nasale
+- vomer
++ osfrontale
+- os zygomaticum
+
+# В образовании neurocranium участвуют:
+- maxilla
++ ostemporale
+- os nasale
+- vomer
+- os lacrimale
+
+# В образовании neurocranium участвуют:
++ ossphenoidale
+- mandibula
+- concha nasalis inferior
+- os palatinum
+- vomer
+
+# В образовании neurocranium участвуют:
++ os occipitale
+- os lacrimale
+- os zygomaticum
+- concha nasalis inferior
+- os palatinum
+
+# В образовании neurocranium участвуют:
+- concha nasalis inferior
+- vomer
++ os frontale
+- mandibula
+- os lacrimale
+
+# В образовании neurocranium участвуют:
+- os palatinum
+- mandibula
++ os temporale
+- os lacrimale
+- os zygomaticum
+
+# В образовании   cranium viscerale участвуют:
+- os temporale, os palatinum
+- os parietale
+- os sphenoidale
+- os frontale
++ maxilla, os lacrimale
+
+# Maxilla имеет: 
++ alveoli dentales
+- foramen spinosum
+- foramen ovale
+- lamina horizontalis
+- lamina perpendicularis
+
+# Maxilla имеет:
+- foramen spinosum
+- foramen ovale
++ corpus maxillae
+- lamina horizontalis
+- lamina perpendicularis
+
+# Maxilla имеет:
+- foramen spinosum
+- foramen ovale
+- lamina horizontalis
++ fossa canina
+- lamina perpendicularis
+
+# Maxilla имеет:
++ facies nasalis
+- lamina horizontalis
+- lamina perpendicularis
+- processus lacrimalis
+- foramen spinosum
+
+# Maxilla имеет:
++ processus frontalis
+- lamina horizontalis
+- lamina perpendicularis
+- processus lacrimalis
+- processus coronoideus
+
+# Maxilla имеет:
+- processus lacrimales
+- lamina horizontalis
+- lamina perpendicularis
++ processus palatinus
+- foramen spinosum
+
+# Maxilla имеет:
+- lamina cribrosa
+- processus coronoideus
++ processus alveolaris
+- processus pterygoideus
+- foramen spinosum
+
+# Maxilla имеет:
+- eminentia arcuata
++ fossa canina
+- protuberantia mentalis
+- sulcus mylohyoideus
+- foramen spinosum
+
+# Maxilla имеет:
+- Foramen ovale
+- incisura supraorbitalis
+- fossa glandulae lacrimalis
+- foramen spinosum
++ sulcus palatinus major
+
+# Maxilla имеет:
++ foramen infraorbitale
+- foramen spinosum
+- foramen ovale
+- processus coronoideus 
+- processus lacrimalis
+
+# Maxilla имеет:
+- canalis facialis
+- fissura orbitalis inferior
++ canalis incisivus
+- foramen spinosum
+- foramen ovale
+
+# Maxilla имеет:
+- sulcus hiasmatis
+- sulcus supraorbitalis
+- foramen spinosum
++ sulcus lacrimalis
+- foramen ovale
+
+# Maxilla имеет:
+- processus pterygoideus
+- processus condylaris
++ processus zygomaticus
+- foramen spinosum
+- foramen ovale
+
+# Os palatinum имеет:
+- foramen spinosum
+- foramen ovale
+- processus coronoideus 
++ lamina horizontalis
+- processus lacrimalis
+
+# Os zygomaticum имеет:
++ processus frontalis
+- sulcus infraorbitalis
+- foramen supraorbitale
+- processus coronoideus 
+- processus lacrimalis
+
+# Mandibula имеет:
+- foramen sphenopalatinum 
++ tuberositas masseterica
+- foramen palatinum majus 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+
+# Mandibula имеет: 
+- foramen sphenopalatinum 
+- sulcus supraorbitalis 
++ septa interalveolaria
+- foramen palatinum majus 
+- facies sphenoidalis
+
+# Mandibula имеет: 
+- foramen sphenopalatinum 
+- foramen palatinum majus 
+- sulcus supraorbitalis 
++ processus coronoideus
+- facies sphenoidalis 
+
+# Mandibula имеет:
++ fossa digastrica
+- foramen sphenopalatinum 
+- foramen palatinum majus 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+
+# Mandibula имеет:
+- foramen sphenopalatinum
++ foramen mentale
+- foramen palatinum majus 
+- facies sphenoidalis 
+- sulcus supraorbitalis
+- Syndesmologia
+
+# Какой сустав одноосный?
+- art.genu 
+- art.humeri
+- art.coxae 
+- art.radiocarpea 
++ art.radioulnaris
+
+# Какой сустав многоосный?
+- art.talocruralis 
+- art.cubiti 
++ art.coxae
+- art.genu
+- art.interphalangea
+
+# Посредством чего соединяются тела позвонков?
+- annulus fibrosus
+- nucleus pulposus
+- lig.longitudinale anterius 
++ disci intervertebrales
+- lig.longitudinale posterius 
+
+# Связки между дугами позвонков?
+- ligg.nuche
+- ligg.interspinalia 
+- ligg.supraspinale 
++ ligg.flava
+- ligg.longitudinale
+
+# Что имеется внутри височно нижнече¬люстного сустава?
++ discus articularis
+- lig.laterale
+- lig.sphenomandibulare
+- lig.caput mandibule
+- cavitas glenoidalis
+
+# Внутрисуставная связка тазобедренно¬го сустава?
+- lig.pubofemorale
+- lig.ilifemorale
++ lig.capitis femoris
+- lig.ischiofemorale
+- lig.flava
+
+# Внутрисуставная связка тазобедренно¬го сустава?
+- lig.transversum genus 
++ lig.transversum acetabuli
+- lig.cruсiatum anterius 
+- lig.cruсiatum posterius 
+- lig.cruсiatumgenus
+
+# Что имеется внутри коленного суста¬ва?
+- labrum glenoidale 
+- labrum acetabularae 
++ meniscus lateralis et medialis
+- lig.capitis femoris 
+- lig.genu lateralis 
+
+# Внутрисуставные связки коленного сустава?
+- ligg.collaterale tibiale 
+- lig.popliteum arcuatum 
+- lig.bifurcatum
+- lig.capitis femoris 
++ ligg.cruciatagenus 
+
+# Какие суставы образуют art.tarsi transversa?
++ art.calcanocuboidea, art.talonaviculare
+- art.cuneonavicularis, art.talonaviculare 
+- art.calcanocuboidea, art.cuneonavicularis 
+- art.tarsometatarseae, art.cuneonavicularis 
+- art.metatarsophalangeae, art.tarsometatarseae
+ 
+# Какая связка укрепляет свод стопы?
+- lig.metatarsea
+- lig.bifurcatum
+- lig.calcanonaviculare 
+- lig.calcanocuboideum 
++ lig.plantare longum
+
+# Задняя стенка бедренного канала. 
+- hiatus saphenus 
+- lig.inguinale и край fascia lata
+- v.femoralis
++ глубокий листок fascialata
+- annulusfemoralis
+
+# Латеральная стенка бедренного кана¬ла. 
++ v.femoralis
+- hiatus saphenus
+- lig.inguinale и край fascia lata 
+- annulus femoralis 
+- глубокий листок fascia lata
+
+# Наружное кольцо бедренного канала.
+- v.femoralis
+- annulus femoralis 
+- lig.inguinale и край fascia lata
++ hiatussaphenus
+- глубокий листок fascia lata
+
+# Внутреннее кольцо (отверстие) бед¬ренного канала.
+- глубокий листок fascia lata
+- hiatus saphenus
+- lig.inguinale и край fascia lata
+- v.femoralis
++ annulus femoralis
+
+# Латеральная стенка Canalis adductorius:
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
++ m.vastus medialis
+- hiatus tendineus
+
+# Медиальная стенка Canalis adductorius:
+- v.femoralis
+- lamina vastoadductoria
++ m.adductor magnus
+- hiatus tendineus
+- m.vastus medialis
+
+# Передняя стенка Canalis adductorius:
+- v.femoralis
+- hiatus tendineus
+- m.vastus medialis
+- m.adductor magnus
++ lamina vastoadductoria
+
+# Содержимое канала Canalis adductorius:
++ a.et v.femoralis
+- hiatus tendineus
+- lamina vastoadductoria
+- m.adductor magnus
+- m.vastus medialis
+
+# Дистальное отверстие Canalis adductorius:
+- m.vastus medialis
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
++ hiatus tendineus
+
+# Верхняя стенка пахового канала: 
+- fascia transversalis
+- lig.inguinalis 
+- апоневроз m.obliqus externus abdominis
++ mm.obliqus internus abdominis et transversus abdominis
+- mm.obliqus externus abdominis
+
+# Нижняя стенка пахового канала:
+- mm.obliqus internus abdominis et transversus abdominis 
++ желоб паховой связки
+- апоневроз m.obliqus externus abdominis
+- fascia transversalis
+- m.vastuslateralis
+
+# Передняя стенка бедренного канала. 
+- hiatus saphenus 
+- annulus femoralis 
++ lig.inguinale и край fascia lata
+- v.femoralis
+- глубокий листок fascialata
+
+# Задняя стенка бедренного канала. 
++ глубокий листок fascia lata
+- hiatus saphenus 
+- lig.inguinale и край fascia lata
+- v.femoralis
+- annulusfemoralis
+
+# Латеральная стенка бедренного кана¬ла. 
+- annulus femoralis
+- hiatus saphenus
+- lig.inguinale и край fascia lata 
++ v.femoralis
+- глубокий листок fascia lata
+
+# Наружное кольцо бедренного канала.
+- annulus femoralis 
+- lig.inguinale и край fascia lata
+- v.femoralis
+- глубокий листок fascia lata
++ hiatussaphenus
+
+# Внутреннее кольцо (отверстие) бедренного канала.
+- hiatus saphenus
+- lig.inguinale и край fascia lata
++ annulus femoralis
+- v.femoralis
+- глубокий листок fascia lata
+
+# Латеральная стенка Canalis adductorius:
++ m.vastus medialis
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
+- hiatus tendineus
+
+# Медиальная стенка Canalis adductorius:
+- m.vastus medialis
+- v.femoralis
+- lamina vastoadductoria
+- hiatus tendineus
++ m.adductor magnus
+
+# Передняя стенка Canalis adductorius:
+- v.femoralis
+- hiatus tendineus
++ lamina vastoadductoria
+- m.adductor magnus
+- m.vastus medialis
+
+# Содержимое канала Canalis adductorius:
++ a.et v.femoralis
+- hiatus tendineus
+- lamina vastoadductoria
+- m.adductor magnus
+- m.vastus medialis
+
+# Дистальное отверстие Canalis adductorius:
+- m.vastus medialis
+- a.et v.femoralis
+- lamina vastoadductoria
+- m.adductor magnus
++ hiatus tendineus
+
+# Верхняя стенка пахового канала: 
+- mm.obliqus internus abdominis et transversus abdominis 
++ lig.inguinalis
+- апоневроз m.obliqus externus abdominis
+- fascia transversalis
+- mm.obliqus externus abdominis
+
+# Нижняя стенка пахового канала:
++ желоб паховой связки
+- mm.obliqus internus abdominis et transversus abdominis 
+- апоневроз m.obliqus externus abdominis
+- fascia transversalis
+- m.vastuslateralis
+
+# Мышцы  производные первой висцеральной дуги. 
+- m.mylohyoideus,m.sternohyoideus
+- m.stylohyoideus,m.milohyoideus
++ m.mylohyoideus,переднее брюшко m.digastricusm.stylohyoideus,m.sternohyoideus
+- m.digastricum,m.sternohyoideus
+- m.mylohyoideus, m.stylohyoideus
+
+# Мышцы  производные второй висцеральной дуги: 
++ m.stylohyoideus,заднее брюшко m.digastricusm.platismam.stylohoideus,m.omohyoideus
+- m.sternohyoideus,m.platysma
+- m.omochyoideus,m.thyroideus
+- m.platysma,m.omochyoideus
+- m.sternohyoideus, m.omochyoideus
+
+# Где прикрепляется m.quadricepsfemoris?
+- crista anterior tibiae
+- condilus medialis tibiae
++ tuberositas tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# Куда прикрепляется m.semitendinosus?
+- caput femoris
++ tuberositas tibiae
+- caput fibulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# Где начинается m.bicepsbrachii? 
++ tuberculum supraglenoidale, processus carocoideus scapulae
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Где прикрепляется m.bicepsbrachii?
+- средней трети osradii
+- tuberositasulnae
++ tuberositasradii
+- membrana interossea
+- olecranon
+
+# Всостав m.erector spinae входит: 
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
++ m.iliocostalis,m.spinalis, m.longissimus
+- m.multifidi,m.semispinalis 
+
+# В состав m.transversospinalis входит?
+- mm.multifidi,m.iliocostalis 
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
++ m.semispinalis,mm.rotatores, mm.muitifidi
+- m.iliocostalis,mm.rotatores
+- m.multifidi,m.semispinalis 
+
+# Где прикрепляется m.quadriceps femoris?
+- crista anterior tibiae
++ tuberositas tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- capitulum tibiae
+
+# Куда прикрепляется m.semitendinosus?
+- caput fibulae
+- caput femoris
++ tuberositas tibiae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# Где начинается m.bicepsbrachii? 
++ tuberculum supraglenoidale, processus carocoideus scapulae
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Где прикрепляется m.bicepsbrachii?
+- средней трети osradii
++ tuberositasradii
+- tuberositasulnae
+- membrana interossea
+- olecranon
+
+# Где прикрепляется m.transversus thoracis ? 
+- tuberositas deltoidea ossis humeri   
++ cartilago costae
+- crista  tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Где прикрепляется m.subclavius ?
+- membrana interossea
+- tuberositas ulnae
++ costae primae
+- olecranon
+- clavicula
+
+# Где начинается m.subclavius ?
++ clavicula
+- tuberositas humeri
+- processus coracoideus scapulae
+- tuberositas supraglenoidalis
+- tuberositas infraglenoidalis
+
+# Где начинается m.obliquus internus abdominis ? 
+- crista anterior tibiae
++ crista tuberculi minoris ossis humeri
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- fascia thoracolumbalis
+
+# Где начинается m.quadratus lumborum ?
+- capitulum tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
++ lig. Iliolumbale et protsessus transverses lumbalis
+
+# Где начинается m.rectus abdominis ? 
+- processus coracoideus scapulae
+- tuberositas humeri
++ cartilage costae 5,11,7
+- tuberositas supraglenoidalis
+- tuberositas infraglenoidalis
+
+# Где начинается m.rectus abdominis ?
++ processus xiphoideus sterni
+- tuberositas humeri
+- processus coracoideus scapulae
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# Где начинается m.pyramidalis ?
+- processus coracoideus scapulae
+- linea alba
+- tuberositas humeri
++ лобковий сочленение
+- vagina musculi recti abdominis
+
+# Место прикрепления caput longum m.triceps brachii ?
+- epicondylus medialis
++ tuberculum infraglenoidale
+- bursa olecrani
+- epicondylus lateralis
+- linea alba
+
+# Kакиемыщьвходят в состав mm.abdominis ? 
+- m.depressor anguli oris
+- m.serratus posterior
+- m.delthoidea
++ m.transversus
+- m.subclavius
+
+# Kакие мыщь входят в состав mm.abdominis ?
++ m.quadratus lumborum
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.gastrocnemius
+
+# Где прикрепляется m.quadriceps femoris?
+- capitulum tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
+- condilus lateralis tibiae
++ tuberositas tibiae
+
+# Куда прикрепляется m.semitendinosus?
+- aput fibulae
+- caput femoris
++ tuberositas tibiae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# Где прикрепляется m.bicepsbrachii?
+- tuberositasulnae
+- средней трети osradii
++ tuberositasradii
+- membrana interossea
+- olecranon
+
+# В состав m.erector spinae входит: 
+- m.multifidi,m.semispinalis
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
++ m.iliocostalis,m.spinalis, m.longissimus
+ 
+# Какие мышцы входят в состав мышцы таза ?
++ m.iliacus
+- m.iliocostalis,m.rectus capitis posterior major 
+- m.spinalis,m.obliquus capitis inferior 
+- m.transversospinalis,m.rotatores 
+- m.multifidi,m.semispinalis
+ 
+# Какие мышцы входят в состав мышцы таза ?
+- m.infraspinatus
+- m.longissimus 
+- m.multifidi
++ m.psoas major,m.psoas minor
+- m.gastrocnemius
+
+# Какие мышцы входят в состав мышцы таза ?
+- m.palatoglossus, tensor veli palatini
++ m.piriformis
+- m.palatopharyngeus,m.uvulae 
+- m.levator veli palatini,m.depressor veli palatini 
+- m.palatoglossus,m.levator veli palatini,m.palatopharingeus,m.uvulae
+ 
+# Какие мышцы входят в состав мышцы бедра ?
+- m.iliocostalis,mm.rotatores
+- mm.multifidi,m.iliocostalis 
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
++ m. vastus intermedius
+- m.multifidi,m.semispinalis
+
+# Какие мышцы входят в состав мышцы бедра ?
+- m.multifidi
+- m.rectus capitis posterior major, m.spinalis  m.longissimus, 
+- m.iliocostalis,mm.rotatores
++ m.adductor brevis
+- m.extensor hallucis brevis
+ 
+# Какие мышцы входят в состав мышцы бедра ? 
++ m.semimembranous
+- m.longissimus 
+- m.multifidi
+- m.infraspinatus
+- m.gastrocnemius
+
+# Где начинается m.deltoideus?
+- margo medialis scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
++ spina scapula, acromion
+- manubrium sterni
+
+# Где начинается m.supraspinalis?
+- margo medialis scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
++ trohanter major humeri
+- manubrium sterni
+
+# Где начинается m.infraspinalis?
+- caput fibulae
+- caput femoris
++ fossa infra scapula
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+
+# Где начинается m.teresminor?
++ margo lateralis scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+
+# Гденачинается m.teres major ?
+- angulus superior scapulae
++ angulus inferior scapulae
+- epicondilus medialis tibiae
+- epicondilus lateralis tibiae
+- caput femoris
+
+# Где начинается m.subscapularis?
++ facies anterior scapulae
+- tuberositas deltoidea ossis humeri 
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- manubrium sterni
+
+# Где начинается m.brachialis? 
+- caput fibulae
+- caput femoris
++ septa intermuscularia brachii
+- fossa infra scapula
+- epicondilus medialis tibiae
+
+# Где начинается m.coracobrachilis?
+- margo medialis scapulae
+- angulus scapula
+- manubrium sterni
+- crista tuberculi minoris ossis humeri
++ processus coracoideus
+
+# Где начинается m.palmaris longus?
+- spina iliaca anterior superior
+- tuberositas ulnae
+- bursa olecrani
+- tuberculum infraglenoidale
++ epicondylus medialis
+
+# Где начинается m.flexorcarpiulnaris?
++ tuberositas humeri et olecranon
+- tuberositas ulnae
+- bursa olecrani
+- epicondylus medialis 
+- tuberculum infraglenoidale
+
+# Где начинается m.flexor digitorum superficialis?
+- bursa olecrani
+- tuberositas ulnae
++ epicondylus medialis,processus coronoideus
+- epicondylus medialis 
+- tuberculum major humeri
+
+# Где начинается m.flexor digitorum profundus?
+- epicondylus medialis
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
++ facies anterior et lateralis, menbrana interossei
+- epicondylus medialis,processus coronoideus
+
+# Где начинается m.brachioradialis?
++ facies anterior et lateralis, membrane intermuscularia
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
+- epicondylus medialis 
+
+# Местоприкрепления m.pectoralis major?
+- crista tuberculi minoris ossis humeri
+- tuberositas deltoidea ossis humeri 
++ crista tuberculi majoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Место начинается m.palmaris brevis ?
+- olecranon
+- epicondylus medialis
++ retinaculum flexorum
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+
+# Какие мыщь входят в состав m.hypothenor ? 
+- m.anconeus
+- m.iliocostalis lumborum
+- m.longissimu
+- m.trapezius
++ m.abductor digiti minimi
+
+# Какие мыщь входят в состав m.hypothenor ?
++ m.flexor digiti minimi brevis, m.opponens digiti minimi
+- m.extensor pollicis longus
+- m.supinator,m.flexor pollicis brevis
+- m.iliocostalis lumborum
+- m.longissimus
+
+# Какие мыщь входят в состав m.hypothenor ? 
+- m.longissimus
+- m.trapezius
+- m.anconeus
+- m.lumbricales,m.interossei dorsalis
++ m.opponens digiti minimi,m.abductor digiti minimi
+
+# Местоприкрепления m.psoas minor?
++ fascia iliaca
+- facies pelvina os sacri
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
+
+# Место прикрепления m.gluteusmediusr?
+- margo medialis scapulae
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
++ trochanter major os femoris
+- processus coracoideus scapulae
+
+# Место начинается m. gluteus mediusr? 
+- epicondylus medialis
++ facies externa iliaca
+- epicondylus medialis,processus coronoideus
+- tuberculum major humeri
+- tuberculum infraglenoidale,caput laterale
+
+# Место начинается m. gluteusminimus?
+- olecranon
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
+- facies anterior et lateralis, menbrana interossei
++ facies externa iliaca
+
+# Место прикрепления m.gluteus minimus?
+- tuberositas ulnae
++ trochanter major femoris
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Место начинается m.tensorfasciaelatae?
+- spina iliaca anterior inferior
++ spina iliaca anterior superior
+- spina iliaca posterior inferior
+- spina iliaca posterior superior
+- tuber ischiadica
+
+# Место начинается m.piriformis?
++ facies pelvina os sacri
+- tuberositas ulnae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
+- processus coracoideus scapulae
+
+# Место прикрепления m.piriformis?
+- crista tuberculi minoris ossis humeri
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- facies anterior et lateralis humeri, membrane interossei
++ trochanter major femoris
+
+# Место прикрепления m.obturatoris internus?
+- margo medialis scapulae
+- crista tuberculi minoris ossis humeri
++ fossa trochanterica
+- angulus superior scapulae
+- epicondilus medialis tibiae
+
+# Место прикрепления m.obturatoris externus?
++ fossa trochanterica
+- spina iliaca anterior inferior
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+- tuberositas deltoidea ossis humeri 
+
+# Место начинается m.quadratus femores?
+- processus coracoideus scapulae
+- crista tuberculi minoris ossis humeri
+- margo medialis scapulae
++ spina ischiadica
+- fossa trochanterica
+
+# Место прикрепления m. quadratus femores?
+- spina iliaca posterior inferior
++ fossa trochanterica
+- facies anterior et lateralis, menbrana interossei
+- margo medialis scapulae
+- facies pelvina os sacri
+
+# Место прикрепления m. sartorius?
+- spina iliaca anterior inferior
+- epycondylus lateralis et medialis
++ tuberositas tibia
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+
+# Место начинается m.sartorius?
++ spina iliaca anterior superior
+- spina iliaca posterior inferior
+- facies anterior et lateralis, menbrana interossei
+- spina iliaca anterior inferior
+- spina iliaca posterior superior
+
+# Место начинается m.semitendinosum?
+- facies anterior et lateralis, menbrana interossei
+- facies anterior et lateralis humeri, membrane interossei
+- tuberositas ulnae
++ spina ischiadica
+- septum intermusculare laterale femoris
+
+# Какие мыщь входят в состав “pes anserinus superficialis” ? 
+- m.gracilis , m.semimembranosus
+- m.sartorius , m.pectinius
+- m.anconeus
+- m.lumbricales,m.interossei dorsalis
++ m.gracilis , m.m.semitendinosum
+
+# Какие мыщь входят в состав “pes anserinus profundus” ? 
+- m.gracilis , m.semimembranosus
+- m.lumbricales,m.interossei dorsalis
++ m.semimembranosus
+- m.sartorius , m.pectinius
+- m.extensor hallucis longus
+
+# Где прикрепляется m.subclavius ?
++ clavicula
+- tuberositas ulnae
+- membrana interossea
+- olecranon
+- costae prima
+
+# Где начинается m.subclavius ? 
+- tuberositas humeri
++ clavicula
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Где начинается m.obliquus internus abdominis ? 
+- crista anterior tibiae
++ fascia thoracolumbalis
+- condilus medialis tibiae
+- condilus lateralis tibiae
+- crista tuberculi minoris ossis humeri
+
+# Где начинается m.quadratuslumborum ?
+- condilus lateralis tibiae
+- crista anterior tibiae
+- condilus medialis tibiae
++ lig. Iliolumbale et protsessus transverses lumbalis
+- capitulum tibiae
+ 
+# Гденачинается m.rectus abdominis ?
++ processus xiphoideus sterni
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis
+- fovea costalis vertebrae
+
+# Где начинается m.pyramidalis ? 
+- tuberositas humeri
+- linea alba
++ qov birlashmasi
+- processus coracoideus scapulae
+- vagina musculi recti abdominis
+
+# Место прикрепления caput longum m.triceps brachii ?
+- epicondylus lateralis
+- epicondylus medialis
+- bursa olecrani
++ tuberculum infraglenoidale
+- linea alba
+
+# Kакие мыщь входят в состав mm.abdominis ?
++ m.transversus
+- m.serratus posterior
+- m.delthoidea
+- m.depressor anguli oris
+- m.subclavius
+
+# Место начинается m.tibialis posterior?
+- linea alba
+- bursa olecrani
+- epicondylus lateralis
++ tibia et membrana interossea
+- vagina musculi recti abdominis
+
+# Местоначинается m.peroneus longus?
+- processus coracoideus scapulae
+- tuberositas humeri 
++ caput fibulae et septum intermucularis
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Kакие мыщь входят в состав m.interossei ?
++ m.interossei dorsalis, m.plantares
+- m.peroneus longus
+- m.tibularis brevis, M. Tibialis posterior  
+- m.lumbricales,m.interossei dorsalis
+- m.gracilis , m.semimembranosus
+
+# Где начинается m.soleus ?
+- tuberositas infraglenoidalis
+- tuberositas supraglenoidalis 
++ epyphisis procsimalis fibulae
+- vagina musculi recti abdominis
+- area anterior tibiae
+
+# Место начинается m.plantaris?
+- tuberositas humeri
++ facies poplitea, capsula articularis genu
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Место начинается m.fibularislongus?
++ caput fibulae et septum intermucularis
+- tuberositas humeri 
+- processus coracoideus scapulae 
+- tuberositas supraglenoidalis 
+- tuberositas infraglenoidalis
+
+# Место начинается m.vastus intermedius?
+- labium laterale linea aspera femoris
+- tuberositas tibiae
+- labium mediale linea aspera femoris
+- linea intertrochanterica
++ facies anterior os femoris
+
+# Место начинается m.vastusmedialis?
+- linea intertrochanterica
+- facies anterior os femoris
+- tuberositas tibiae
++ labium mediale linea aspera femoris
+- labium laterale linea aspera femoris
+
+# Место начинается m.vastuslateralis?
+- labium mediale linea aspera femoris
+- facies anterior os femoris
+- tuberositas tibiae
++ linea intertrochanterica ,labium laterale linea aspera femoris
+- labium laterale linea aspera femoris
