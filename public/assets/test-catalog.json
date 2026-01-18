@@ -93,6 +93,15 @@
       "courses": 1,
       "institute": "TMA(TTA)",
       "language": "uz"
+    },
+    {
+      "name": "Tibbiy Kimyp",
+      "path": "tests/bsmi/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.txt",
+      "semester": 1,
+      "subject": "Tibbiy Kimyo",
+      "courses": 1,
+      "institute": "BSMI",
+      "language": "uz"
     }
   ]
 }
