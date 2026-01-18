@@ -102,6 +102,15 @@
       "courses": 1,
       "institute": "BSMI(BuxDTI)",
       "language": "uz"
+    },
+    {
+      "name": "Anatomiya",
+      "path": "tests/bsmi/2/anatomiya/3_semester/anatomiya.txt",
+      "semester": 2,
+      "subject": "Anatomiya",
+      "courses": 3,
+      "institute": "BSMI(BuxDTI)",
+      "language": "uz"
     }
   ]
 }
