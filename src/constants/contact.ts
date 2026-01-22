@@ -10,9 +10,5 @@ export const CONTACT_INFO = {
   email: {
     address: 'shodmonov.uchqun@gmail.com',
     url: 'mailto:shodmonov.uchqun@gmail.com'
-  },
-  donation: {
-    cardNumber: '9860 6004 0117 6489',
-    cardOwnerName: 'SHODMONOV UCHQUN'
   }
 }

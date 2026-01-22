@@ -108,6 +108,7 @@
     "nextTest": "Keyingi testga o'tish",
     "backToStart": "Boshlash sahifasiga qaytish",
     "wrongAnswers": "Noto'g'ri berilgan javoblar",
+    "retakeIncorrect": "Noto'g'ri javoblarni qayta o'tish",
     "question": "Savol",
     "yourAnswer": "Sizning javobingiz",
     "correctAnswer": "To'g'ri javob"
@@ -139,14 +140,6 @@
     "androidInstructions": "Quyidagi tugmani bosib ilovani o'rnatishingiz mumkin"
   },
   "contact": {
-    "donation": "Tizimni yaxshilashga sarmoya kiritish",
-    "cardNumber": "Karta raqami",
-    "cardNumberPlaceholder": "Karta raqamini kiriting",
-    "cardOwnerName": "Karta egasi ismi",
-    "cardOwnerNamePlaceholder": "Karta egasi ismini kiriting",
-    "copy": "Nusxalash",
-    "copied": "Nusxalandi",
-    "support": "Qo'llab-quvvatlash",
     "contactMethods": "Bog'lanish usullari",
     "telegramChannel": "Telegram Kanal"
   },
@@ -203,6 +196,13 @@
       "answersNote": "Format: \"1=4\" degani birinchi chap javob to'rtinchi o'ng javobga mos keladi",
       "rules": "Qoidalar:",
       "note": "Eslatma: Bu format faqat \"Укажите соответствие\" so'zi bo'lsa ishlaydi. Javoblar random qilinmaydi."
+    },
+    "format6": {
+      "title": "Format 6: Raqamli savollar formati",
+      "description": "Bu format savollar raqam bilan boshlanadigan va javoblar A-D harflari bilan belgilanadigan formatdir.",
+      "rules": "Qoidalar:",
+      "example": "Misol:",
+      "note": "💡 Maslahat: Bu format savollar raqam bilan tartiblangan va javoblar harflar bilan belgilangan testlar uchun qulaydir."
     },
     "formulas": {
       "title": "LaTeX formulalar",

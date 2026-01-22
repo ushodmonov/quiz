@@ -47,7 +47,7 @@ interface StartPageProps {
 export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
   const { t } = useTranslation()
   const [tabValue, setTabValue] = useState(1)
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(null)
   const [testCatalog, setTestCatalog] = useState<TestCatalogItem[]>([])
   const [startQuestion, setStartQuestion] = useState<string>('1')
@@ -312,52 +312,59 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
   }, [catalogPage, catalogTotalPages])
 
-  // Reset to page 1 when search query changes
+  // Reset to page 1 when search query or institute changes
   useEffect(() => {
     setCatalogPage(1)
-  }, [catalogSearchQuery])
+  }, [catalogSearchQuery, selectedInstitute])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (!selectedFile) return
+    const selectedFiles = Array.from(e.target.files || [])
+    if (selectedFiles.length === 0) return
 
-    setFile(selectedFile)
+    setFiles(selectedFiles)
     setSelectedTest(null)
     setError('')
     setLoading(true)
 
     try {
-      let questions = []
+      const allQuestions: Question[] = []
       
-      const fileName = selectedFile.name.toLowerCase()
-      if (fileName.endsWith('.txt')) {
-        const text = await selectedFile.text()
-        questions = parseTxtFile(text)
-      } else if (fileName.endsWith('.docx')) {
-        questions = await parseDocxFile(selectedFile)
-      } else if (fileName.endsWith('.doc')) {
-        // .doc files are not supported
-        setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
-        setLoading(false)
-        return
-      } else {
-        setError(t('start.error.invalidFile'))
-        setLoading(false)
-        return
+      for (const selectedFile of selectedFiles) {
+        let questions: Question[] = []
+        
+        const fileName = selectedFile.name.toLowerCase()
+        if (fileName.endsWith('.txt')) {
+          const text = await selectedFile.text()
+          questions = parseTxtFile(text)
+        } else if (fileName.endsWith('.docx')) {
+          questions = await parseDocxFile(selectedFile)
+        } else if (fileName.endsWith('.doc')) {
+          // .doc files are not supported
+          setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
+          setLoading(false)
+          return
+        } else {
+          setError(t('start.error.invalidFile'))
+          setLoading(false)
+          return
+        }
+
+        if (questions.length > 0) {
+          const processedQuestions = questions.map(q => ({
+            ...q,
+            isMultiSelect: isMultiSelect(q)
+          }))
+          allQuestions.push(...processedQuestions)
+        }
       }
 
-      if (questions.length === 0) {
+      if (allQuestions.length === 0) {
         setError(t('start.error.noQuestions'))
         setLoading(false)
         return
       }
 
-      questions = questions.map(q => ({
-        ...q,
-        isMultiSelect: isMultiSelect(q)
-      }))
-
-      setAllQuestions(questions)
+      setAllQuestions(allQuestions)
     } catch (err: any) {
       setError(t('start.error.noQuestions') + ': ' + (err.message || 'Noma\'lum xatolik'))
     } finally {
@@ -374,7 +381,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       }
 
       setSelectedTest(test)
-      setFile(null)
+      setFiles([])
       setError('')
       setLoading(true)
 
@@ -416,7 +423,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
 
     setSelectedTest(test)
-    setFile(null)
+    setFiles([])
     setError('')
     setLoading(true)
 
@@ -443,7 +450,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   }
 
   const handleStart = () => {
-    if ((!file && !selectedTest) || allQuestions.length === 0) {
+    if ((files.length === 0 && !selectedTest) || allQuestions.length === 0) {
       setError(t('start.error.fileRequired'))
       return
     }
@@ -463,11 +470,13 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
     const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod)
     
-    const fileId = file 
-      ? `${file.name}_${file.size}_${file.lastModified}`
+    const fileId = files.length > 0
+      ? files.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
       : `${selectedTest?.id}_${selectedTest?.path}`
 
-    const fileName = file ? file.name : (selectedTest?.name || 'Test')
+    const fileName = files.length > 0 
+      ? files.map(f => f.name).join(', ')
+      : (selectedTest?.name || 'Test')
 
     clearProgress()
 
@@ -531,7 +540,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 value={tabValue} 
                 onChange={(_, newValue) => {
                   setTabValue(newValue)
-                  setFile(null)
+                  setFiles([])
                   setSelectedTest(null)
                   setAllQuestions([])
                   setError('')
@@ -564,6 +573,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   style={{ display: 'none' }}
                   id="file-upload"
                   type="file"
+                  multiple
                   onChange={handleFileChange}
                   disabled={loading}
                 />
@@ -582,19 +592,26 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                     {t('start.selectFile')}
                   </Button>
                 </label>
-                {file && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-                    <Chip 
-                      label={file.name} 
-                      color="primary" 
-                      sx={{ fontSize: '0.9rem', fontWeight: 600 }}
-                    />
+                {files.length > 0 && (
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                      {files.map((file, index) => (
+                        <Chip 
+                          key={index}
+                          label={file.name} 
+                          color="primary" 
+                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                        />
+                      ))}
+                    </Box>
                     {allQuestions.length > 0 && (
-                      <Chip 
-                        label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
-                        color="success"
-                        sx={{ fontSize: '0.9rem', fontWeight: 600 }}
-                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Chip 
+                          label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
+                          color="success"
+                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                        />
+                      </Box>
                     )}
                   </Box>
                 )}
@@ -638,6 +655,41 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       </Box>
                     </Box>
                     
+                    {/* Institute Tabs */}
+                    {uniqueInstitutes.length > 0 && (
+                      <Box sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs
+                          value={selectedInstitute || 'all'}
+                          onChange={(_, newValue) => {
+                            setSelectedInstitute(newValue === 'all' ? '' : newValue)
+                            setCatalogPage(1) // Reset to first page when tab changes
+                          }}
+                          variant="scrollable"
+                          scrollButtons="auto"
+                          sx={{
+                            '& .MuiTab-root': {
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                              minHeight: { xs: 40, sm: 48 },
+                              textTransform: 'none',
+                              fontWeight: 600,
+                            }
+                          }}
+                        >
+                          <Tab 
+                            label={t('start.filter.all') || 'Barchasi'} 
+                            value="all"
+                          />
+                          {uniqueInstitutes.map(institute => (
+                            <Tab 
+                              key={institute} 
+                              label={institute} 
+                              value={institute}
+                            />
+                          ))}
+                        </Tabs>
+                      </Box>
+                    )}
+                    
                     <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <TextField
                         fullWidth
@@ -655,26 +707,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       
                       {showFilters && (
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', pt: 1 }}>
-                          <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
-                            <InputLabel>{t('start.filter.institute') || 'Institut'}</InputLabel>
-                            <Select
-                              value={selectedInstitute}
-                              onChange={(e) => {
-                                setSelectedInstitute(e.target.value)
-                                setCatalogPage(1) // Reset to first page when filter changes
-                              }}
-                              label={t('start.filter.institute') || 'Institut'}
-                            >
-                              <MenuItem value="">
-                                <em>{t('start.filter.all') || 'Barchasi'}</em>
-                              </MenuItem>
-                              {uniqueInstitutes.map(institute => (
-                                <MenuItem key={institute} value={institute}>
-                                  {institute}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
                           
                           <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
                             <InputLabel>{t('start.filter.course') || 'Kurs'}</InputLabel>

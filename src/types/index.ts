@@ -63,6 +63,8 @@ export interface QuizData {
   }
   results?: QuizResults
   nextStartIndex?: number | null
+  originalNextStartIndex?: number | null // For retake: original position to continue from
+  isRetake?: boolean // Flag to indicate this is a retake of incorrect questions
 }
 
 export type ThemeMode = 'light' | 'dark'

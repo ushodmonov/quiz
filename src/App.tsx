@@ -30,6 +30,19 @@ function App() {
     i18n.changeLanguage(language)
   }, [language, i18n])
 
+  const handleBackToStart = () => {
+    if (currentPage === 'test' || currentPage === 'results') {
+      if (window.confirm('Testni tark etmoqchimisiz? Barcha progress yo\'qoladi.')) {
+        clearProgress()
+        setQuizData(null)
+        setCurrentPage('start')
+      }
+    } else {
+      setQuizData(null)
+      setCurrentPage('start')
+    }
+  }
+
   // Sync theme with Telegram if running in Telegram
   // This effect runs when Telegram colorScheme changes
   useEffect(() => {
@@ -78,7 +91,7 @@ function App() {
     return () => {
       if (cleanup) cleanup()
     }
-  }, [currentPage, telegram])
+  }, [currentPage, telegram, handleBackToStart])
 
   useEffect(() => {
     if (hasProgress() && currentPage === 'start') {
@@ -151,6 +164,40 @@ function App() {
   const handleTestComplete = (results: QuizResults) => {
     if (quizData) {
       telegram.haptic.notification('success')
+      
+      // If this is a retake and there's an original position to continue from
+      if (quizData.isRetake && quizData.originalNextStartIndex !== null && quizData.originalNextStartIndex !== undefined) {
+        const nextStart = quizData.originalNextStartIndex
+        const remainingCount = quizData.allQuestions.length - nextStart
+        const questionCount = Math.min(quizData.selectedQuestions?.length || 10, remainingCount)
+        
+        if (questionCount > 0) {
+          // Continue from original position
+          const selected = selectQuestions(
+            quizData.allQuestions,
+            nextStart,
+            questionCount,
+            quizData.selectionMethod || 'sequential'
+          )
+          
+          const newData: QuizData = {
+            ...quizData,
+            currentQuestionIndex: 0,
+            startIndex: nextStart,
+            selectedQuestions: selected,
+            answers: {},
+            score: { correct: 0, incorrect: 0 },
+            results: undefined,
+            isRetake: false, // Clear retake flag
+            originalNextStartIndex: undefined // Clear original position
+          }
+          setQuizData(newData)
+          setCurrentPage('test')
+          return
+        }
+      }
+      
+      // Normal completion - show results
       setQuizData({ ...quizData, results })
       setCurrentPage('results')
     }
@@ -193,17 +240,39 @@ function App() {
     }
   }
 
-  const handleBackToStart = () => {
-    if (currentPage === 'test' || currentPage === 'results') {
-      if (window.confirm('Testni tark etmoqchimisiz? Barcha progress yo\'qoladi.')) {
-        clearProgress()
-        setQuizData(null)
-        setCurrentPage('start')
-      }
-    } else {
-      setQuizData(null)
-      setCurrentPage('start')
+  const handleRetakeIncorrect = () => {
+    if (!quizData || !quizData.selectedQuestions || !quizData.answers) return
+    
+    // Get all incorrect questions
+    const incorrectQuestions = quizData.selectedQuestions.filter((question, index) => {
+      const answerData = quizData.answers[index]
+      return answerData && !answerData.correct
+    })
+    
+    if (incorrectQuestions.length === 0) return
+    
+    // Save the original nextStartIndex to continue from after retake
+    const originalNextStartIndex = quizData.results?.nextStartIndex ?? quizData.nextStartIndex ?? null
+    
+    // Create new quiz data with only incorrect questions
+    const newData: QuizData = {
+      ...quizData,
+      selectedQuestions: incorrectQuestions,
+      allQuestions: quizData.allQuestions, // Keep original allQuestions for continuation
+      currentQuestionIndex: 0,
+      startIndex: 0,
+      answers: {},
+      score: { correct: 0, incorrect: 0 },
+      results: undefined,
+      nextStartIndex: null, // Will be set after retake completion
+      originalNextStartIndex: originalNextStartIndex, // Save original position
+      isRetake: true, // Mark as retake
+      fileName: `${quizData.fileName} - ${incorrectQuestions.length} noto'g'ri savollar`
     }
+    
+    clearProgress()
+    setQuizData(newData)
+    setCurrentPage('test')
   }
 
   const handleViewAllQuestions = (questions: Question[]) => {
@@ -308,6 +377,7 @@ function App() {
               answers={quizData.answers}
               onRestart={handleRestart}
               onNextTest={handleNextTest}
+              onRetakeIncorrect={handleRetakeIncorrect}
               onBackToStart={handleBackToStart}
             />
           )}
