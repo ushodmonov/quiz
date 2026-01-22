@@ -257,7 +257,7 @@ function App() {
     if (!quizData || !quizData.selectedQuestions || !quizData.answers) return
     
     // Get all incorrect questions
-    const incorrectQuestions = quizData.selectedQuestions.filter((question, index) => {
+    const incorrectQuestions = quizData.selectedQuestions.filter((_, index) => {
       const answerData = quizData.answers[index]
       return answerData && !answerData.correct
     })
