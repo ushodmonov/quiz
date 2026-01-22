@@ -29,6 +29,34 @@
       ]
     },
     {
+      "name": "Dinshunoslik",
+      "semester": 3,
+      "years": "2025-2026",
+      "subject": "Dinshunoslik",
+      "courses": 2,
+      "institute": "TMA(TTA)",
+      "language": "uz",
+      "work_it_all": true,
+      "sub_catologs": [
+        {
+          "name": "Ko'p javobli.docx",
+          "path": "tests/tma/2/dinshunoslik/3_semester/Ko'p javobli.docx"
+        },
+        {
+          "name": "test-1.docx",
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-1.docx"
+        },
+        {
+          "name": "test-2.docx",
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-2.docx"
+        },
+        {
+          "name": "test-3.docx",
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-3.docx"
+        }
+      ]
+    },
+    {
       "name": "Fiziologiya",
       "semester": 3,
       "years": "2025-2026",
