@@ -9,22 +9,27 @@
       "institute": "TMA(TTA)",
       "language": "uz/ru",
       "work_it_all": true,
+      "is_new": false,
       "sub_catologs": [
         {
           "name": "Bir javobli.docx",
-          "path": "tests/tma/2/gistologiya/3_semester/Bir javobli.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Bir javobli.docx",
+          "is_new": false
         },
         {
           "name": "Ketma ketlik.docx",
-          "path": "tests/tma/2/gistologiya/3_semester/Ketma ketlik.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Ketma ketlik.docx",
+          "is_new": false
         },
         {
           "name": "Ko'p javobli.docx",
-          "path": "tests/tma/2/gistologiya/3_semester/Ko'p javobli.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Ko'p javobli.docx",
+          "is_new": false
         },
         {
           "name": "Moslik.docx",
-          "path": "tests/tma/2/gistologiya/3_semester/Moslik.docx"
+          "path": "tests/tma/2/gistologiya/3_semester/Moslik.docx",
+          "is_new": false
         }
       ]
     },
@@ -37,22 +42,27 @@
       "institute": "TMA(TTA)",
       "language": "uz",
       "work_it_all": true,
+      "is_new": true,
       "sub_catologs": [
         {
           "name": "Ko'p javobli.docx",
-          "path": "tests/tma/2/dinshunoslik/3_semester/Ko'p javobli.docx"
+          "path": "tests/tma/2/dinshunoslik/3_semester/Ko'p javobli.docx",
+          "is_new": false
         },
         {
           "name": "test-1.docx",
-          "path": "tests/tma/2/dinshunoslik/3_semester/test-1.docx"
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-1.docx",
+          "is_new": false
         },
         {
           "name": "test-2.docx",
-          "path": "tests/tma/2/dinshunoslik/3_semester/test-2.docx"
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-2.docx",
+          "is_new": false
         },
         {
           "name": "test-3.docx",
-          "path": "tests/tma/2/dinshunoslik/3_semester/test-3.docx"
+          "path": "tests/tma/2/dinshunoslik/3_semester/test-3.docx",
+          "is_new": false
         }
       ]
     },
@@ -65,22 +75,27 @@
       "institute": "TSMU",
       "language": "uz",
       "work_it_all": true,
+      "is_new": false,
       "sub_catologs": [
         {
           "name": "1ta javobli.txt",
-          "path": "tests/tsmu/2/fiziologiya/3_semester/1ta javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/1ta javobli.txt",
+          "is_new": false
         },
         {
           "name": "2ta to'g'ri javobli.txt",
-          "path": "tests/tsmu/2/fiziologiya/3_semester/2ta to'g'ri javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/2ta to'g'ri javobli.txt",
+          "is_new": false
         },
         {
           "name": "3ta to'g'ri javobli.txt",
-          "path": "tests/tsmu/2/fiziologiya/3_semester/3ta to'g'ri javobli.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/3ta to'g'ri javobli.txt",
+          "is_new": false
         },
         {
           "name": "Moslik.txt",
-          "path": "tests/tsmu/2/fiziologiya/3_semester/Moslik.txt"
+          "path": "tests/tsmu/2/fiziologiya/3_semester/Moslik.txt",
+          "is_new": false
         }
       ]
     },
@@ -93,14 +108,17 @@
       "institute": "TMA(TTA)",
       "language": "uz",
       "work_it_all": false,
+      "is_new": false,
       "sub_catologs": [
         {
           "name": "830 talik savollar",
-          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx"
+          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx",
+          "is_new": false
         },
         {
           "name": "1113 talik savollar",
-          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo_2.docx"
+          "path": "tests/tma/1/tibbiy_kimyo/1_semester/tibbiy_kimyo_2.docx",
+          "is_new": false
         }
       ]
     },
@@ -111,7 +129,8 @@
       "subject": "Odam anatomiya",
       "courses": 1,
       "institute": "TMA(TTA)",
-      "language": "uz"
+      "language": "uz",
+      "is_new": false
     },
     {
       "name": "Tibbiy Biologiya",
@@ -120,7 +139,8 @@
       "subject": "Tibbiy Biologiya",
       "courses": 1,
       "institute": "TMA(TTA)",
-      "language": "uz"
+      "language": "uz",
+      "is_new": false
     },
     {
       "name": "Tibbiy Kimyp",
@@ -129,7 +149,8 @@
       "subject": "Tibbiy Kimyo",
       "courses": 1,
       "institute": "BSMI(BuxDTI)",
-      "language": "uz"
+      "language": "uz",
+      "is_new": false
     },
     {
       "name": "Anatomiya",
@@ -138,7 +159,8 @@
       "subject": "Anatomiya",
       "courses": 3,
       "institute": "BSMI(BuxDTI)",
-      "language": "uz"
+      "language": "uz",
+      "is_new": false
     }
   ]
 }

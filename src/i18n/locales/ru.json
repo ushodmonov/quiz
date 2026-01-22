@@ -58,6 +58,7 @@
     "viewAllQuestions": "Просмотреть все вопросы",
     "viewFormats": "Форматы тестов",
     "loadAllSubTests": "Работать со всеми тестами",
+    "new": "НОВЫЙ",
     "filter": {
       "title": "Фильтр",
       "institute": "Институт",

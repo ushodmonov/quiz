@@ -87,6 +87,25 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     return test.sub_catalogs || test.sub_catologs || []
   }
 
+  // Check if test or any of its sub-catalogs has is_new: true
+  const hasNewTests = (test: TestCatalogItem): boolean => {
+    if (test.is_new === true) {
+      return true
+    }
+    const subCatalogs = getSubCatalogs(test)
+    return subCatalogs.some(subTest => hasNewTests(subTest))
+  }
+
+  // Check if institute has any new tests
+  const instituteHasNewTests = (institute: string): boolean => {
+    return testCatalog.some(test => {
+      if (test.institute === institute) {
+        return hasNewTests(test)
+      }
+      return false
+    })
+  }
+
   const formatTestInfo = (test: TestCatalogItem): string => {
     const parts: string[] = []
     if (test.institute) {
@@ -723,8 +742,26 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                           {uniqueInstitutes.map(institute => (
                             <Tab 
                               key={institute} 
-                              label={institute} 
                               value={institute}
+                              label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <span>{institute}</span>
+                                  {instituteHasNewTests(institute) && (
+                                    <Chip
+                                      label={t('start.new') || 'YANGI'}
+                                      size="small"
+                                      color="error"
+                                      sx={{ 
+                                        fontSize: '0.6rem', 
+                                        height: 16,
+                                        fontWeight: 700,
+                                        minWidth: 'auto',
+                                        px: 0.5
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              }
                             />
                           ))}
                         </Tabs>
@@ -847,6 +884,19 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                               primary={
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                   <span>{test.subject || test.name}</span>
+                                                  {test.is_new && (
+                                                    <Chip
+                                                      label={t('start.new') || 'YANGI'}
+                                                      size="small"
+                                                      color="error"
+                                                      sx={{ 
+                                                        fontSize: '0.65rem', 
+                                                        height: 18,
+                                                        fontWeight: 700,
+                                                        animation: 'pulse 2s infinite'
+                                                      }}
+                                                    />
+                                                  )}
                                                   {test.language && (
                                                     <Chip
                                                       label={
@@ -900,7 +950,23 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                       <Description color="primary" />
                                                     </Box>
                                                     <ListItemText
-                                                      primary={subTest.name}
+                                                      primary={
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                          <span>{subTest.name}</span>
+                                                          {subTest.is_new && (
+                                                            <Chip
+                                                              label={t('start.new') || 'YANGI'}
+                                                              size="small"
+                                                              color="error"
+                                                              sx={{ 
+                                                                fontSize: '0.65rem', 
+                                                                height: 18,
+                                                                fontWeight: 700
+                                                              }}
+                                                            />
+                                                          )}
+                                                        </Box>
+                                                      }
                                                     />
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
                                                       {isLocalAsset(subTest.path) && (
@@ -938,6 +1004,18 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                               <span>{test.subject || test.name}</span>
+                                              {test.is_new && (
+                                                <Chip
+                                                  label={t('start.new') || 'YANGI'}
+                                                  size="small"
+                                                  color="error"
+                                                  sx={{ 
+                                                    fontSize: '0.65rem', 
+                                                    height: 18,
+                                                    fontWeight: 700
+                                                  }}
+                                                />
+                                              )}
                                               {test.language && (
                                                 <Chip
                                                   label={
