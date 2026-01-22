@@ -52,6 +52,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [testCatalog, setTestCatalog] = useState<TestCatalogItem[]>([])
   const [startQuestion, setStartQuestion] = useState<string>('1')
   const [questionCount, setQuestionCount] = useState<string>('10')
+  const [endQuestion, setEndQuestion] = useState<string>('')
+  const [endQuestionError, setEndQuestionError] = useState<string>('')
   const [selectionMethod, setSelectionMethod] = useState<'sequential' | 'random'>('sequential')
   const [loading, setLoading] = useState(false)
   const [loadingCatalog, setLoadingCatalog] = useState(false)
@@ -462,13 +464,49 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       return
     }
 
-    const count = parseInt(questionCount) || 1
-    if (count < 1 || startIndex + count > allQuestions.length) {
-      setError(t('start.error.invalidCount') + `: ${allQuestions.length - startIndex}`)
-      return
+    // Calculate count: if endQuestion is set and random, use questionCount for first test; otherwise use questionCount
+    let count: number
+    let endQuestionIndex: number | null = null
+    
+    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+      const endNum = parseInt(endQuestion) || allQuestions.length
+      if (endNum < startNum || endNum > allQuestions.length) {
+        setError(t('start.error.invalidEnd') || `Oxirgi savol noto'g'ri. ${startNum} dan ${allQuestions.length} gacha bo'lishi kerak`)
+        return
+      }
+      if (endNum === startNum) {
+        setError(t('start.error.startEndSame') || `Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas. Oxirgi savol ${startNum + 1} dan ${allQuestions.length} gacha bo'lishi kerak`)
+        return
+      }
+      
+      // Store end question index (0-based)
+      endQuestionIndex = endNum - 1
+      
+      // Calculate max available questions in range
+      const maxAvailable = endNum - startNum
+      
+      // Use questionCount for the first test (not the full range)
+      const inputCount = parseInt(questionCount) || 0
+      if (inputCount < 1) {
+        setError(t('start.error.invalidCount') || 'Savollar soni kiritilishi kerak')
+        return
+      }
+      if (inputCount > maxAvailable) {
+        setError(t('start.error.invalidCountRange') || `Savollar soni noto'g'ri. ${startNum}-${endNum} orasida maksimal ${maxAvailable} ta savol tanlash mumkin`)
+        return
+      }
+      
+      // For first test, use questionCount (not the full range)
+      count = inputCount
+    } else {
+      count = parseInt(questionCount) || 1
+      if (count < 1 || startIndex + count > allQuestions.length) {
+        setError(t('start.error.invalidCount') + `: ${allQuestions.length - startIndex}`)
+        return
+      }
     }
 
-    const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod)
+    const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod, endQuestionIndex)
     
     const fileId = files.length > 0
       ? files.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
@@ -489,7 +527,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       currentQuestionIndex: 0,
       selectionMethod,
       answers: {},
-      score: { correct: 0, incorrect: 0 }
+      score: { correct: 0, incorrect: 0 },
+      endQuestionIndex: endQuestionIndex
     })
   }
 
@@ -544,6 +583,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   setSelectedTest(null)
                   setAllQuestions([])
                   setError('')
+                  setEndQuestion('')
+                  setEndQuestionError('')
                 }}
               >
                 <Tab label={t('start.selectFile')} />
@@ -1007,45 +1048,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   </Button>
                 )}
               </Box>
-              <TextField
-                fullWidth
-                label={t('start.startQuestion')}
-                type="number"
-                value={startQuestion}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  const numValue = Number(value)
-                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= allQuestions.length)) {
-                    setStartQuestion(value)
-                    // Update questionCount max when startQuestion changes
-                    const currentCount = parseInt(questionCount) || 1
-                    const newMax = allQuestions.length - (numValue || 1) + 1
-                    if (currentCount > newMax) {
-                      setQuestionCount(newMax.toString())
-                    }
-                  }
-                }}
-                inputProps={{ min: 1, max: allQuestions.length }}
-                sx={{ mb: { xs: 2, sm: 3 } }}
-              />
-
-              <TextField
-                fullWidth
-                label={t('start.questionCount')}
-                type="number"
-                value={questionCount}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  const startNum = parseInt(startQuestion) || 1
-                  const maxAvailable = allQuestions.length - startNum + 1
-                  if (value === '' || (!isNaN(Number(value)) && Number(value) >= 1 && Number(value) <= maxAvailable)) {
-                    setQuestionCount(value)
-                  }
-                }}
-                inputProps={{ min: 1, max: allQuestions.length - (parseInt(startQuestion) || 1) + 1 }}
-                helperText={`${t('start.maxAvailable')}: ${allQuestions.length - (parseInt(startQuestion) || 1) + 1}`}
-                sx={{ mb: { xs: 2, sm: 3 } }}
-              />
 
               <FormControl component="fieldset" sx={{ mb: { xs: 2, sm: 3 } }}>
                 <FormLabel component="legend" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
@@ -1074,6 +1076,191 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   />
                 </RadioGroup>
               </FormControl>
+
+              <TextField
+                fullWidth
+                label={t('start.startQuestion')}
+                type="number"
+                value={startQuestion}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const numValue = Number(value)
+                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= allQuestions.length)) {
+                    setStartQuestion(value)
+                    // Update questionCount max when startQuestion changes
+                    const currentCount = parseInt(questionCount) || 1
+                    let newMax: number
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      newMax = endNum - (numValue || 1) // Exclusive: end - start
+                    } else {
+                      newMax = allQuestions.length - (numValue || 1) + 1
+                    }
+                    if (currentCount > newMax) {
+                      setQuestionCount(newMax.toString())
+                    }
+                    // Update endQuestion if it's less than new startQuestion
+                    if (endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || 0
+                      if (endNum < (numValue || 1)) {
+                        setEndQuestion('')
+                        setEndQuestionError('')
+                      }
+                    }
+                  }
+                }}
+                inputProps={{ min: 1, max: allQuestions.length }}
+                helperText={
+                  selectionMethod === 'random' 
+                    ? (t('start.randomStartHelper') || 'Tasodifiy tanlashda savollar shu savoldan boshlab tasodifiy tanlanadi')
+                    : (t('start.sequentialStartHelper') || 'Ketma-ket tanlashda savollar shu savoldan boshlab ketma-ket tanlanadi')
+                }
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
+
+              {selectionMethod === 'random' && allQuestions.length > 0 && (
+                <TextField
+                  fullWidth
+                  label={t('start.endQuestion') || 'Qaysi savolgacha'}
+                  type="number"
+                  value={endQuestion}
+                  error={!!endQuestionError}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.target.value
+                    
+                    // Always allow typing - don't restrict while user is typing
+                    // Validation will happen on blur
+                    setEndQuestion(value)
+                    
+                    // Clear error while typing
+                    if (value === '') {
+                      setEndQuestionError('')
+                    }
+                  }}
+                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                    // Validate on blur
+                    const value = e.target.value
+                    const startNum = parseInt(startQuestion) || 1
+                    
+                    if (value === '') {
+                      setEndQuestionError('')
+                      return
+                    }
+                    
+                    const numValue = Number(value)
+                    if (isNaN(numValue)) {
+                      setEndQuestion('')
+                      setEndQuestionError('')
+                      return
+                    }
+                    
+                    const maxValue = allQuestions.length > 0 ? allQuestions.length : 999999
+                    if (numValue < startNum || numValue > maxValue) {
+                      const errorMsg = t('start.error.invalidEnd') || `Oxirgi savol noto'g'ri. ${startNum} dan ${maxValue} gacha bo'lishi kerak`
+                      setEndQuestionError(errorMsg)
+                      // Reset to empty if invalid
+                      setEndQuestion('')
+                    } else if (numValue === startNum) {
+                      // Start and end cannot be the same
+                      const errorMsg = t('start.error.startEndSame') || `Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas. Oxirgi savol ${startNum + 1} dan ${maxValue} gacha bo'lishi kerak`
+                      setEndQuestionError(errorMsg)
+                      // Reset to empty if invalid
+                      setEndQuestion('')
+                    } else {
+                      setEndQuestionError('')
+                    }
+                  }}
+                  inputProps={{ 
+                    max: allQuestions.length > 0 ? allQuestions.length : 999999 
+                  }}
+                  helperText={
+                    endQuestionError 
+                      ? endQuestionError
+                      : endQuestion && endQuestion.trim() !== ''
+                        ? (() => {
+                            const startNum = parseInt(startQuestion) || 1
+                            const endNum = parseInt(endQuestion) || 0
+                            const maxAvailable = endNum - startNum
+                            const count = parseInt(questionCount) || 0
+                            if (count > 0 && maxAvailable > 0) {
+                              const testCount = Math.ceil((endNum - startNum + 1) / count)
+                              return `${t('start.randomEndHelper') || 'Tasodifiy tanlashda'} ${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}. ${t('start.maxAvailable')}: ${maxAvailable}. ${t('start.testWillSplit') || 'Testlar avtomatik bo\'linadi'}: ${testCount} ${t('start.times') || 'marta'}`
+                            }
+                            return `${t('start.randomEndHelper') || 'Tasodifiy tanlashda'} ${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}. ${t('start.maxAvailable')}: ${maxAvailable}`
+                          })()
+                        : `${t('start.endQuestionHelper') || 'Oxirgi savol raqamini kiriting (ixtiyoriy). Agar kiritilmasa, savollar soni ishlatiladi.'} ${t('start.maxAvailable')}: ${allQuestions.length - (parseInt(startQuestion) || 1) + 1}`
+                  }
+                  sx={{ mb: { xs: 2, sm: 3 } }}
+                />
+              )}
+
+              <TextField
+                fullWidth
+                label={t('start.questionCount')}
+                type="number"
+                value={questionCount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const startNum = parseInt(startQuestion) || 1
+                  // If endQuestion is set, use it to calculate max; otherwise use allQuestions.length
+                  let maxAvailable: number
+                  if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                    const endNum = parseInt(endQuestion) || allQuestions.length
+                    maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                  } else {
+                    maxAvailable = allQuestions.length - startNum + 1
+                  }
+                  const numValue = Number(value)
+                  if (!isNaN(numValue) && numValue >= 1 && numValue <= maxAvailable) {
+                    setQuestionCount(value)
+                    setError('') // Clear error on valid input
+                  } else if (!isNaN(numValue) && numValue > maxAvailable) {
+                    // Show error for invalid input that exceeds max
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      setError(t('start.error.invalidCountRange') || `Savollar soni noto'g'ri. ${startNum}-${endNum} orasida maksimal ${maxAvailable} ta savol tanlash mumkin`)
+                    } else {
+                      setError(t('start.error.invalidCount') + `: ${maxAvailable}`)
+                    }
+                  } else if (value === '') {
+                    setQuestionCount(value)
+                    setError('') // Clear error when field is cleared
+                  }
+                }}
+                inputProps={{ 
+                  min: 1, 
+                  max: (() => {
+                    const startNum = parseInt(startQuestion) || 1
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      return endNum - startNum // Exclusive: end - start (not end - start + 1)
+                    }
+                    return allQuestions.length - startNum + 1
+                  })()
+                }}
+                helperText={
+                  (() => {
+                    const startNum = parseInt(startQuestion) || 1
+                    let maxAvailable: number
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                      const count = parseInt(questionCount) || 0
+                      if (count > 0 && maxAvailable > 0) {
+                        const testCount = Math.ceil((endNum - startNum + 1) / count)
+                        return `${t('start.maxAvailable')}: ${maxAvailable} (${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}). ${t('start.questionCountPerTest') || 'Har bir testda'} ${count} ${t('start.questions') || 'ta savol'}. ${t('start.testWillSplit') || 'Testlar avtomatik bo\'linadi'}: ${testCount} ${t('start.times') || 'marta'}`
+                      }
+                      return `${t('start.maxAvailable')}: ${maxAvailable} (${startNum}-${endQuestion} ${t('start.randomEndHelper2') || 'savollar orasidan'}). ${t('start.randomCountHelper') || 'Tasodifiy tanlashda shu miqdordagi savollar tasodifiy tanlanadi'}`
+                    } else if (selectionMethod === 'random') {
+                      maxAvailable = allQuestions.length - startNum + 1
+                      return `${t('start.maxAvailable')}: ${maxAvailable}. ${t('start.randomCountHelper') || 'Tasodifiy tanlashda shu miqdordagi savollar tasodifiy tanlanadi'}`
+                    }
+                    maxAvailable = allQuestions.length - startNum + 1
+                    return `${t('start.maxAvailable')}: ${maxAvailable}`
+                  })()
+                }
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
 
               <Button
                 variant="contained"

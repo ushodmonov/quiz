@@ -139,12 +139,28 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     
     if (nextIndex >= totalQuestions) {
       const nextStartIndex = quizData.startIndex + totalQuestions
+      
+      // If endQuestionIndex is set, check if we've reached it
+      let finalNextStartIndex: number | null = null
+      if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
+        // Check if nextStartIndex exceeds endQuestionIndex
+        if (nextStartIndex <= quizData.endQuestionIndex) {
+          finalNextStartIndex = nextStartIndex
+        } else {
+          // We've reached the end of the range
+          finalNextStartIndex = null
+        }
+      } else {
+        // Normal behavior: check if there are more questions
+        finalNextStartIndex = nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
+      }
+      
       onComplete({
         correct: quizData.score.correct,
         incorrect: quizData.score.incorrect,
         total: totalQuestions,
         percentage: Math.round((quizData.score.correct / totalQuestions) * 100),
-        nextStartIndex: nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
+        nextStartIndex: finalNextStartIndex
       })
     } else {
       onUpdateData({

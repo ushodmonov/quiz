@@ -177,7 +177,8 @@ function App() {
             quizData.allQuestions,
             nextStart,
             questionCount,
-            quizData.selectionMethod || 'sequential'
+            quizData.selectionMethod || 'sequential',
+            quizData.endQuestionIndex
           )
           
           const newData: QuizData = {
@@ -212,8 +213,19 @@ function App() {
   const handleNextTest = () => {
     if (quizData && quizData.results && quizData.results.nextStartIndex !== null && quizData.results.nextStartIndex !== undefined) {
       const nextStart = quizData.results.nextStartIndex
-      const remainingCount = quizData.allQuestions.length - nextStart
-      const questionCount = Math.min(quizData.selectedQuestions?.length || 10, remainingCount)
+      
+      // Calculate question count for next test
+      let questionCount: number
+      if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
+        // If endQuestionIndex is set, calculate remaining questions in range
+        const remainingInRange = quizData.endQuestionIndex - nextStart + 1
+        const defaultCount = quizData.selectedQuestions?.length || 10
+        questionCount = Math.min(defaultCount, remainingInRange)
+      } else {
+        // Normal behavior: use remaining questions
+        const remainingCount = quizData.allQuestions.length - nextStart
+        questionCount = Math.min(quizData.selectedQuestions?.length || 10, remainingCount)
+      }
       
       if (questionCount <= 0) {
         return
@@ -223,7 +235,8 @@ function App() {
         quizData.allQuestions,
         nextStart,
         questionCount,
-        quizData.selectionMethod || 'sequential'
+        quizData.selectionMethod || 'sequential',
+        quizData.endQuestionIndex
       )
       
       const newData: QuizData = {
