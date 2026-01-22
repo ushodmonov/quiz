@@ -87,8 +87,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     return test.sub_catalogs || test.sub_catologs || []
   }
 
-  // Check if test or any of its sub-catalogs has is_new: true
+  // Check if test or any of its sub-catalogs has is_new: true (only if is_show is not false)
   const hasNewTests = (test: TestCatalogItem): boolean => {
+    // Only check if test is visible (is_show !== false)
+    if (test.is_show === false) {
+      return false
+    }
     if (test.is_new === true) {
       return true
     }
@@ -254,6 +258,32 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   // Filter catalog based on search query, institute, course, and language (including sub catalogs)
   const filteredCatalog = useMemo(() => {
     let filtered = testCatalog
+
+    // Filter by is_show (default: true, only hide if explicitly false)
+    // Also filter sub-catalogs
+    filtered = filtered.map(test => {
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length > 0) {
+        const filteredSubCatalogs = subCatalogs.filter(subTest => subTest.is_show !== false)
+        return {
+          ...test,
+          sub_catalogs: filteredSubCatalogs,
+          sub_catologs: filteredSubCatalogs
+        }
+      }
+      return test
+    }).filter(test => {
+      // Hide main test if is_show is false
+      if (test.is_show === false) {
+        return false
+      }
+      // Hide main test if it has sub-catalogs but all are hidden
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length > 0) {
+        return subCatalogs.some(subTest => subTest.is_show !== false)
+      }
+      return true
+    })
 
     // Filter by institute
     if (selectedInstitute) {
@@ -884,7 +914,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                               primary={
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                   <span>{test.subject || test.name}</span>
-                                                  {test.is_new && (
+                                                  {test.is_new && test.is_show !== false && (
                                                     <Chip
                                                       label={t('start.new') || 'YANGI'}
                                                       size="small"
@@ -953,7 +983,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                       primary={
                                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                           <span>{subTest.name}</span>
-                                                          {subTest.is_new && (
+                                                          {subTest.is_new && subTest.is_show !== false && (
                                                             <Chip
                                                               label={t('start.new') || 'YANGI'}
                                                               size="small"
@@ -1004,7 +1034,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                               <span>{test.subject || test.name}</span>
-                                              {test.is_new && (
+                                              {test.is_new && test.is_show !== false && (
                                                 <Chip
                                                   label={t('start.new') || 'YANGI'}
                                                   size="small"

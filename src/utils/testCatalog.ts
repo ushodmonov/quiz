@@ -14,6 +14,7 @@ export interface TestCatalogItem {
   language?: string  // Til (e.g., "uz", "ru", "uz/ru")
   work_it_all?: boolean  // If true and test has sub_catalogs, show "Load all tests" button
   is_new?: boolean  // If true, show "NEW" badge in UI
+  is_show?: boolean  // If false, hide this catalog item (default: true)
   sub_catalogs?: TestCatalogItem[]  // Support both spellings
   sub_catologs?: TestCatalogItem[]  // Typo version for backward compatibility
 }
