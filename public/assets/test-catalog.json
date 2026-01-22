@@ -48,7 +48,7 @@
       "language": "uz",
       "work_it_all": true,
       "is_new": true,
-      "is_show": false,
+      "is_show": true,
       "sub_catologs": [
         {
           "name": "Ko'p javobli.docx",
