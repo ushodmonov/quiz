@@ -33,6 +33,24 @@ export function parseTxtFile(content: string): Question[] {
     return parseNewFormat(content)
   }
   
+  // Check if content uses the numbered question format (e.g., "97. Question text")
+  // Look for pattern: number followed by period, then answer choices with A-D letters
+  const contentLines = content.split('\n').map(l => l.trim()).filter(Boolean)
+  let hasNumberedFormat = false
+  
+  // Check if we have at least one line starting with number and period
+  // and at least one line starting with A-D letter pattern
+  const hasNumberedQuestion = contentLines.some(line => /^\d+\.\s*/i.test(line))
+  const hasLetterAnswers = contentLines.some(line => /^[+\-]?[A-D][\.\)]\s*/i.test(line))
+  
+  if (hasNumberedQuestion && hasLetterAnswers) {
+    hasNumberedFormat = true
+  }
+  
+  if (hasNumberedFormat) {
+    return parseNumberedFormat(content)
+  }
+  
   // Original format parsing
   const lines = content.split('\n')
   const questions: Question[] = []
@@ -165,6 +183,95 @@ function parseNewFormat(content: string): Question[] {
       text: questionText,
       answers
     })
+  }
+  
+  return questions
+}
+
+/**
+ * Parse numbered format where:
+ * - Questions start with a number followed by period (e.g., "97.")
+ * - Answer choices use letters A-D, optionally with "+" for correct answers
+ * - Answers can have "." or ")" after the letter (e.g., "A. " or "A)")
+ * - Correct answers have "+" before the letter (e.g., "+A. " or "+A)")
+ * 
+ * Example:
+ * 97. Din erkinligi quyidagilarni o'z ichiga oladi:
+ * +A. E'tirofni;
+ * +B. Bolalarning diniy ta'limini;
+ * +C. Amal qilmaslik huquqini;
+ * D. Nafratni targ'ib qilishni;
+ */
+function parseNumberedFormat(content: string): Question[] {
+  const questions: Question[] = []
+  const lines = content.split('\n')
+  
+  let currentQuestion: Question | null = null
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    
+    // Skip empty lines
+    if (!line) {
+      continue
+    }
+    
+    // Check if line starts with a number followed by period (e.g., "97.")
+    const questionMatch = line.match(/^(\d+)\.\s*(.+)$/i)
+    if (questionMatch) {
+      // Save previous question if it exists and has answers
+      if (currentQuestion && currentQuestion.answers.length >= 2) {
+        questions.push(currentQuestion)
+      }
+      
+      // Start new question
+      const questionText = questionMatch[2]
+      currentQuestion = {
+        text: questionText,
+        answers: []
+      }
+      continue
+    }
+    
+    // Check if line is an answer choice (starts with optional +, then A-D, then . or ))
+    // Case-insensitive and handles both "A. " and "A)" formats
+    const answerMatch = line.match(/^([+\-]?)([A-D])[\.\)]\s*(.+)$/i)
+    if (answerMatch) {
+      if (!currentQuestion) {
+        // If we encounter an answer without a question, skip it
+        continue
+      }
+      
+      const isCorrect = answerMatch[1] === '+'
+      const answerText = answerMatch[3].trim()
+      
+      if (answerText) {
+        currentQuestion.answers.push({
+          text: answerText,
+          isCorrect
+        })
+      }
+      continue
+    }
+    
+    // If we have a current question and the line doesn't match answer pattern,
+    // it might be a continuation of the question text
+    if (currentQuestion && !answerMatch) {
+      // Check if this looks like it could be part of the question (not an answer)
+      // If it doesn't start with A-D letter pattern, add to question text
+      if (!line.match(/^[+\-]?[A-D][\.\)]\s/i)) {
+        if (currentQuestion.text) {
+          currentQuestion.text += ' ' + line
+        } else {
+          currentQuestion.text = line
+        }
+      }
+    }
+  }
+  
+  // Save last question if it exists and has answers
+  if (currentQuestion && currentQuestion.answers.length >= 2) {
+    questions.push(currentQuestion)
   }
   
   return questions

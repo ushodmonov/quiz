@@ -34,7 +34,7 @@ interface TelegramWebApp {
   headerColor: string
   backgroundColor: string
   isClosingConfirmationEnabled: boolean
-  BackButton: {
+  BackButton?: {
     isVisible: boolean
     onClick: (callback: () => void) => void
     offClick: (callback: () => void) => void
@@ -231,13 +231,32 @@ export const showTelegramBackButton = (onClick: () => void): (() => void) => {
   const tg = getTelegramWebApp()
   if (!tg) return () => {}
 
-  tg.BackButton.show()
-  tg.BackButton.onClick(onClick)
+  // Check if BackButton is supported (available in version 6.1+)
+  if (!tg.BackButton) {
+    console.warn('[Telegram.WebApp] BackButton is not supported in this version')
+    return () => {}
+  }
 
-  // Return cleanup function
-  return () => {
-    tg.BackButton.hide()
-    tg.BackButton.offClick(onClick)
+  try {
+    tg.BackButton.show()
+    tg.BackButton.onClick(onClick)
+
+    // Return cleanup function
+    return () => {
+      const tgForCleanup = getTelegramWebApp()
+      if (!tgForCleanup || !tgForCleanup.BackButton) {
+        return
+      }
+      try {
+        tgForCleanup.BackButton!.hide()
+        tgForCleanup.BackButton!.offClick(onClick)
+      } catch (error) {
+        console.warn('[Telegram.WebApp] Error hiding BackButton:', error)
+      }
+    }
+  } catch (error) {
+    console.warn('[Telegram.WebApp] Error showing BackButton:', error)
+    return () => {}
   }
 }
 
@@ -246,8 +265,17 @@ export const showTelegramBackButton = (onClick: () => void): (() => void) => {
  */
 export const hideTelegramBackButton = (): void => {
   const tg = getTelegramWebApp()
-  if (tg) {
+  if (!tg) return
+
+  // Check if BackButton is supported (available in version 6.1+)
+  if (!tg.BackButton) {
+    return
+  }
+
+  try {
     tg.BackButton.hide()
+  } catch (error) {
+    console.warn('[Telegram.WebApp] Error hiding BackButton:', error)
   }
 }
 

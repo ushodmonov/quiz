@@ -30,6 +30,18 @@
     "selectionMethod": "Savollarni tanlash usuli",
     "sequential": "Ketma-ket",
     "random": "Tasodifiy",
+    "randomStartHelper": "Tasodifiy tanlashda savollar shu savoldan boshlab tasodifiy tanlanadi",
+    "sequentialStartHelper": "Ketma-ket tanlashda savollar shu savoldan boshlab ketma-ket tanlanadi",
+    "randomCountHelper": "Tasodifiy tanlashda shu miqdordagi savollar tasodifiy tanlanadi",
+    "endQuestion": "Qaysi savolgacha",
+    "endQuestionHelper": "Oxirgi savol raqamini kiriting (ixtiyoriy). Agar kiritilmasa, savollar soni ishlatiladi.",
+    "randomEndHelper": "Tasodifiy tanlashda",
+    "randomEndHelper2": "savollar orasidan tasodifiy tanlanadi",
+    "orUseEndQuestion": "yoki \"Qaysi savolgacha\" maydonidan foydalaning",
+    "testWillSplit": "Testlar avtomatik bo'linadi",
+    "questionCountPerTest": "Har bir testda",
+    "times": "marta",
+    "questions": "ta savol",
     "startTest": "Testni boshlash",
     "loading": "Fayl yuklanmoqda...",
     "loadingCatalog": "Katalog yuklanmoqda...",
@@ -46,6 +58,7 @@
     "viewAllQuestions": "Barcha savollarni ko'rish",
     "viewFormats": "Test formatlari",
     "loadAllSubTests": "Barcha testlarni ishlash",
+    "new": "YANGI",
     "filter": {
       "title": "Filter",
       "institute": "Institut",
@@ -64,6 +77,9 @@
       "oldDocFormat": "Eski .doc format qo'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o'tkazing.",
       "invalidStart": "Boshlanish savoli noto'g'ri",
       "invalidCount": "Savollar soni noto'g'ri",
+      "invalidEnd": "Oxirgi savol noto'g'ri",
+      "invalidCountRange": "Savollar soni noto'g'ri. Berilgan oraliqda maksimal",
+      "startEndSame": "Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas",
       "noFileName": "Fayl nomi topilmadi",
       "noAnswers": "Javob variantlari mavjud emas!"
     }
@@ -108,6 +124,7 @@
     "nextTest": "Keyingi testga o'tish",
     "backToStart": "Boshlash sahifasiga qaytish",
     "wrongAnswers": "Noto'g'ri berilgan javoblar",
+    "retakeIncorrect": "Noto'g'ri javoblarni qayta o'tish",
     "question": "Savol",
     "yourAnswer": "Sizning javobingiz",
     "correctAnswer": "To'g'ri javob"
@@ -139,14 +156,6 @@
     "androidInstructions": "Quyidagi tugmani bosib ilovani o'rnatishingiz mumkin"
   },
   "contact": {
-    "donation": "Tizimni yaxshilashga sarmoya kiritish",
-    "cardNumber": "Karta raqami",
-    "cardNumberPlaceholder": "Karta raqamini kiriting",
-    "cardOwnerName": "Karta egasi ismi",
-    "cardOwnerNamePlaceholder": "Karta egasi ismini kiriting",
-    "copy": "Nusxalash",
-    "copied": "Nusxalandi",
-    "support": "Qo'llab-quvvatlash",
     "contactMethods": "Bog'lanish usullari",
     "telegramChannel": "Telegram Kanal"
   },
@@ -203,6 +212,13 @@
       "answersNote": "Format: \"1=4\" degani birinchi chap javob to'rtinchi o'ng javobga mos keladi",
       "rules": "Qoidalar:",
       "note": "Eslatma: Bu format faqat \"Укажите соответствие\" so'zi bo'lsa ishlaydi. Javoblar random qilinmaydi."
+    },
+    "format6": {
+      "title": "Format 6: Raqamli savollar formati",
+      "description": "Bu format savollar raqam bilan boshlanadigan va javoblar A-D harflari bilan belgilanadigan formatdir.",
+      "rules": "Qoidalar:",
+      "example": "Misol:",
+      "note": "💡 Maslahat: Bu format savollar raqam bilan tartiblangan va javoblar harflar bilan belgilangan testlar uchun qulaydir."
     },
     "formulas": {
       "title": "LaTeX formulalar",

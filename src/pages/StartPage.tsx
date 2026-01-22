@@ -47,11 +47,13 @@ interface StartPageProps {
 export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
   const { t } = useTranslation()
   const [tabValue, setTabValue] = useState(1)
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(null)
   const [testCatalog, setTestCatalog] = useState<TestCatalogItem[]>([])
   const [startQuestion, setStartQuestion] = useState<string>('1')
   const [questionCount, setQuestionCount] = useState<string>('10')
+  const [endQuestion, setEndQuestion] = useState<string>('')
+  const [endQuestionError, setEndQuestionError] = useState<string>('')
   const [selectionMethod, setSelectionMethod] = useState<'sequential' | 'random'>('sequential')
   const [loading, setLoading] = useState(false)
   const [loadingCatalog, setLoadingCatalog] = useState(false)
@@ -83,6 +85,29 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
   const getSubCatalogs = (test: TestCatalogItem): TestCatalogItem[] => {
     return test.sub_catalogs || test.sub_catologs || []
+  }
+
+  // Check if test or any of its sub-catalogs has is_new: true (only if is_show is not false)
+  const hasNewTests = (test: TestCatalogItem): boolean => {
+    // Only check if test is visible (is_show !== false)
+    if (test.is_show === false) {
+      return false
+    }
+    if (test.is_new === true) {
+      return true
+    }
+    const subCatalogs = getSubCatalogs(test)
+    return subCatalogs.some(subTest => hasNewTests(subTest))
+  }
+
+  // Check if institute has any new tests
+  const instituteHasNewTests = (institute: string): boolean => {
+    return testCatalog.some(test => {
+      if (test.institute === institute) {
+        return hasNewTests(test)
+      }
+      return false
+    })
   }
 
   const formatTestInfo = (test: TestCatalogItem): string => {
@@ -234,6 +259,32 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const filteredCatalog = useMemo(() => {
     let filtered = testCatalog
 
+    // Filter by is_show (default: true, only hide if explicitly false)
+    // Also filter sub-catalogs
+    filtered = filtered.map(test => {
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length > 0) {
+        const filteredSubCatalogs = subCatalogs.filter(subTest => subTest.is_show !== false)
+        return {
+          ...test,
+          sub_catalogs: filteredSubCatalogs,
+          sub_catologs: filteredSubCatalogs
+        }
+      }
+      return test
+    }).filter(test => {
+      // Hide main test if is_show is false
+      if (test.is_show === false) {
+        return false
+      }
+      // Hide main test if it has sub-catalogs but all are hidden
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length > 0) {
+        return subCatalogs.some(subTest => subTest.is_show !== false)
+      }
+      return true
+    })
+
     // Filter by institute
     if (selectedInstitute) {
       filtered = filtered.filter(test => test.institute === selectedInstitute)
@@ -312,52 +363,59 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
   }, [catalogPage, catalogTotalPages])
 
-  // Reset to page 1 when search query changes
+  // Reset to page 1 when search query or institute changes
   useEffect(() => {
     setCatalogPage(1)
-  }, [catalogSearchQuery])
+  }, [catalogSearchQuery, selectedInstitute])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (!selectedFile) return
+    const selectedFiles = Array.from(e.target.files || [])
+    if (selectedFiles.length === 0) return
 
-    setFile(selectedFile)
+    setFiles(selectedFiles)
     setSelectedTest(null)
     setError('')
     setLoading(true)
 
     try {
-      let questions = []
+      const allQuestions: Question[] = []
       
-      const fileName = selectedFile.name.toLowerCase()
-      if (fileName.endsWith('.txt')) {
-        const text = await selectedFile.text()
-        questions = parseTxtFile(text)
-      } else if (fileName.endsWith('.docx')) {
-        questions = await parseDocxFile(selectedFile)
-      } else if (fileName.endsWith('.doc')) {
-        // .doc files are not supported
-        setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
-        setLoading(false)
-        return
-      } else {
-        setError(t('start.error.invalidFile'))
-        setLoading(false)
-        return
+      for (const selectedFile of selectedFiles) {
+        let questions: Question[] = []
+        
+        const fileName = selectedFile.name.toLowerCase()
+        if (fileName.endsWith('.txt')) {
+          const text = await selectedFile.text()
+          questions = parseTxtFile(text)
+        } else if (fileName.endsWith('.docx')) {
+          questions = await parseDocxFile(selectedFile)
+        } else if (fileName.endsWith('.doc')) {
+          // .doc files are not supported
+          setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
+          setLoading(false)
+          return
+        } else {
+          setError(t('start.error.invalidFile'))
+          setLoading(false)
+          return
+        }
+
+        if (questions.length > 0) {
+          const processedQuestions = questions.map(q => ({
+            ...q,
+            isMultiSelect: isMultiSelect(q)
+          }))
+          allQuestions.push(...processedQuestions)
+        }
       }
 
-      if (questions.length === 0) {
+      if (allQuestions.length === 0) {
         setError(t('start.error.noQuestions'))
         setLoading(false)
         return
       }
 
-      questions = questions.map(q => ({
-        ...q,
-        isMultiSelect: isMultiSelect(q)
-      }))
-
-      setAllQuestions(questions)
+      setAllQuestions(allQuestions)
     } catch (err: any) {
       setError(t('start.error.noQuestions') + ': ' + (err.message || 'Noma\'lum xatolik'))
     } finally {
@@ -374,7 +432,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       }
 
       setSelectedTest(test)
-      setFile(null)
+      setFiles([])
       setError('')
       setLoading(true)
 
@@ -416,7 +474,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
 
     setSelectedTest(test)
-    setFile(null)
+    setFiles([])
     setError('')
     setLoading(true)
 
@@ -443,7 +501,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   }
 
   const handleStart = () => {
-    if ((!file && !selectedTest) || allQuestions.length === 0) {
+    if ((files.length === 0 && !selectedTest) || allQuestions.length === 0) {
       setError(t('start.error.fileRequired'))
       return
     }
@@ -455,19 +513,57 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       return
     }
 
-    const count = parseInt(questionCount) || 1
-    if (count < 1 || startIndex + count > allQuestions.length) {
-      setError(t('start.error.invalidCount') + `: ${allQuestions.length - startIndex}`)
-      return
+    // Calculate count: if endQuestion is set and random, use questionCount for first test; otherwise use questionCount
+    let count: number
+    let endQuestionIndex: number | null = null
+    
+    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+      const endNum = parseInt(endQuestion) || allQuestions.length
+      if (endNum < startNum || endNum > allQuestions.length) {
+        setError(t('start.error.invalidEnd') || `Oxirgi savol noto'g'ri. ${startNum} dan ${allQuestions.length} gacha bo'lishi kerak`)
+        return
+      }
+      if (endNum === startNum) {
+        setError(t('start.error.startEndSame') || `Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas. Oxirgi savol ${startNum + 1} dan ${allQuestions.length} gacha bo'lishi kerak`)
+        return
+      }
+      
+      // Store end question index (0-based)
+      endQuestionIndex = endNum - 1
+      
+      // Calculate max available questions in range
+      const maxAvailable = endNum - startNum
+      
+      // Use questionCount for the first test (not the full range)
+      const inputCount = parseInt(questionCount) || 0
+      if (inputCount < 1) {
+        setError(t('start.error.invalidCount') || 'Savollar soni kiritilishi kerak')
+        return
+      }
+      if (inputCount > maxAvailable) {
+        setError(t('start.error.invalidCountRange') || `Savollar soni noto'g'ri. ${startNum}-${endNum} orasida maksimal ${maxAvailable} ta savol tanlash mumkin`)
+        return
+      }
+      
+      // For first test, use questionCount (not the full range)
+      count = inputCount
+    } else {
+      count = parseInt(questionCount) || 1
+      if (count < 1 || startIndex + count > allQuestions.length) {
+        setError(t('start.error.invalidCount') + `: ${allQuestions.length - startIndex}`)
+        return
+      }
     }
 
-    const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod)
+    const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod, endQuestionIndex)
     
-    const fileId = file 
-      ? `${file.name}_${file.size}_${file.lastModified}`
+    const fileId = files.length > 0
+      ? files.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
       : `${selectedTest?.id}_${selectedTest?.path}`
 
-    const fileName = file ? file.name : (selectedTest?.name || 'Test')
+    const fileName = files.length > 0 
+      ? files.map(f => f.name).join(', ')
+      : (selectedTest?.name || 'Test')
 
     clearProgress()
 
@@ -480,7 +576,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       currentQuestionIndex: 0,
       selectionMethod,
       answers: {},
-      score: { correct: 0, incorrect: 0 }
+      score: { correct: 0, incorrect: 0 },
+      endQuestionIndex: endQuestionIndex
     })
   }
 
@@ -531,10 +628,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 value={tabValue} 
                 onChange={(_, newValue) => {
                   setTabValue(newValue)
-                  setFile(null)
+                  setFiles([])
                   setSelectedTest(null)
                   setAllQuestions([])
                   setError('')
+                  setEndQuestion('')
+                  setEndQuestionError('')
                 }}
               >
                 <Tab label={t('start.selectFile')} />
@@ -564,6 +663,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   style={{ display: 'none' }}
                   id="file-upload"
                   type="file"
+                  multiple
                   onChange={handleFileChange}
                   disabled={loading}
                 />
@@ -582,19 +682,26 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                     {t('start.selectFile')}
                   </Button>
                 </label>
-                {file && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-                    <Chip 
-                      label={file.name} 
-                      color="primary" 
-                      sx={{ fontSize: '0.9rem', fontWeight: 600 }}
-                    />
+                {files.length > 0 && (
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                      {files.map((file, index) => (
+                        <Chip 
+                          key={index}
+                          label={file.name} 
+                          color="primary" 
+                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                        />
+                      ))}
+                    </Box>
                     {allQuestions.length > 0 && (
-                      <Chip 
-                        label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
-                        color="success"
-                        sx={{ fontSize: '0.9rem', fontWeight: 600 }}
-                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Chip 
+                          label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
+                          color="success"
+                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                        />
+                      </Box>
                     )}
                   </Box>
                 )}
@@ -638,6 +745,59 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       </Box>
                     </Box>
                     
+                    {/* Institute Tabs */}
+                    {uniqueInstitutes.length > 0 && (
+                      <Box sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs
+                          value={selectedInstitute || 'all'}
+                          onChange={(_, newValue) => {
+                            setSelectedInstitute(newValue === 'all' ? '' : newValue)
+                            setCatalogPage(1) // Reset to first page when tab changes
+                          }}
+                          variant="scrollable"
+                          scrollButtons="auto"
+                          sx={{
+                            '& .MuiTab-root': {
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                              minHeight: { xs: 40, sm: 48 },
+                              textTransform: 'none',
+                              fontWeight: 600,
+                            }
+                          }}
+                        >
+                          <Tab 
+                            label={t('start.filter.all') || 'Barchasi'} 
+                            value="all"
+                          />
+                          {uniqueInstitutes.map(institute => (
+                            <Tab 
+                              key={institute} 
+                              value={institute}
+                              label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <span>{institute}</span>
+                                  {instituteHasNewTests(institute) && (
+                                    <Chip
+                                      label={t('start.new') || 'YANGI'}
+                                      size="small"
+                                      color="error"
+                                      sx={{ 
+                                        fontSize: '0.6rem', 
+                                        height: 16,
+                                        fontWeight: 700,
+                                        minWidth: 'auto',
+                                        px: 0.5
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              }
+                            />
+                          ))}
+                        </Tabs>
+                      </Box>
+                    )}
+                    
                     <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <TextField
                         fullWidth
@@ -655,26 +815,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       
                       {showFilters && (
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', pt: 1 }}>
-                          <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
-                            <InputLabel>{t('start.filter.institute') || 'Institut'}</InputLabel>
-                            <Select
-                              value={selectedInstitute}
-                              onChange={(e) => {
-                                setSelectedInstitute(e.target.value)
-                                setCatalogPage(1) // Reset to first page when filter changes
-                              }}
-                              label={t('start.filter.institute') || 'Institut'}
-                            >
-                              <MenuItem value="">
-                                <em>{t('start.filter.all') || 'Barchasi'}</em>
-                              </MenuItem>
-                              {uniqueInstitutes.map(institute => (
-                                <MenuItem key={institute} value={institute}>
-                                  {institute}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
                           
                           <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }}>
                             <InputLabel>{t('start.filter.course') || 'Kurs'}</InputLabel>
@@ -774,6 +914,19 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                               primary={
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                   <span>{test.subject || test.name}</span>
+                                                  {test.is_new && test.is_show !== false && (
+                                                    <Chip
+                                                      label={t('start.new') || 'YANGI'}
+                                                      size="small"
+                                                      color="error"
+                                                      sx={{ 
+                                                        fontSize: '0.65rem', 
+                                                        height: 18,
+                                                        fontWeight: 700,
+                                                        animation: 'pulse 2s infinite'
+                                                      }}
+                                                    />
+                                                  )}
                                                   {test.language && (
                                                     <Chip
                                                       label={
@@ -827,7 +980,23 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                       <Description color="primary" />
                                                     </Box>
                                                     <ListItemText
-                                                      primary={subTest.name}
+                                                      primary={
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                          <span>{subTest.name}</span>
+                                                          {subTest.is_new && subTest.is_show !== false && (
+                                                            <Chip
+                                                              label={t('start.new') || 'YANGI'}
+                                                              size="small"
+                                                              color="error"
+                                                              sx={{ 
+                                                                fontSize: '0.65rem', 
+                                                                height: 18,
+                                                                fontWeight: 700
+                                                              }}
+                                                            />
+                                                          )}
+                                                        </Box>
+                                                      }
                                                     />
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
                                                       {isLocalAsset(subTest.path) && (
@@ -865,6 +1034,18 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                           primary={
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                               <span>{test.subject || test.name}</span>
+                                              {test.is_new && test.is_show !== false && (
+                                                <Chip
+                                                  label={t('start.new') || 'YANGI'}
+                                                  size="small"
+                                                  color="error"
+                                                  sx={{ 
+                                                    fontSize: '0.65rem', 
+                                                    height: 18,
+                                                    fontWeight: 700
+                                                  }}
+                                                />
+                                              )}
                                               {test.language && (
                                                 <Chip
                                                   label={
@@ -975,45 +1156,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   </Button>
                 )}
               </Box>
-              <TextField
-                fullWidth
-                label={t('start.startQuestion')}
-                type="number"
-                value={startQuestion}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  const numValue = Number(value)
-                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= allQuestions.length)) {
-                    setStartQuestion(value)
-                    // Update questionCount max when startQuestion changes
-                    const currentCount = parseInt(questionCount) || 1
-                    const newMax = allQuestions.length - (numValue || 1) + 1
-                    if (currentCount > newMax) {
-                      setQuestionCount(newMax.toString())
-                    }
-                  }
-                }}
-                inputProps={{ min: 1, max: allQuestions.length }}
-                sx={{ mb: { xs: 2, sm: 3 } }}
-              />
-
-              <TextField
-                fullWidth
-                label={t('start.questionCount')}
-                type="number"
-                value={questionCount}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  const startNum = parseInt(startQuestion) || 1
-                  const maxAvailable = allQuestions.length - startNum + 1
-                  if (value === '' || (!isNaN(Number(value)) && Number(value) >= 1 && Number(value) <= maxAvailable)) {
-                    setQuestionCount(value)
-                  }
-                }}
-                inputProps={{ min: 1, max: allQuestions.length - (parseInt(startQuestion) || 1) + 1 }}
-                helperText={`${t('start.maxAvailable')}: ${allQuestions.length - (parseInt(startQuestion) || 1) + 1}`}
-                sx={{ mb: { xs: 2, sm: 3 } }}
-              />
 
               <FormControl component="fieldset" sx={{ mb: { xs: 2, sm: 3 } }}>
                 <FormLabel component="legend" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
@@ -1042,6 +1184,191 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   />
                 </RadioGroup>
               </FormControl>
+
+              <TextField
+                fullWidth
+                label={t('start.startQuestion')}
+                type="number"
+                value={startQuestion}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const numValue = Number(value)
+                  if (value === '' || (!isNaN(numValue) && numValue >= 1 && numValue <= allQuestions.length)) {
+                    setStartQuestion(value)
+                    // Update questionCount max when startQuestion changes
+                    const currentCount = parseInt(questionCount) || 1
+                    let newMax: number
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      newMax = endNum - (numValue || 1) // Exclusive: end - start
+                    } else {
+                      newMax = allQuestions.length - (numValue || 1) + 1
+                    }
+                    if (currentCount > newMax) {
+                      setQuestionCount(newMax.toString())
+                    }
+                    // Update endQuestion if it's less than new startQuestion
+                    if (endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || 0
+                      if (endNum < (numValue || 1)) {
+                        setEndQuestion('')
+                        setEndQuestionError('')
+                      }
+                    }
+                  }
+                }}
+                inputProps={{ min: 1, max: allQuestions.length }}
+                helperText={
+                  selectionMethod === 'random' 
+                    ? (t('start.randomStartHelper') || 'Tasodifiy tanlashda savollar shu savoldan boshlab tasodifiy tanlanadi')
+                    : (t('start.sequentialStartHelper') || 'Ketma-ket tanlashda savollar shu savoldan boshlab ketma-ket tanlanadi')
+                }
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
+
+              {selectionMethod === 'random' && allQuestions.length > 0 && (
+                <TextField
+                  fullWidth
+                  label={t('start.endQuestion') || 'Qaysi savolgacha'}
+                  type="number"
+                  value={endQuestion}
+                  error={!!endQuestionError}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.target.value
+                    
+                    // Always allow typing - don't restrict while user is typing
+                    // Validation will happen on blur
+                    setEndQuestion(value)
+                    
+                    // Clear error while typing
+                    if (value === '') {
+                      setEndQuestionError('')
+                    }
+                  }}
+                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                    // Validate on blur
+                    const value = e.target.value
+                    const startNum = parseInt(startQuestion) || 1
+                    
+                    if (value === '') {
+                      setEndQuestionError('')
+                      return
+                    }
+                    
+                    const numValue = Number(value)
+                    if (isNaN(numValue)) {
+                      setEndQuestion('')
+                      setEndQuestionError('')
+                      return
+                    }
+                    
+                    const maxValue = allQuestions.length > 0 ? allQuestions.length : 999999
+                    if (numValue < startNum || numValue > maxValue) {
+                      const errorMsg = t('start.error.invalidEnd') || `Oxirgi savol noto'g'ri. ${startNum} dan ${maxValue} gacha bo'lishi kerak`
+                      setEndQuestionError(errorMsg)
+                      // Reset to empty if invalid
+                      setEndQuestion('')
+                    } else if (numValue === startNum) {
+                      // Start and end cannot be the same
+                      const errorMsg = t('start.error.startEndSame') || `Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas. Oxirgi savol ${startNum + 1} dan ${maxValue} gacha bo'lishi kerak`
+                      setEndQuestionError(errorMsg)
+                      // Reset to empty if invalid
+                      setEndQuestion('')
+                    } else {
+                      setEndQuestionError('')
+                    }
+                  }}
+                  inputProps={{ 
+                    max: allQuestions.length > 0 ? allQuestions.length : 999999 
+                  }}
+                  helperText={
+                    endQuestionError 
+                      ? endQuestionError
+                      : endQuestion && endQuestion.trim() !== ''
+                        ? (() => {
+                            const startNum = parseInt(startQuestion) || 1
+                            const endNum = parseInt(endQuestion) || 0
+                            const maxAvailable = endNum - startNum
+                            const count = parseInt(questionCount) || 0
+                            if (count > 0 && maxAvailable > 0) {
+                              const testCount = Math.ceil((endNum - startNum + 1) / count)
+                              return `${t('start.randomEndHelper') || 'Tasodifiy tanlashda'} ${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}. ${t('start.maxAvailable')}: ${maxAvailable}. ${t('start.testWillSplit') || 'Testlar avtomatik bo\'linadi'}: ${testCount} ${t('start.times') || 'marta'}`
+                            }
+                            return `${t('start.randomEndHelper') || 'Tasodifiy tanlashda'} ${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}. ${t('start.maxAvailable')}: ${maxAvailable}`
+                          })()
+                        : `${t('start.endQuestionHelper') || 'Oxirgi savol raqamini kiriting (ixtiyoriy). Agar kiritilmasa, savollar soni ishlatiladi.'} ${t('start.maxAvailable')}: ${allQuestions.length - (parseInt(startQuestion) || 1) + 1}`
+                  }
+                  sx={{ mb: { xs: 2, sm: 3 } }}
+                />
+              )}
+
+              <TextField
+                fullWidth
+                label={t('start.questionCount')}
+                type="number"
+                value={questionCount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  const startNum = parseInt(startQuestion) || 1
+                  // If endQuestion is set, use it to calculate max; otherwise use allQuestions.length
+                  let maxAvailable: number
+                  if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                    const endNum = parseInt(endQuestion) || allQuestions.length
+                    maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                  } else {
+                    maxAvailable = allQuestions.length - startNum + 1
+                  }
+                  const numValue = Number(value)
+                  if (!isNaN(numValue) && numValue >= 1 && numValue <= maxAvailable) {
+                    setQuestionCount(value)
+                    setError('') // Clear error on valid input
+                  } else if (!isNaN(numValue) && numValue > maxAvailable) {
+                    // Show error for invalid input that exceeds max
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      setError(t('start.error.invalidCountRange') || `Savollar soni noto'g'ri. ${startNum}-${endNum} orasida maksimal ${maxAvailable} ta savol tanlash mumkin`)
+                    } else {
+                      setError(t('start.error.invalidCount') + `: ${maxAvailable}`)
+                    }
+                  } else if (value === '') {
+                    setQuestionCount(value)
+                    setError('') // Clear error when field is cleared
+                  }
+                }}
+                inputProps={{ 
+                  min: 1, 
+                  max: (() => {
+                    const startNum = parseInt(startQuestion) || 1
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      return endNum - startNum // Exclusive: end - start (not end - start + 1)
+                    }
+                    return allQuestions.length - startNum + 1
+                  })()
+                }}
+                helperText={
+                  (() => {
+                    const startNum = parseInt(startQuestion) || 1
+                    let maxAvailable: number
+                    if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
+                      const endNum = parseInt(endQuestion) || allQuestions.length
+                      maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                      const count = parseInt(questionCount) || 0
+                      if (count > 0 && maxAvailable > 0) {
+                        const testCount = Math.ceil((endNum - startNum + 1) / count)
+                        return `${t('start.maxAvailable')}: ${maxAvailable} (${startNum}-${endNum} ${t('start.randomEndHelper2') || 'savollar orasidan'}). ${t('start.questionCountPerTest') || 'Har bir testda'} ${count} ${t('start.questions') || 'ta savol'}. ${t('start.testWillSplit') || 'Testlar avtomatik bo\'linadi'}: ${testCount} ${t('start.times') || 'marta'}`
+                      }
+                      return `${t('start.maxAvailable')}: ${maxAvailable} (${startNum}-${endQuestion} ${t('start.randomEndHelper2') || 'savollar orasidan'}). ${t('start.randomCountHelper') || 'Tasodifiy tanlashda shu miqdordagi savollar tasodifiy tanlanadi'}`
+                    } else if (selectionMethod === 'random') {
+                      maxAvailable = allQuestions.length - startNum + 1
+                      return `${t('start.maxAvailable')}: ${maxAvailable}. ${t('start.randomCountHelper') || 'Tasodifiy tanlashda shu miqdordagi savollar tasodifiy tanlanadi'}`
+                    }
+                    maxAvailable = allQuestions.length - startNum + 1
+                    return `${t('start.maxAvailable')}: ${maxAvailable}`
+                  })()
+                }
+                sx={{ mb: { xs: 2, sm: 3 } }}
+              />
 
               <Button
                 variant="contained"

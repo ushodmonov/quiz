@@ -4,13 +4,22 @@ export function selectQuestions(
   questions: Question[],
   startIndex: number,
   count: number,
-  method: 'sequential' | 'random'
+  method: 'sequential' | 'random',
+  endIndex?: number | null
 ): Question[] {
   if (method === 'sequential') {
-    return questions.slice(startIndex, startIndex + count)
+    const end = endIndex !== null && endIndex !== undefined 
+      ? Math.min(endIndex + 1, startIndex + count)
+      : startIndex + count
+    return questions.slice(startIndex, end)
   } else {
     const availableIndices: number[] = []
-    for (let i = startIndex; i < questions.length; i++) {
+    // If endIndex is provided, use it; otherwise use questions.length
+    const maxIndex = endIndex !== null && endIndex !== undefined 
+      ? Math.min(endIndex, questions.length - 1)
+      : questions.length - 1
+    
+    for (let i = startIndex; i <= maxIndex; i++) {
       availableIndices.push(i)
     }
     

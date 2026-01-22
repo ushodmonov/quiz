@@ -1,6 +1,6 @@
 import { Container, Typography, Box, Card, CardContent, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Stack, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { ArrowBack, CheckCircle, Description, TableChart, Sort, Link } from '@mui/icons-material'
+import { ArrowBack, CheckCircle, Description, TableChart, Sort, Link, Numbers } from '@mui/icons-material'
 import { Button } from '@mui/material'
 
 interface TestFormatsPageProps {
@@ -854,6 +854,150 @@ Noto'g'ri javob 2`}
             <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mt: 2 }}>
               <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
                 {t('formats.format5.note') || 'Eslatma: Bu format faqat "Укажите соответствие" so\'zi bo\'lsa ishlaydi. Javoblar random qilinmaydi.'}
+              </Typography>
+            </Paper>
+          </CardContent>
+        </Card>
+
+        {/* Format 6: Raqamli savollar formati */}
+        <Card elevation={2} sx={{ border: '2px solid', borderColor: 'primary.main' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Numbers color="primary" sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {t('formats.format6.title') || 'Format 6: Raqamli savollar formati'}
+              </Typography>
+              <Chip label="YANGI" color="primary" size="small" sx={{ ml: 'auto' }} />
+            </Box>
+            
+            <Typography variant="body1" paragraph>
+              {t('formats.format6.description') || 'Bu format savollar raqam bilan boshlanadigan va javoblar A-D harflari bilan belgilanadigan formatdir.'}
+            </Typography>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50', mb: 3 }}>
+              <Typography component="pre" sx={{ fontFamily: 'monospace', fontSize: '0.875rem', whiteSpace: 'pre-wrap', color: 'text.primary' }}>
+{`97. Din erkinligi quyidagilarni o'z ichiga oladi:
+
++A. E'tirofni;
+
++B. Bolalarning diniy ta'limini;
+
++C. Amal qilmaslik huquqini;
+
+D. Nafratni targ'ib qilishni;
+
+98. Ikkinchi savol matni:
+
+A. Birinchi javob
+
++B. Ikkinchi javob (to'g'ri)
+
+C. Uchinchi javob
+
+D. To'rtinchi javob
+
+99. Uchinchi savol:
+
++A) Birinchi to'g'ri javob
+
+B) Ikkinchi javob
+
++C) Uchinchi ham to'g'ri javob
+
+D) To'rtinchi javob`}
+              </Typography>
+            </Paper>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format6.rules') || 'Qoidalar:'}
+              </Typography>
+              <Box component="ul" sx={{ pl: 3 }}>
+                <li>
+                  <Typography variant="body2">
+                    Savollar <strong>raqam</strong> bilan boshlanadi, keyin nuqta (masalan: <strong>97.</strong>, <strong>98.</strong>)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Savol matni raqam va nuqtadan keyin yoziladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Javoblar <strong>A, B, C, D</strong> harflari bilan belgilanadi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Harfdan keyin <strong>nuqta (.)</strong> yoki <strong>qavs )</strong> bo'lishi mumkin (masalan: <strong>A.</strong> yoki <strong>A)</strong>)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    To'g'ri javoblar <strong>+</strong> belgisi bilan boshlanadi (masalan: <strong>+A.</strong> yoki <strong>+A)</strong>)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Noto'g'ri javoblar <strong>+</strong> belgisiz yoziladi (masalan: <strong>A.</strong> yoki <strong>B)</strong>)
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Har bir savolda kamida 2 ta javob bo'lishi kerak
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Agar bir nechta javobda <strong>+</strong> belgisi bo'lsa, multi-select savol bo'ladi
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Savol matni bir nechta qatorda bo'lishi mumkin
+                  </Typography>
+                </li>
+                <li>
+                  <Typography variant="body2">
+                    Bu format TXT fayllarida ishlaydi
+                  </Typography>
+                </li>
+              </Box>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                {t('formats.format6.example') || 'Misol:'}
+              </Typography>
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50' }}>
+                <Typography variant="body2" paragraph sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+{`97. Din erkinligi quyidagilarni o'z ichiga oladi:
+
++A. E'tirofni;
+
++B. Bolalarning diniy ta'limini;
+
++C. Amal qilmaslik huquqini;
+
+D. Nafratni targ'ib qilishni;
+
+98. Ikkinchi savol matni:
+
+A. Birinchi javob
+
++B. Ikkinchi javob (to'g'ri)
+
+C. Uchinchi javob
+
+D. To'rtinchi javob`}
+                </Typography>
+              </Paper>
+            </Box>
+
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText', mt: 2 }}>
+              <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                {t('formats.format6.note') || '💡 Maslahat: Bu format savollar raqam bilan tartiblangan va javoblar harflar bilan belgilangan testlar uchun qulaydir.'}
               </Typography>
             </Paper>
           </CardContent>
