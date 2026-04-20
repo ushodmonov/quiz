@@ -4,7 +4,7 @@ export interface TestCatalogItem {
   id: string  // Auto-generated if not provided in JSON
   name: string
   path?: string  // Optional, file path relative to assets folder or full URL (e.g., Google Drive URL)
-  fileType?: 'txt' | 'docx'  // Optional file type override. If not provided, will auto-detect from URL/Content-Type
+  fileType?: 'txt' | 'docx' | 'xlsx'  // Optional file type override. If not provided, will auto-detect from URL/Content-Type
   description?: string
   semester?: string | number  // Qaysi semestr (e.g., "1", "2", or 1, 2)
   years?: string  // Qaysi yillar (e.g., "2025-2026")
@@ -26,7 +26,7 @@ export interface TestCatalogItem {
 function generateTestId(test: Omit<TestCatalogItem, 'id'>, parentId?: string): string {
   // If path exists, use it as base (remove extension)
   if (test.path) {
-    const baseName = test.path.replace(/\.(txt|docx)$/i, '')
+    const baseName = test.path.replace(/\.(txt|docx|xlsx)$/i, '')
     const id = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     return parentId ? `${parentId}-${id}` : id
   }
@@ -233,7 +233,7 @@ function setCachedFile(filePath: string, data: string | ArrayBuffer, type: 'text
  * Load questions from a test file in assets or remote URL
  * Supports both local files (relative paths) and remote URLs (Google Drive, etc.)
  */
-export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'docx'): Promise<Question[]> {
+export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'docx' | 'xlsx'): Promise<Question[]> {
   try {
     // Check if filePath is already a full URL (http:// or https://)
     const isFullUrl = /^https?:\/\//i.test(filePath)
@@ -250,6 +250,11 @@ export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'do
           const { parseTxtFile } = await import('./fileParser')
           return parseTxtFile(cached.data as string)
         } else {
+          const urlLower = filePath.toLowerCase()
+          if (urlLower.endsWith('.xlsx') || fileType === 'xlsx') {
+            const { parseXlsxFileFromBuffer } = await import('./fileParser')
+            return parseXlsxFileFromBuffer(cached.data as ArrayBuffer)
+          }
           const { parseDocxFileFromBuffer } = await import('./fileParser')
           return parseDocxFileFromBuffer(cached.data as ArrayBuffer)
         }
@@ -299,13 +304,18 @@ export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'do
     }
     
     // Detect file type
-    let detectedFileType: 'txt' | 'docx' = fileType || 'docx'
+    let detectedFileType: 'txt' | 'docx' | 'xlsx' = fileType || 'docx'
     const contentType = response.headers.get('content-type') || ''
     const urlLower = filePath.toLowerCase()
     
     if (!fileType) {
       if (urlLower.endsWith('.txt') || contentType.includes('text/plain')) {
         detectedFileType = 'txt'
+      } else if (
+        urlLower.endsWith('.xlsx') ||
+        contentType.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      ) {
+        detectedFileType = 'xlsx'
       } else if (urlLower.endsWith('.docx') || 
                  contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
                  contentType.includes('application/octet-stream')) {
@@ -322,6 +332,13 @@ export async function loadTestQuestions(filePath: string, fileType?: 'txt' | 'do
       }
       const { parseTxtFile } = await import('./fileParser')
       return parseTxtFile(text)
+    } else if (detectedFileType === 'xlsx') {
+      const arrayBuffer = await response.arrayBuffer()
+      if (isFullUrl) {
+        setCachedFile(filePath, arrayBuffer, 'buffer')
+      }
+      const { parseXlsxFileFromBuffer } = await import('./fileParser')
+      return parseXlsxFileFromBuffer(arrayBuffer)
     } else {
       const arrayBuffer = await response.arrayBuffer()
       // Cache remote files

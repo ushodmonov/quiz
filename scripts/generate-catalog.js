@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
  * - odam_anatomiyasi_1_1 -> { subject: "Odam anatomiya", semester: 1, courses: 1 }
  */
 function extractMetadata(fileName, folderName = '') {
-  const baseName = fileName.replace(/\.(docx|txt)$/i, '')
+  const baseName = fileName.replace(/\.(docx|txt|xlsx)$/i, '')
   let source = folderName || baseName
   
   // Remove "ttdu_" prefix from the beginning (case insensitive)
@@ -102,7 +102,7 @@ function generateTestCatalog() {
       const subTests = []
       
       for (const subFile of subFiles) {
-        if (subFile.toLowerCase().endsWith('.docx') || subFile.toLowerCase().endsWith('.txt')) {
+        if (subFile.toLowerCase().endsWith('.docx') || subFile.toLowerCase().endsWith('.txt') || subFile.toLowerCase().endsWith('.xlsx')) {
           const subTestItem = {
             name: subFile, // Use full file name
             path: `${item.name}/${subFile}`
@@ -139,7 +139,7 @@ function generateTestCatalog() {
       }
     } else if (item.isFile()) {
       // Handle files directly in assets folder
-      if (item.name.toLowerCase().endsWith('.docx') || item.name.toLowerCase().endsWith('.txt')) {
+      if (item.name.toLowerCase().endsWith('.docx') || item.name.toLowerCase().endsWith('.txt') || item.name.toLowerCase().endsWith('.xlsx')) {
         const metadata = extractMetadata(item.name)
         const name = metadata.years 
           ? `${metadata.subject}(${metadata.years})`

@@ -60,7 +60,35 @@ export default function TestFormatsPage({ onBack }: TestFormatsPageProps) {
                 variant="outlined"
                 sx={{ fontSize: '1rem', py: 2.5 }}
               />
+              <Chip 
+                icon={<TableChart />} 
+                label="Excel (.xlsx)" 
+                color="primary" 
+                variant="outlined"
+                sx={{ fontSize: '1rem', py: 2.5 }}
+              />
             </Stack>
+          </CardContent>
+        </Card>
+
+        {/* Excel jadval formati */}
+        <Card elevation={2}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <TableChart color="primary" sx={{ fontSize: '2rem' }} />
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                Excel jadval (.xlsx)
+              </Typography>
+            </Box>
+            <Typography variant="body1" paragraph>
+              <strong># / + format:</strong> birinchi qatorda sarlavha — bitta ustun <strong>#</strong> bilan boshlanadi (masalan, <code>#Savol</code>) — savol ustuni;
+              bitta ustun <strong>+</strong> bilan boshlanadi (masalan, <code>+To‘g‘ri javob</code>) — to‘g‘ri javob;
+              qolgan barcha ustunlar — noto‘g‘ri variantlar. Ustunlar tartibi ixtiyoriy.
+            </Typography>
+            <Typography variant="body1" paragraph>
+              <strong>Eski TFKU jadvali:</strong> birinchi ustun — <strong>Test topshirig’i</strong>, ikkinchi — <strong>To‘g‘ri javob</strong>,
+              keyingilar — <strong>Muqobil javob</strong>. Agar birinchi qatorda <code>#</code> va <code>+</code> sarlavhalar bo‘lmasa, shu format ishlatiladi.
+            </Typography>
           </CardContent>
         </Card>
 

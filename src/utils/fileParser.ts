@@ -931,6 +931,326 @@ export async function parseDocxFile(file: File): Promise<Question[]> {
   return parseDocxFileFromBuffer(arrayBuffer)
 }
 
+/** Normalize Excel header cells for matching (Uzbek labels, apostrophe variants). */
+function normalizeExcelHeaderCell(s: string): string {
+  let t = fixEncoding(String(s ?? '').trim())
+  t = t.normalize('NFC').replace(/[\u2018\u2019\u2032`']/g, "'")
+  return t.toLowerCase().replace(/\s+/g, ' ')
+}
+
+/**
+ * Detect header row: col A "Test topshirig'i", col B "To'g'ri javob", further cols "Muqobil javob".
+ */
+function isTfkuStyleHeader(c0: string, c1: string): boolean {
+  const h0 = normalizeExcelHeaderCell(c0)
+  const h1 = normalizeExcelHeaderCell(c1)
+  const hasQuestion = h0.includes('topshirig')
+  const togri =
+    h1.includes("to'g'ri") ||
+    h1.includes('togri') ||
+    /to[\s']*g[\s']*ri/.test(h1)
+  return hasQuestion && togri && h1.includes('javob')
+}
+
+function findExcelTfkuHeaderRow(rows: (string | number | undefined)[][]): number {
+  const max = Math.min(rows.length, 60)
+  for (let r = 0; r < max; r++) {
+    const row = rows[r]
+    if (!row || row.length < 3) continue
+    const c0 = String(row[0] ?? '')
+    const c1 = String(row[1] ?? '')
+    if (isTfkuStyleHeader(c0, c1)) return r
+  }
+  return -1
+}
+
+/**
+ * Header row: one column label starts with `#` (savol), one with `+` (to'g'ri javob),
+ * qolgan barcha ustunlar — noto'g'ri variantlar.
+ */
+function findExcelHashPlusHeaderRow(
+  rows: (string | number | undefined)[][]
+): { headerRow: number; questionCol: number; correctCol: number } | null {
+  const max = Math.min(rows.length, 60)
+  for (let r = 0; r < max; r++) {
+    const row = rows[r]
+    if (!row || row.length < 3) continue
+    let questionCol = -1
+    let correctCol = -1
+    for (let c = 0; c < row.length; c++) {
+      const h = cellToString(row[c])
+      if (!h) continue
+      if (h.startsWith('#')) {
+        if (questionCol === -1) questionCol = c
+      } else if (h.startsWith('+')) {
+        if (correctCol === -1) correctCol = c
+      }
+    }
+    if (questionCol !== -1 && correctCol !== -1 && questionCol !== correctCol) {
+      return { headerRow: r, questionCol, correctCol }
+    }
+  }
+  return null
+}
+
+function cellToString(v: unknown): string {
+  if (v == null) return ''
+  if (typeof v === 'number') return String(v)
+  return fixEncoding(String(v).trim())
+}
+
+/**
+ * O‘qish to‘g‘ridan worksheet katakchasidan: `w` (formatlangan/ko‘rinadigan matn),
+ * keyin `v` (formula bo‘lsa Excel saqlagan hisoblangan qiymat).
+ * Agar formula bo‘lsa-yu kesh (`v`/`w`) bo‘lmasa, matn sifatida `f` (formula ifodasi) qaytariladi.
+ */
+function xlsxCellObjectToString(cell: { v?: unknown; w?: string; f?: string; t?: string } | undefined): string {
+  if (!cell) return ''
+  if (cell.t === 'e') {
+    const err = cell.w != null ? String(cell.w) : cell.v != null ? String(cell.v) : ''
+    return fixEncoding(err.trim())
+  }
+  if (cell.w != null && String(cell.w) !== '') {
+    return fixEncoding(String(cell.w).trim())
+  }
+  if (cell.v != null && cell.v !== '') {
+    if (typeof cell.v === 'number' || typeof cell.v === 'boolean') {
+      return fixEncoding(String(cell.v))
+    }
+    return fixEncoding(String(cell.v).trim())
+  }
+  if (cell.f != null && String(cell.f).trim() !== '') {
+    return fixEncoding(String(cell.f).trim())
+  }
+  return ''
+}
+
+/** Savol katakchasidagi bir nechta qator: 1-qator — savol, keyingilar — javob variantlari. */
+function splitMultilineQuestionCell(text: string): { question: string; inlineAnswers: string[] } | null {
+  if (!/[\r\n]/.test(text)) return null
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+  if (lines.length < 2) return null
+  return { question: lines[0], inlineAnswers: lines.slice(1) }
+}
+
+/** Kamida 2 ta variant bo‘lmasa, savol baribir testda ko‘rinsin (Excelda B–E bo‘sh qatorlar uchun). */
+function ensureMinimumXlsxAnswers(questionText: string, answers: Answer[]): Answer[] {
+  if (answers.length >= 2) return answers
+  if (!questionText.trim()) return answers
+  const out: Answer[] = [...answers]
+  if (out.length === 0) {
+    out.push({
+      text: "To'g'ri javob Excelda kiritilmagan (B ustuni bo'sh)",
+      isCorrect: true
+    })
+  }
+  let i = 0
+  while (out.length < 2) {
+    i++
+    out.push({
+      text: `Muqobil javob ${i} (Excelda kiritilmagan)`,
+      isCorrect: false
+    })
+  }
+  return out
+}
+
+function buildSheetRowMatrix(XLSX: typeof import('xlsx'), ws: import('xlsx').WorkSheet): (string | number | undefined)[][] {
+  const ref = ws['!ref']
+  if (!ref) return []
+  const range = XLSX.utils.decode_range(ref)
+  const rows: (string | number | undefined)[][] = []
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    const row: (string | number | undefined)[] = []
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C })
+      const cell = ws[addr] as { v?: unknown; w?: string; f?: string; t?: string } | undefined
+      row.push(xlsxCellObjectToString(cell))
+    }
+    rows.push(row)
+  }
+  return rows
+}
+
+/** Excel only stores the top-left value of a merged range; copy it into covered cells. */
+function applyMergedCellValues(
+  rows: (string | number | undefined)[][],
+  merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] | undefined
+): void {
+  if (!merges?.length) return
+  for (const { s, e } of merges) {
+    const master = rows[s.r]?.[s.c]
+    const masterStr = master === null || master === undefined ? '' : String(master)
+    if (masterStr.trim() === '') continue
+    for (let r = s.r; r <= e.r; r++) {
+      if (!rows[r]) rows[r] = []
+      for (let c = s.c; c <= e.c; c++) {
+        const cur = rows[r][c]
+        const curEmpty = cur === null || cur === undefined || String(cur).trim() === ''
+        if (curEmpty) {
+          rows[r][c] = master
+        }
+      }
+    }
+  }
+}
+
+/** Full-row signature so we skip consecutive duplicate rows (same Excel block merged vertically). */
+function xlsxRowSignature(row: (string | number | undefined)[] | undefined, maxCol: number): string {
+  if (!row) return ''
+  const parts: string[] = []
+  for (let c = 0; c < maxCol; c++) {
+    parts.push(cellToString(row[c]))
+  }
+  return parts.join('\x01')
+}
+
+/**
+ * Parse Excel (.xlsx):
+ * - **# / + format** (ustun sarlavhasi `#...` — savol, `+...` — to'g'ri javob, qolgan ustunlar — noto'g'ri).
+ * - **TFKU format**: Test topshirig'i | To'g'ri javob | Muqobil javob ...
+ */
+export async function parseXlsxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise<Question[]> {
+  const XLSX = await import('xlsx')
+  const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: false, cellFormula: true })
+  const questions: Question[] = []
+
+  for (const sheetName of wb.SheetNames) {
+    const ws = wb.Sheets[sheetName]
+    if (!ws) continue
+    const rows = buildSheetRowMatrix(XLSX, ws)
+
+    applyMergedCellValues(rows, ws['!merges'])
+
+    const hashPlus = findExcelHashPlusHeaderRow(rows)
+    const tfkuHeaderRow = hashPlus ? -1 : findExcelTfkuHeaderRow(rows)
+    const headerRow = hashPlus ? hashPlus.headerRow : tfkuHeaderRow
+    if (headerRow === -1) continue
+
+    const ref = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : null
+    const sigCols = ref ? Math.min(ref.e.c + 1, 32) : 32
+
+    let prevSig = ''
+    let r = headerRow + 1
+    while (r < rows.length) {
+      const row = rows[r]
+      if (!row || row.length < 2) {
+        r++
+        continue
+      }
+
+      const sig = xlsxRowSignature(row, sigCols)
+      if (sig === prevSig) {
+        r++
+        continue
+      }
+      prevSig = sig
+
+      let questionText = ''
+      let correctText = ''
+      const wrongTexts: string[] = []
+
+      if (hashPlus) {
+        const { questionCol, correctCol } = hashPlus
+        const rawQ = cellToString(row[questionCol])
+        correctText = cellToString(row[correctCol])
+        for (let c = 0; c < row.length; c++) {
+          if (c === questionCol || c === correctCol) continue
+          const t = cellToString(row[c])
+          if (t) wrongTexts.push(t)
+        }
+        const multiline = splitMultilineQuestionCell(rawQ)
+        if (multiline) {
+          questionText = multiline.question
+          if (!correctText && multiline.inlineAnswers.length > 0) {
+            correctText = multiline.inlineAnswers[0]
+            wrongTexts.push(...multiline.inlineAnswers.slice(1))
+          } else if (correctText && multiline.inlineAnswers.length > 0) {
+            wrongTexts.push(...multiline.inlineAnswers)
+          } else if (!correctText && multiline.inlineAnswers.length >= 2) {
+            correctText = multiline.inlineAnswers[0]
+            wrongTexts.push(...multiline.inlineAnswers.slice(1))
+          }
+        } else {
+          questionText = rawQ
+        }
+      } else {
+        const rawQ = cellToString(row[0])
+        correctText = cellToString(row[1])
+        for (let c = 2; c < row.length; c++) {
+          const t = cellToString(row[c])
+          if (t) wrongTexts.push(t)
+        }
+        const multiline = splitMultilineQuestionCell(rawQ)
+        if (multiline) {
+          questionText = multiline.question
+          if (!correctText && multiline.inlineAnswers.length > 0) {
+            correctText = multiline.inlineAnswers[0]
+            wrongTexts.push(...multiline.inlineAnswers.slice(1))
+          } else if (correctText && multiline.inlineAnswers.length > 0) {
+            wrongTexts.push(...multiline.inlineAnswers)
+          } else if (!correctText && multiline.inlineAnswers.length >= 2) {
+            correctText = multiline.inlineAnswers[0]
+            wrongTexts.push(...multiline.inlineAnswers.slice(1))
+          }
+        } else {
+          questionText = rawQ
+        }
+
+        // Keyingi qator: A bo'sh, javoblar B–E da (birlashtirishdan keyin ham)
+        const next = rows[r + 1]
+        if (next) {
+          const nextA = cellToString(next[0])
+          if (!nextA) {
+            const nb = cellToString(next[1])
+            const nw: string[] = []
+            for (let c = 2; c < next.length; c++) {
+              const t = cellToString(next[c])
+              if (t) nw.push(t)
+            }
+            if (nb || nw.length > 0) {
+              if (!correctText && nb) {
+                correctText = nb
+              } else if (nb) {
+                wrongTexts.push(nb)
+              }
+              wrongTexts.push(...nw)
+              r++
+            }
+          }
+        }
+      }
+
+      if (!questionText) {
+        r++
+        continue
+      }
+
+      const answers: Answer[] = []
+      if (correctText) {
+        answers.push({ text: correctText, isCorrect: true })
+      }
+      for (const t of wrongTexts) {
+        answers.push({ text: t, isCorrect: false })
+      }
+
+      const finalAnswers = ensureMinimumXlsxAnswers(questionText, answers)
+      questions.push({ text: questionText, answers: finalAnswers })
+      r++
+    }
+  }
+
+  return questions
+}
+
+export async function parseXlsxFile(file: File): Promise<Question[]> {
+  const arrayBuffer = await file.arrayBuffer()
+  return parseXlsxFileFromBuffer(arrayBuffer)
+}
+
 export function isMultiSelect(question: Question): boolean {
   const correctCount = question.answers.filter(a => a.isCorrect).length
   return correctCount > 1

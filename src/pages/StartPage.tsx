@@ -33,7 +33,7 @@ import {
 } from '@mui/material'
 import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
-import { parseTxtFile, parseDocxFile, isMultiSelect } from '../utils/fileParser'
+import { parseTxtFile, parseDocxFile, parseXlsxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
 import { clearProgress } from '../utils/storage'
 import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
@@ -389,6 +389,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
           questions = parseTxtFile(text)
         } else if (fileName.endsWith('.docx')) {
           questions = await parseDocxFile(selectedFile)
+        } else if (fileName.endsWith('.xlsx')) {
+          questions = await parseXlsxFile(selectedFile)
         } else if (fileName.endsWith('.doc')) {
           // .doc files are not supported
           setError(t('start.error.oldDocFormat') || 'Eski .doc format qo\'llab-quvvatlanmaydi. Iltimos, faylni .docx formatiga o\'tkazing.')
@@ -659,7 +661,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 }}
               >
                 <input
-                  accept=".txt,.docx"
+                  accept=".txt,.docx,.xlsx"
                   style={{ display: 'none' }}
                   id="file-upload"
                   type="file"
