@@ -53,15 +53,18 @@ export const getLatestJwtTokenByTelegramUserId = async (telegramUserId: number):
   const db = getDb()
   const tokensQuery = query(
     collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
-    where('telegramUserId', '==', telegramUserId),
-    orderBy('createdAt', 'desc'),
-    limit(1)
+    where('telegramUserId', '==', telegramUserId)
   )
   const snapshot = await getDocs(tokensQuery)
   if (snapshot.empty) return null
 
-  const docData = snapshot.docs[0].data()
-  return typeof docData.token === 'string' ? docData.token : null
+  const sortedDocs = snapshot.docs.sort((a, b) => {
+    const aTime = a.data()?.createdAt?.toDate ? a.data().createdAt.toDate().getTime() : 0
+    const bTime = b.data()?.createdAt?.toDate ? b.data().createdAt.toDate().getTime() : 0
+    return bTime - aTime
+  })
+  const docData = sortedDocs[0].data()
+  return typeof docData?.token === 'string' ? docData.token : null
 }
 
 export const getJwtTokensByTelegramUserId = async (
@@ -71,14 +74,19 @@ export const getJwtTokensByTelegramUserId = async (
   const db = getDb()
   const tokensQuery = query(
     collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
-    where('telegramUserId', '==', telegramUserId),
-    orderBy('createdAt', 'desc'),
-    limit(maxCount)
+    where('telegramUserId', '==', telegramUserId)
   )
   const snapshot = await getDocs(tokensQuery)
   if (snapshot.empty) return []
 
-  return snapshot.docs
+  const sortedDocs = snapshot.docs.sort((a, b) => {
+    const aTime = a.data()?.createdAt?.toDate ? a.data().createdAt.toDate().getTime() : 0
+    const bTime = b.data()?.createdAt?.toDate ? b.data().createdAt.toDate().getTime() : 0
+    return bTime - aTime
+  })
+
+  return sortedDocs
+    .slice(0, maxCount)
     .map((doc) => doc.data()?.token)
     .filter((token): token is string => typeof token === 'string' && token.length > 0)
 }
