@@ -272,15 +272,19 @@
     "searchPlaceholder": "Поиск по User ID или Name...",
     "empty": "Пока нет пользователей с сгенерированным JWT",
     "errorLoad": "Не удалось загрузить список пользователей",
+    "errorDelete": "Не удалось удалить пользователя",
+    "confirmDelete": "Вы действительно хотите удалить все токены для {{name}} (ID: {{userId}})?",
     "rowsPerPage": "Строк на странице",
     "unknownTime": "Неизвестное время",
     "back": "Вернуться назад",
+    "delete": "Удалить",
     "columns": {
       "telegramUserId": "Telegram User ID",
       "name": "Name",
       "createdBy": "Create By",
       "tokenCount": "Количество токенов",
-      "lastTokenTime": "Время последнего токена"
+      "lastTokenTime": "Время последнего токена",
+      "actions": "Действия"
     }
   }
 }

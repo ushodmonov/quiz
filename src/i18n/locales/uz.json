@@ -272,15 +272,19 @@
     "searchPlaceholder": "User ID yoki Name bo'yicha qidirish...",
     "empty": "Hozircha JWT generatsiya qilingan userlar yo'q",
     "errorLoad": "Userlar ro'yxatini yuklab bo'lmadi",
+    "errorDelete": "Userni o'chirib bo'lmadi",
+    "confirmDelete": "Haqiqatan ham {{name}} (ID: {{userId}}) uchun barcha tokenlarni o'chirmoqchimisiz?",
     "rowsPerPage": "Sahifadagi satrlar",
     "unknownTime": "Noma'lum vaqt",
     "back": "Orqaga qaytish",
+    "delete": "O'chirish",
     "columns": {
       "telegramUserId": "Telegram User ID",
       "name": "Name",
       "createdBy": "Create By",
       "tokenCount": "Tokenlar soni",
-      "lastTokenTime": "Oxirgi token vaqti"
+      "lastTokenTime": "Oxirgi token vaqti",
+      "actions": "Amallar"
     }
   }
 }

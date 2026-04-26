@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getFirestore, collection, addDoc, serverTimestamp, getDocs, limit, orderBy, query, where } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs, limit, orderBy, query, where, writeBatch } from 'firebase/firestore'
 import { FIREBASE_CONFIG, FIRESTORE_JWT_TOKENS_COLLECTION } from '../constants/contact'
 
 const isFirebaseConfigured = (): boolean => {
@@ -127,4 +127,22 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
     const bTime = b.lastCreatedAt ? b.lastCreatedAt.getTime() : 0
     return bTime - aTime
   })
+}
+
+export const deleteJwtTokensByTelegramUserId = async (telegramUserId: number): Promise<number> => {
+  const db = getDb()
+  const tokensQuery = query(
+    collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
+    where('telegramUserId', '==', telegramUserId)
+  )
+  const snapshot = await getDocs(tokensQuery)
+  if (snapshot.empty) return 0
+
+  const batch = writeBatch(db)
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref)
+  })
+  await batch.commit()
+
+  return snapshot.size
 }

@@ -19,9 +19,9 @@ import {
   Paper,
   TablePagination
 } from '@mui/material'
-import { Search } from '@mui/icons-material'
+import { DeleteOutline, Search } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
-import { getJwtTokenUsers, type JwtTokenUserItem } from '../utils/firebase'
+import { deleteJwtTokensByTelegramUserId, getJwtTokenUsers, type JwtTokenUserItem } from '../utils/firebase'
 
 interface AdminUsersPageProps {
   onBack: () => void
@@ -43,6 +43,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null)
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -80,6 +81,28 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   })
 
   const paginatedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+  const handleDeleteUser = async (user: JwtTokenUserItem) => {
+    const shouldDelete = window.confirm(
+      t('adminUsers.confirmDelete', {
+        userId: user.telegramUserId,
+        name: user.name || '-'
+      })
+    )
+    if (!shouldDelete) return
+
+    try {
+      setDeletingUserId(user.telegramUserId)
+      setError('')
+      await deleteJwtTokensByTelegramUserId(user.telegramUserId)
+      setUsers((prev) => prev.filter((item) => item.telegramUserId !== user.telegramUserId))
+    } catch (deleteError) {
+      console.error('Delete JWT user error:', deleteError)
+      setError(t('adminUsers.errorDelete'))
+    } finally {
+      setDeletingUserId(null)
+    }
+  }
 
   return (
     <Box
@@ -145,6 +168,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                         <TableCell>{t('adminUsers.columns.createdBy')}</TableCell>
                         <TableCell align="right">{t('adminUsers.columns.tokenCount')}</TableCell>
                         <TableCell>{t('adminUsers.columns.lastTokenTime')}</TableCell>
+                        <TableCell align="center">{t('adminUsers.columns.actions')}</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -155,6 +179,18 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                           <TableCell>{user.createdBy || '-'}</TableCell>
                           <TableCell align="right">{user.tokenCount}</TableCell>
                           <TableCell>{formatDateTime(user.lastCreatedAt, i18n.language, t('adminUsers.unknownTime'))}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              color="error"
+                              size="small"
+                              variant="outlined"
+                              startIcon={<DeleteOutline />}
+                              onClick={() => handleDeleteUser(user)}
+                              disabled={deletingUserId === user.telegramUserId}
+                            >
+                              {t('adminUsers.delete')}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
