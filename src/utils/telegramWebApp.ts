@@ -138,7 +138,14 @@ declare global {
  * Check if the app is running inside Telegram
  */
 export const isTelegramWebApp = (): boolean => {
-  return typeof window !== 'undefined' && window.Telegram?.WebApp !== undefined
+  if (typeof window === 'undefined') return false
+
+  const tg = window.Telegram?.WebApp
+  if (!tg) return false
+
+  // telegram-web-app.js can exist in normal browsers too.
+  // Treat it as a real Mini App session only when Telegram provides init payload.
+  return Boolean(tg.initData && tg.initDataUnsafe?.user?.id)
 }
 
 /**

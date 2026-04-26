@@ -24,7 +24,9 @@ import {
   InfoOutlined,
   Menu as MenuIcon,
   Close,
-  GetApp
+  GetApp,
+  AdminPanelSettings,
+  Group
 } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
@@ -39,9 +41,11 @@ interface AppBarProps {
   onLanguageChange: (lang: Language) => void
   onTitleClick?: () => void
   onViewFormats?: () => void
+  onViewAdminToken?: () => void
+  onViewAdminUsers?: () => void
 }
 
-export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats }: AppBarProps) {
+export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewAdminToken, onViewAdminUsers }: AppBarProps) {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -460,6 +464,100 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
               <ListItemText 
                 primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('formats.title') || 'Formatlar'}</Typography>}
                 secondary={isMobile ? '' : (t('formats.description') || 'Test formatlari haqida ma\'lumot')}
+                secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+              />
+            </ListItemButton>
+          </ListItem>
+        )}
+
+        {onViewAdminToken && (
+          <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
+            <ListItemButton
+              onClick={() => {
+                onViewAdminToken()
+                setDrawerOpen(false)
+              }}
+              sx={{
+                borderRadius: { xs: 1.5, sm: 2 },
+                py: { xs: 0.75, sm: 1 },
+                '&:hover': {
+                  background: (theme) => theme.palette.mode === 'dark'
+                    ? 'rgba(102, 126, 234, 0.2)'
+                    : 'rgba(102, 126, 234, 0.1)',
+                  transform: { xs: 'none', sm: 'translateX(4px)' },
+                  transition: 'all 0.2s ease'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
+                <Box
+                  sx={{
+                    width: { xs: 32, sm: 40 },
+                    height: { xs: 32, sm: 40 },
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.05)',
+                    color: 'primary.main'
+                  }}
+                >
+                  <AdminPanelSettings sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+                </Box>
+              </ListItemIcon>
+              <ListItemText
+                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Admin JWT</Typography>}
+                secondary={isMobile ? '' : 'Admin token yaratish sahifasi'}
+                secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+              />
+            </ListItemButton>
+          </ListItem>
+        )}
+
+        {onViewAdminUsers && (
+          <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
+            <ListItemButton
+              onClick={() => {
+                onViewAdminUsers()
+                setDrawerOpen(false)
+              }}
+              sx={{
+                borderRadius: { xs: 1.5, sm: 2 },
+                py: { xs: 0.75, sm: 1 },
+                '&:hover': {
+                  background: (theme) => theme.palette.mode === 'dark'
+                    ? 'rgba(102, 126, 234, 0.2)'
+                    : 'rgba(102, 126, 234, 0.1)',
+                  transform: { xs: 'none', sm: 'translateX(4px)' },
+                  transition: 'all 0.2s ease'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
+                <Box
+                  sx={{
+                    width: { xs: 32, sm: 40 },
+                    height: { xs: 32, sm: 40 },
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: (theme) => theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(0, 0, 0, 0.05)',
+                    color: 'primary.main'
+                  }}
+                >
+                  <Group sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+                </Box>
+              </ListItemIcon>
+              <ListItemText
+                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>JWT Userlar</Typography>}
+                secondary={isMobile ? '' : 'Token olgan userlar roʻyxati'}
                 secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
               />
             </ListItemButton>

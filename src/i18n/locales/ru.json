@@ -231,5 +231,34 @@
       "singleSelect": "Single-select вопрос:",
       "multiSelect": "Multi-select вопрос:"
     }
+  },
+  "adminToken": {
+    "title": "Генератор Admin JWT",
+    "telegramUserId": "Telegram User ID",
+    "name": "Имя",
+    "expiryLabel": "Срок токена",
+    "generate": "Сгенерировать JWT",
+    "copy": "Копировать",
+    "tokenField": "JWT Токен",
+    "back": "Вернуться назад",
+    "success": {
+      "copied": "JWT токен скопирован",
+      "saved": "JWT токен сохранен в Firestore"
+    },
+    "errors": {
+      "invalidUserId": "Введите корректный Telegram user id",
+      "invalidName": "Введите имя",
+      "generateFailed": "Произошла ошибка при создании JWT",
+      "copyFailed": "Не удалось скопировать токен",
+      "firebaseNotConfigured": "Firebase config не заполнен"
+    },
+    "expiryOptions": {
+      "3hours": "3 часа",
+      "6hours": "6 часов",
+      "24hours": "24 часа",
+      "3days": "3 дня",
+      "1week": "1 неделя",
+      "1month": "1 месяц"
+    }
   }
 }

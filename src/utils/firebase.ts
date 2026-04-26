@@ -1,0 +1,109 @@
+import { initializeApp, getApps } from 'firebase/app'
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs, limit, orderBy, query, where } from 'firebase/firestore'
+import { FIREBASE_CONFIG, FIRESTORE_JWT_TOKENS_COLLECTION } from '../constants/contact'
+
+const isFirebaseConfigured = (): boolean => {
+  return Boolean(
+    FIREBASE_CONFIG.apiKey &&
+    FIREBASE_CONFIG.authDomain &&
+    FIREBASE_CONFIG.projectId &&
+    FIREBASE_CONFIG.appId
+  )
+}
+
+const getDb = () => {
+  if (!isFirebaseConfigured()) {
+    throw new Error('FIREBASE_NOT_CONFIGURED')
+  }
+
+  const app = getApps().length > 0 ? getApps()[0] : initializeApp(FIREBASE_CONFIG)
+  return getFirestore(app)
+}
+
+interface SaveJwtTokenInput {
+  token: string
+  telegramUserId: number
+  expirySeconds: number
+}
+
+export const saveJwtTokenToFirestore = async ({
+  token,
+  telegramUserId,
+  expirySeconds
+}: SaveJwtTokenInput): Promise<void> => {
+  const db = getDb()
+  await addDoc(collection(db, FIRESTORE_JWT_TOKENS_COLLECTION), {
+    token,
+    telegramUserId,
+    expirySeconds,
+    createdAt: serverTimestamp()
+  })
+}
+
+export const getLatestJwtTokenByTelegramUserId = async (telegramUserId: number): Promise<string | null> => {
+  const db = getDb()
+  const tokensQuery = query(
+    collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
+    where('telegramUserId', '==', telegramUserId),
+    orderBy('createdAt', 'desc'),
+    limit(1)
+  )
+  const snapshot = await getDocs(tokensQuery)
+  if (snapshot.empty) return null
+
+  const docData = snapshot.docs[0].data()
+  return typeof docData.token === 'string' ? docData.token : null
+}
+
+export interface JwtTokenUserItem {
+  telegramUserId: number
+  tokenCount: number
+  lastCreatedAt: Date | null
+}
+
+export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
+  const db = getDb()
+  const tokensQuery = query(
+    collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
+    orderBy('createdAt', 'desc'),
+    limit(500)
+  )
+  const snapshot = await getDocs(tokensQuery)
+
+  const usersMap = new Map<number, JwtTokenUserItem>()
+
+  snapshot.docs.forEach((doc) => {
+    const data = doc.data()
+    const userId = Number(data.telegramUserId)
+    if (!Number.isFinite(userId) || userId <= 0) return
+
+    const createdAtDate: Date | null = data.createdAt?.toDate ? data.createdAt.toDate() : null
+    const existing = usersMap.get(userId)
+
+    if (!existing) {
+      usersMap.set(userId, {
+        telegramUserId: userId,
+        tokenCount: 1,
+        lastCreatedAt: createdAtDate
+      })
+      return
+    }
+
+    const shouldUpdateLastDate = Boolean(
+      createdAtDate &&
+      (!existing.lastCreatedAt || createdAtDate.getTime() > existing.lastCreatedAt.getTime())
+    )
+
+    usersMap.set(userId, {
+      ...existing,
+      tokenCount: existing.tokenCount + 1,
+      lastCreatedAt: shouldUpdateLastDate ? createdAtDate : existing.lastCreatedAt
+    })
+  })
+
+  return Array.from(usersMap.values()).sort((a, b) => {
+    const aTime = a.lastCreatedAt ? a.lastCreatedAt.getTime() : 0
+    const bTime = b.lastCreatedAt ? b.lastCreatedAt.getTime() : 0
+    return bTime - aTime
+  })
+}

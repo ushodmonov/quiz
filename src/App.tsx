@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { ThemeProvider, CssBaseline, Box } from '@mui/material'
+import { ThemeProvider, CssBaseline, Box, Container, Card, CardContent, Typography, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import StartPage from './pages/StartPage'
 import TestPage from './pages/TestPage'
 import ResultsPage from './pages/ResultsPage'
 import AllQuestionsPage from './pages/AllQuestionsPage'
 import TestFormatsPage from './pages/TestFormatsPage'
+import AdminTokenPage from './pages/AdminTokenPage'
+import AdminUsersPage from './pages/AdminUsersPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
@@ -13,22 +15,69 @@ import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLan
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
+import { CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
+import { getLatestJwtTokenByTelegramUserId } from './utils/firebase'
+import { verifyJwtToken } from './utils/jwt'
 import './i18n/config'
 import type { QuizData, QuizResults, ThemeMode, Language, Question } from './types'
 
 function App() {
   const { i18n } = useTranslation()
   const telegram = useTelegramWebApp()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [themeMode, setThemeMode] = useState<ThemeMode>(loadTheme())
   const [language, setLanguage] = useState<Language>(loadLanguage())
+  const [hasValidAccessToken, setHasValidAccessToken] = useState(false)
+  const [accessCheckLoading, setAccessCheckLoading] = useState(true)
+  const isAdmin = isAdminTelegramUser(telegram.userInfo?.id)
 
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language, i18n])
+
+  useEffect(() => {
+    const checkTokenAccess = async () => {
+      if (!telegram.isTelegramReady) return
+      if (!telegram.isTelegram) {
+        setAccessCheckLoading(false)
+        return
+      }
+
+      if (isAdmin) {
+        setHasValidAccessToken(true)
+        setAccessCheckLoading(false)
+        return
+      }
+
+      const telegramUserId = telegram.userInfo?.id
+      if (!telegramUserId) {
+        setHasValidAccessToken(false)
+        setAccessCheckLoading(false)
+        return
+      }
+
+      try {
+        const token = await getLatestJwtTokenByTelegramUserId(telegramUserId)
+        if (!token) {
+          setHasValidAccessToken(false)
+          return
+        }
+
+        const isValid = await verifyJwtToken(token, JWT_SECRET_KEY, telegramUserId)
+        setHasValidAccessToken(isValid)
+      } catch (error) {
+        console.error('JWT access check failed:', error)
+        setHasValidAccessToken(false)
+      } finally {
+        setAccessCheckLoading(false)
+      }
+    }
+
+    checkTokenAccess()
+  }, [telegram.isTelegramReady, telegram.isTelegram, telegram.userInfo?.id, isAdmin])
 
   const handleBackToStart = () => {
     if (currentPage === 'test' || currentPage === 'results') {
@@ -79,7 +128,7 @@ function App() {
 
     let cleanup: (() => void) | undefined
 
-    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats') {
+    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users') {
       cleanup = telegram.showBackButton(() => {
         telegram.haptic.impact('light')
         handleBackToStart()
@@ -321,6 +370,14 @@ function App() {
     setCurrentPage('start')
   }
 
+  const handleViewAdminToken = () => {
+    setCurrentPage('admin-token')
+  }
+
+  const handleViewAdminUsers = () => {
+    setCurrentPage('admin-users')
+  }
+
   const handleThemeToggle = () => {
     telegram.haptic.selection()
     const newMode = themeMode === 'light' ? 'dark' : 'light'
@@ -344,6 +401,142 @@ function App() {
 
   const theme = createAppTheme(themeMode)
 
+  if (!telegram.isTelegramReady) {
+    return null
+  }
+
+  if (accessCheckLoading) {
+    return null
+  }
+
+  if (!telegram.isTelegram) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            background: (currentTheme) => currentTheme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            py: 4
+          }}
+        >
+          <Container maxWidth="sm">
+            <Card
+              sx={{
+                background: (currentTheme) => currentTheme.palette.mode === 'dark'
+                  ? 'rgba(30, 30, 30, 0.95)'
+                  : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+                <Typography variant="h5" align="center" sx={{ fontWeight: 800, mb: 2 }}>
+                  Bu ilova faqat Telegram Mini App orqali ishlaydi
+                </Typography>
+                <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
+                  Oddiy websaytdan foydalanish yopilgan. Iltimos, Telegram bot ichidan Mini App'ni oching.
+                </Typography>
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: 'action.hover'
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                    Telegram ma'lumotlari
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    Admin: @{CONTACT_INFO.telegram.username}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    Admin: @ramazanov_temurbek
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    Telegram Kanal: {CONTACT_INFO.telegramChannel.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    Telegram Bot: {CONTACT_INFO.telegramBot.name}
+                  </Typography>
+                  <Typography variant="body2">
+                    Email: {CONTACT_INFO.email.address}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    href={CONTACT_INFO.telegramBot.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Telegram orqali ochish
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    )
+  }
+
+  if (!hasValidAccessToken && !isAdmin) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            background: (currentTheme) => currentTheme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            py: 4
+          }}
+        >
+          <Container maxWidth="sm">
+            <Card
+              sx={{
+                background: (currentTheme) => currentTheme.palette.mode === 'dark'
+                  ? 'rgba(30, 30, 30, 0.95)'
+                  : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+                <Typography variant="h5" align="center" sx={{ fontWeight: 800, mb: 2 }}>
+                  Ro&apos;yxatdan o&apos;tmagansiz
+                </Typography>
+                <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
+                  Siz uchun aktiv kirish tokeni topilmadi. Iltimos, ro&apos;yxatdan o&apos;tish uchun admin bilan bog&apos;laning.
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center' }}>
+                  <Typography variant="body2" align="center" color="text.secondary">
+                    Admin: @{CONTACT_INFO.telegram.username}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    href={CONTACT_INFO.telegram.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Murojaat qilish
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Container>
+        </Box>
+      </ThemeProvider>
+    )
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -355,6 +548,8 @@ function App() {
           onLanguageChange={handleLanguageChange}
           onTitleClick={handleBackToStart}
           onViewFormats={currentPage === 'start' ? handleViewFormats : undefined}
+          onViewAdminToken={isAdmin ? handleViewAdminToken : undefined}
+          onViewAdminUsers={isAdmin ? handleViewAdminUsers : undefined}
         />
         <Box sx={{ flexGrow: 1 }}>
           <ResumeModal
@@ -371,6 +566,12 @@ function App() {
           )}
           {currentPage === 'formats' && (
             <TestFormatsPage onBack={handleBackFromFormats} />
+          )}
+          {currentPage === 'admin-token' && isAdmin && (
+            <AdminTokenPage onBack={handleBackToStart} />
+          )}
+          {currentPage === 'admin-users' && isAdmin && (
+            <AdminUsersPage onBack={handleBackToStart} />
           )}
           {currentPage === 'questions' && (
             <AllQuestionsPage questions={allQuestions} onBack={handleBackFromQuestions} />

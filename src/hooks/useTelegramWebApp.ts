@@ -16,17 +16,19 @@ import {
  * Hook to use Telegram Web App features
  */
 export const useTelegramWebApp = () => {
-  const [isTelegram, setIsTelegram] = useState(false)
+  const [isTelegram, setIsTelegram] = useState<boolean | null>(null)
   const [user, setUser] = useState<ReturnType<typeof getTelegramUser>>(null)
   const [userInfo, setUserInfo] = useState<ReturnType<typeof getTelegramUserInfo>>(null)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light')
   const colorSchemeRef = useRef<'light' | 'dark'>('light')
 
   useEffect(() => {
-    const checkTelegram = isTelegramWebApp()
-    setIsTelegram(checkTelegram)
+    let themeInterval: ReturnType<typeof setInterval> | null = null
+    let detectInterval: ReturnType<typeof setInterval> | null = null
+    let attempts = 0
+    const maxAttempts = 30
 
-    if (checkTelegram) {
+    const setupTelegramState = () => {
       // Initialize Telegram Web App
       initTelegramWebApp()
 
@@ -37,49 +39,86 @@ export const useTelegramWebApp = () => {
 
       // Get color scheme
       const tg = getTelegramWebApp()
-      if (tg) {
-        const initialScheme = tg.colorScheme
-        setColorScheme(initialScheme)
-        colorSchemeRef.current = initialScheme
+      if (!tg) return
 
-        // Listen for theme changes using visibility change and focus events
-        const checkTheme = () => {
-          const currentScheme = tg.colorScheme
-          if (currentScheme !== colorSchemeRef.current) {
-            colorSchemeRef.current = currentScheme
-            setColorScheme(currentScheme)
-          }
-        }
+      const initialScheme = tg.colorScheme
+      setColorScheme(initialScheme)
+      colorSchemeRef.current = initialScheme
 
-        // Check theme when page becomes visible
-        const handleVisibilityChange = () => {
-          if (!document.hidden) {
-            checkTheme()
-          }
-        }
-
-        // Check theme when window gets focus
-        const handleFocus = () => {
-          checkTheme()
-        }
-
-        // Check periodically (as fallback)
-        const interval = setInterval(checkTheme, 2000)
-
-        document.addEventListener('visibilitychange', handleVisibilityChange)
-        window.addEventListener('focus', handleFocus)
-
-        return () => {
-          clearInterval(interval)
-          document.removeEventListener('visibilitychange', handleVisibilityChange)
-          window.removeEventListener('focus', handleFocus)
+      // Listen for theme changes using visibility change and focus events
+      const checkTheme = () => {
+        const currentScheme = tg.colorScheme
+        if (currentScheme !== colorSchemeRef.current) {
+          colorSchemeRef.current = currentScheme
+          setColorScheme(currentScheme)
         }
       }
+
+      // Check theme when page becomes visible
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          checkTheme()
+        }
+      }
+
+      // Check theme when window gets focus
+      const handleFocus = () => {
+        checkTheme()
+      }
+
+      // Check periodically (as fallback)
+      themeInterval = setInterval(checkTheme, 2000)
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      window.addEventListener('focus', handleFocus)
+
+      return () => {
+        if (themeInterval) clearInterval(themeInterval)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        window.removeEventListener('focus', handleFocus)
+      }
+    }
+
+    const cleanupTheme = setupTelegramState
+    let themeCleanup: (() => void) | undefined
+
+    const detectTelegram = () => {
+      const checkTelegram = isTelegramWebApp()
+      if (checkTelegram) {
+        setIsTelegram(true)
+        if (detectInterval) {
+          clearInterval(detectInterval)
+          detectInterval = null
+        }
+        themeCleanup = cleanupTheme()
+        return
+      }
+
+      attempts += 1
+      if (attempts >= maxAttempts) {
+        setIsTelegram(false)
+        if (detectInterval) {
+          clearInterval(detectInterval)
+          detectInterval = null
+        }
+      }
+    }
+
+    detectTelegram()
+    if (isTelegram === null) {
+      detectInterval = setInterval(detectTelegram, 100)
+    }
+
+    return () => {
+      if (detectInterval) clearInterval(detectInterval)
+      if (themeInterval) clearInterval(themeInterval)
+      if (themeCleanup) themeCleanup()
     }
   }, [])
 
   return {
-    isTelegram,
+    isTelegram: isTelegram === true,
+    isTelegramReady: isTelegram !== null,
     user,
     userInfo,
     colorScheme,

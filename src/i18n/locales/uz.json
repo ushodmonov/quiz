@@ -231,5 +231,34 @@
       "singleSelect": "Single-select savol:",
       "multiSelect": "Multi-select savol:"
     }
+  },
+  "adminToken": {
+    "title": "Admin JWT Generator",
+    "telegramUserId": "Telegram User ID",
+    "name": "Ism",
+    "expiryLabel": "Token vaqti",
+    "generate": "JWT generatsiya qilish",
+    "copy": "Nusxalash",
+    "tokenField": "JWT Token",
+    "back": "Orqaga qaytish",
+    "success": {
+      "copied": "JWT token nusxalandi",
+      "saved": "JWT token Firestore ga saqlandi"
+    },
+    "errors": {
+      "invalidUserId": "Telegram user id ni to'g'ri kiriting",
+      "invalidName": "Ismni kiriting",
+      "generateFailed": "JWT yaratishda xatolik yuz berdi",
+      "copyFailed": "Tokenni nusxalab bo'lmadi",
+      "firebaseNotConfigured": "Firebase config to'ldirilmagan"
+    },
+    "expiryOptions": {
+      "3hours": "3 soat",
+      "6hours": "6 soat",
+      "24hours": "24 soat",
+      "3days": "3 kun",
+      "1week": "1 hafta",
+      "1month": "1 oy"
+    }
   }
 }
