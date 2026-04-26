@@ -4,6 +4,7 @@ import {
   getTelegramWebApp,
   initTelegramWebApp,
   getTelegramUser,
+  getTelegramUserInfo,
   setTelegramHeaderColor,
   setTelegramBackgroundColor,
   showTelegramBackButton,
@@ -17,6 +18,7 @@ import {
 export const useTelegramWebApp = () => {
   const [isTelegram, setIsTelegram] = useState(false)
   const [user, setUser] = useState<ReturnType<typeof getTelegramUser>>(null)
+  const [userInfo, setUserInfo] = useState<ReturnType<typeof getTelegramUserInfo>>(null)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light')
   const colorSchemeRef = useRef<'light' | 'dark'>('light')
 
@@ -31,6 +33,7 @@ export const useTelegramWebApp = () => {
       // Get user info
       const telegramUser = getTelegramUser()
       setUser(telegramUser)
+      setUserInfo(getTelegramUserInfo())
 
       // Get color scheme
       const tg = getTelegramWebApp()
@@ -78,6 +81,7 @@ export const useTelegramWebApp = () => {
   return {
     isTelegram,
     user,
+    userInfo,
     colorScheme,
     setHeaderColor: setTelegramHeaderColor,
     setBackgroundColor: setTelegramBackgroundColor,

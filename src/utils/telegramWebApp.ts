@@ -12,6 +12,7 @@ interface TelegramWebApp {
       username?: string
       language_code?: string
       is_premium?: boolean
+      photo_url?: string
     }
     auth_date?: number
     hash?: string
@@ -111,6 +112,20 @@ interface TelegramWebApp {
   disableVerticalSwipes: () => void
 }
 
+export interface TelegramUserInfo {
+  id: number
+  firstName: string
+  lastName?: string
+  username?: string
+  languageCode?: string
+  isPremium?: boolean
+  photoUrl?: string
+  queryId?: string
+  authDate?: number
+  hash?: string
+  initData?: string
+}
+
 declare global {
   interface Window {
     Telegram?: {
@@ -202,6 +217,31 @@ export const initTelegramWebApp = (): void => {
 export const getTelegramUser = () => {
   const tg = getTelegramWebApp()
   return tg?.initDataUnsafe?.user || null
+}
+
+/**
+ * Get normalized Telegram user information for app usage
+ */
+export const getTelegramUserInfo = (): TelegramUserInfo | null => {
+  const tg = getTelegramWebApp()
+  const unsafeData = tg?.initDataUnsafe
+  const user = unsafeData?.user
+
+  if (!user) return null
+
+  return {
+    id: user.id,
+    firstName: user.first_name,
+    lastName: user.last_name,
+    username: user.username,
+    languageCode: user.language_code,
+    isPremium: user.is_premium,
+    photoUrl: user.photo_url,
+    queryId: unsafeData?.query_id,
+    authDate: unsafeData?.auth_date,
+    hash: unsafeData?.hash,
+    initData: tg?.initData
+  }
 }
 
 /**

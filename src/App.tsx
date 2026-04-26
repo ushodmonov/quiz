@@ -366,6 +366,7 @@ function App() {
             <StartPage 
               onStart={handleStartQuiz} 
               onViewAllQuestions={handleViewAllQuestions}
+              telegramUserName={telegram.userInfo?.firstName}
             />
           )}
           {currentPage === 'formats' && (
