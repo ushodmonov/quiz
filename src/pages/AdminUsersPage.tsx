@@ -8,29 +8,41 @@ import {
   Button,
   Alert,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Divider
+  TextField,
+  InputAdornment,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TablePagination
 } from '@mui/material'
+import { Search } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import { getJwtTokenUsers, type JwtTokenUserItem } from '../utils/firebase'
 
 interface AdminUsersPageProps {
   onBack: () => void
 }
 
-const formatDateTime = (date: Date | null): string => {
-  if (!date) return 'Nomaʼlum vaqt'
-  return new Intl.DateTimeFormat('uz-UZ', {
+const formatDateTime = (date: Date | null, locale: string, fallbackText: string): string => {
+  if (!date) return fallbackText
+  return new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'uz-UZ', {
     dateStyle: 'medium',
     timeStyle: 'short'
   }).format(date)
 }
 
 export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
+  const { t, i18n } = useTranslation()
   const [users, setUsers] = useState<JwtTokenUserItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -40,7 +52,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
         setUsers(list)
       } catch (loadError) {
         console.error('Load JWT users error:', loadError)
-        setError('Userlar roʻyxatini yuklab boʻlmadi')
+        setError(t('adminUsers.errorLoad'))
       } finally {
         setIsLoading(false)
       }
@@ -48,6 +60,26 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
 
     loadUsers()
   }, [])
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage)
+  }
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10))
+    setPage(0)
+  }
+
+  const filteredUsers = users.filter((user) => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return true
+    return (
+      user.telegramUserId.toString().includes(query) ||
+      user.name.toLowerCase().includes(query)
+    )
+  })
+
+  const paginatedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 
   return (
     <Box
@@ -72,7 +104,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
         >
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
             <Typography variant="h5" align="center" sx={{ mb: 2, fontWeight: 800 }}>
-              JWT olgan userlar
+              {t('adminUsers.title')}
             </Typography>
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -83,26 +115,67 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
               </Box>
             ) : users.length === 0 ? (
               <Alert severity="info" sx={{ mb: 2 }}>
-                Hozircha JWT generatsiya qilingan userlar yoʻq
+                {t('adminUsers.empty')}
               </Alert>
             ) : (
-              <List sx={{ mb: 2 }}>
-                {users.map((user, index) => (
-                  <Box key={user.telegramUserId}>
-                    <ListItem>
-                      <ListItemText
-                        primary={`User ID: ${user.telegramUserId}`}
-                        secondary={`Tokenlar soni: ${user.tokenCount} | Oxirgi token: ${formatDateTime(user.lastCreatedAt)}`}
-                      />
-                    </ListItem>
-                    {index < users.length - 1 && <Divider />}
-                  </Box>
-                ))}
-              </List>
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  placeholder={t('adminUsers.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setPage(0)
+                  }}
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('adminUsers.columns.telegramUserId')}</TableCell>
+                        <TableCell>{t('adminUsers.columns.name')}</TableCell>
+                        <TableCell>{t('adminUsers.columns.createdBy')}</TableCell>
+                        <TableCell align="right">{t('adminUsers.columns.tokenCount')}</TableCell>
+                        <TableCell>{t('adminUsers.columns.lastTokenTime')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {paginatedUsers.map((user) => (
+                        <TableRow key={user.telegramUserId} hover>
+                          <TableCell>{user.telegramUserId}</TableCell>
+                          <TableCell>{user.name || '-'}</TableCell>
+                          <TableCell>{user.createdBy || '-'}</TableCell>
+                          <TableCell align="right">{user.tokenCount}</TableCell>
+                          <TableCell>{formatDateTime(user.lastCreatedAt, i18n.language, t('adminUsers.unknownTime'))}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  component="div"
+                  count={filteredUsers.length}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  rowsPerPageOptions={[5, 10, 20, 50]}
+                  labelRowsPerPage={t('adminUsers.rowsPerPage')}
+                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
+                />
+              </Box>
             )}
 
             <Button fullWidth variant="text" onClick={onBack}>
-              Orqaga qaytish
+              {t('adminUsers.back')}
             </Button>
           </CardContent>
         </Card>

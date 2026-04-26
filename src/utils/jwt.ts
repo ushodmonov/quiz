@@ -25,6 +25,8 @@ const hmacSha256 = async (message: string, secret: string): Promise<Uint8Array> 
 export interface JwtPayload {
   telegramUserId: number
   name?: string
+  createdByTelegramUserId?: number
+  createdByName?: string
   iat: number
   exp: number
 }
@@ -41,7 +43,9 @@ export const generateJwtToken = async (
   telegramUserId: number,
   expiresInSeconds: number,
   secret: string,
-  name?: string
+  name?: string,
+  createdByTelegramUserId?: number,
+  createdByName?: string
 ): Promise<string> => {
   const iat = Math.floor(Date.now() / 1000)
   const exp = iat + expiresInSeconds
@@ -54,6 +58,8 @@ export const generateJwtToken = async (
   const payload: JwtPayload = {
     telegramUserId,
     name,
+    createdByTelegramUserId,
+    createdByName,
     iat,
     exp
   }

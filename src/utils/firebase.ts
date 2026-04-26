@@ -23,19 +23,28 @@ const getDb = () => {
 interface SaveJwtTokenInput {
   token: string
   telegramUserId: number
+  name?: string
   expirySeconds: number
+  createdByTelegramUserId?: number
+  createdByName?: string
 }
 
 export const saveJwtTokenToFirestore = async ({
   token,
   telegramUserId,
-  expirySeconds
+  name,
+  expirySeconds,
+  createdByTelegramUserId,
+  createdByName
 }: SaveJwtTokenInput): Promise<void> => {
   const db = getDb()
   await addDoc(collection(db, FIRESTORE_JWT_TOKENS_COLLECTION), {
     token,
     telegramUserId,
+    name: name ?? null,
     expirySeconds,
+    createdByTelegramUserId: createdByTelegramUserId ?? null,
+    createdByName: createdByName ?? null,
     createdAt: serverTimestamp()
   })
 }
@@ -57,6 +66,8 @@ export const getLatestJwtTokenByTelegramUserId = async (telegramUserId: number):
 
 export interface JwtTokenUserItem {
   telegramUserId: number
+  name: string
+  createdBy: string
   tokenCount: number
   lastCreatedAt: Date | null
 }
@@ -83,6 +94,10 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
     if (!existing) {
       usersMap.set(userId, {
         telegramUserId: userId,
+        name: typeof data.name === 'string' ? data.name : '-',
+        createdBy: typeof data.createdByName === 'string'
+          ? data.createdByName
+          : (Number.isFinite(Number(data.createdByTelegramUserId)) ? `ID: ${Number(data.createdByTelegramUserId)}` : '-'),
         tokenCount: 1,
         lastCreatedAt: createdAtDate
       })
@@ -96,6 +111,12 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
 
     usersMap.set(userId, {
       ...existing,
+      name: shouldUpdateLastDate && typeof data.name === 'string' ? data.name : existing.name,
+      createdBy: shouldUpdateLastDate
+        ? (typeof data.createdByName === 'string'
+          ? data.createdByName
+          : (Number.isFinite(Number(data.createdByTelegramUserId)) ? `ID: ${Number(data.createdByTelegramUserId)}` : existing.createdBy))
+        : existing.createdBy,
       tokenCount: existing.tokenCount + 1,
       lastCreatedAt: shouldUpdateLastDate ? createdAtDate : existing.lastCreatedAt
     })

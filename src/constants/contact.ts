@@ -17,6 +17,17 @@ export const CONTACT_INFO = {
   }
 }
 
+export const ADMIN_CONTACTS = [
+  {
+    username: 'a_shodmanov',
+    url: 'https://t.me/a_shodmanov'
+  },
+  {
+    username: 'ramazanov_temurbek',
+    url: 'https://t.me/ramazanov_temurbek'
+  }
+]
+
 // Only these Telegram user IDs are treated as admins.
 // Fill this list with real numeric Telegram IDs from Mini App userInfo.id.
 export const ADMIN_TELEGRAM_USER_IDS: number[] = [

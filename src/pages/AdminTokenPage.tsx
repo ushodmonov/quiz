@@ -20,7 +20,6 @@ import { saveJwtTokenToFirestore } from '../utils/firebase'
 import { generateJwtToken } from '../utils/jwt'
 
 const EXPIRY_OPTIONS = [
-  { key: '3hours', seconds: 3 * 60 * 60 },
   { key: '6hours', seconds: 6 * 60 * 60 },
   { key: '24hours', seconds: 24 * 60 * 60 },
   { key: '3days', seconds: 3 * 24 * 60 * 60 },
@@ -30,14 +29,15 @@ const EXPIRY_OPTIONS = [
 
 interface AdminTokenPageProps {
   onBack: () => void
+  createdByTelegramUserId?: number
+  createdByName?: string
 }
 
-export default function AdminTokenPage({ onBack }: AdminTokenPageProps) {
+export default function AdminTokenPage({ onBack, createdByTelegramUserId, createdByName }: AdminTokenPageProps) {
   const { t } = useTranslation()
   const [telegramUserId, setTelegramUserId] = useState('')
   const [name, setName] = useState('')
   const [expirySeconds, setExpirySeconds] = useState<number>(EXPIRY_OPTIONS[0].seconds)
-  const [token, setToken] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -62,21 +62,32 @@ export default function AdminTokenPage({ onBack }: AdminTokenPageProps) {
         userId,
         expirySeconds,
         JWT_SECRET_KEY,
-        name.trim()
+        name.trim(),
+        createdByTelegramUserId,
+        createdByName
       )
       await saveJwtTokenToFirestore({
         token: generatedToken,
         telegramUserId: userId,
-        expirySeconds
+        name: name.trim(),
+        expirySeconds,
+        createdByTelegramUserId,
+        createdByName
       })
-      setToken(generatedToken)
       setSuccess(t('adminToken.success.saved'))
     } catch (generationError) {
       console.error('JWT generation error:', generationError)
+      const firebaseCode = (generationError as { code?: string })?.code
+
       if (generationError instanceof Error && generationError.message === 'FIREBASE_NOT_CONFIGURED') {
         setError(t('adminToken.errors.firebaseNotConfigured'))
+      } else if (firebaseCode === 'permission-denied') {
+        setError(t('adminToken.errors.firebasePermissionDenied'))
+      } else if (firebaseCode === 'failed-precondition') {
+        setError(t('adminToken.errors.firebaseIndexRequired'))
       } else {
-        setError(t('adminToken.errors.generateFailed'))
+        const fallbackMessage = generationError instanceof Error ? generationError.message : ''
+        setError(`${t('adminToken.errors.generateFailed')}${fallbackMessage ? `: ${fallbackMessage}` : ''}`)
       }
     } finally {
       setIsGenerating(false)
@@ -154,16 +165,6 @@ export default function AdminTokenPage({ onBack }: AdminTokenPageProps) {
                 {t('adminToken.generate')}
               </Button>
             </Box>
-
-            <TextField
-              fullWidth
-              multiline
-              minRows={5}
-              label={t('adminToken.tokenField')}
-              value={token}
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
 
             <Button fullWidth variant="text" onClick={onBack}>
               {t('adminToken.back')}

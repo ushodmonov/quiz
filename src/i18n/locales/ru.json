@@ -15,7 +15,11 @@
     "installApp": "Установить мини-приложение",
     "installAndroid": "Установка для Android",
     "installIOS": "Инструкция для iOS",
-    "installNotAvailable": "Установка недоступна"
+    "installNotAvailable": "Установка недоступна",
+    "adminAddUser": "Добавить пользователя",
+    "adminAddUserDescription": "Создать токен для нового пользователя",
+    "adminJwtUsers": "JWT Пользователи",
+    "adminJwtUsersDescription": "Список пользователей с токенами"
   },
   "start": {
     "title": "Начать тест",
@@ -250,7 +254,9 @@
       "invalidName": "Введите имя",
       "generateFailed": "Произошла ошибка при создании JWT",
       "copyFailed": "Не удалось скопировать токен",
-      "firebaseNotConfigured": "Firebase config не заполнен"
+      "firebaseNotConfigured": "Firebase config не заполнен",
+      "firebasePermissionDenied": "Firestore rules не разрешают запись (permission-denied)",
+      "firebaseIndexRequired": "Требуется Firestore index. Создайте index по ссылке из консоли и повторите"
     },
     "expiryOptions": {
       "3hours": "3 часа",
@@ -259,6 +265,22 @@
       "3days": "3 дня",
       "1week": "1 неделя",
       "1month": "1 месяц"
+    }
+  },
+  "adminUsers": {
+    "title": "Пользователи с JWT",
+    "searchPlaceholder": "Поиск по User ID или Name...",
+    "empty": "Пока нет пользователей с сгенерированным JWT",
+    "errorLoad": "Не удалось загрузить список пользователей",
+    "rowsPerPage": "Строк на странице",
+    "unknownTime": "Неизвестное время",
+    "back": "Вернуться назад",
+    "columns": {
+      "telegramUserId": "Telegram User ID",
+      "name": "Name",
+      "createdBy": "Create By",
+      "tokenCount": "Количество токенов",
+      "lastTokenTime": "Время последнего токена"
     }
   }
 }

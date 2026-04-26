@@ -15,7 +15,7 @@ import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLan
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
-import { CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
+import { ADMIN_CONTACTS, CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
 import { getLatestJwtTokenByTelegramUserId } from './utils/firebase'
 import { verifyJwtToken } from './utils/jwt'
 import './i18n/config'
@@ -451,12 +451,11 @@ function App() {
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                     Telegram ma'lumotlari
                   </Typography>
-                  <Typography variant="body2" sx={{ mb: 0.5 }}>
-                    Admin: @{CONTACT_INFO.telegram.username}
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 0.5 }}>
-                    Admin: @ramazanov_temurbek
-                  </Typography>
+                  {ADMIN_CONTACTS.map((admin) => (
+                    <Typography key={admin.username} variant="body2" sx={{ mb: 0.5 }}>
+                      Admin: @{admin.username}
+                    </Typography>
+                  ))}
                   <Typography variant="body2" sx={{ mb: 0.5 }}>
                     Telegram Kanal: {CONTACT_INFO.telegramChannel.name}
                   </Typography>
@@ -517,17 +516,17 @@ function App() {
                   Siz uchun aktiv kirish tokeni topilmadi. Iltimos, ro&apos;yxatdan o&apos;tish uchun admin bilan bog&apos;laning.
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center' }}>
-                  <Typography variant="body2" align="center" color="text.secondary">
-                    Admin: @{CONTACT_INFO.telegram.username}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    href={CONTACT_INFO.telegram.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Murojaat qilish
-                  </Button>
+                  {ADMIN_CONTACTS.map((admin) => (
+                    <Button
+                      key={admin.username}
+                      variant="contained"
+                      href={admin.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Murojaat qilish @{admin.username}
+                    </Button>
+                  ))}
                 </Box>
               </CardContent>
             </Card>
@@ -568,7 +567,15 @@ function App() {
             <TestFormatsPage onBack={handleBackFromFormats} />
           )}
           {currentPage === 'admin-token' && isAdmin && (
-            <AdminTokenPage onBack={handleBackToStart} />
+            <AdminTokenPage
+              onBack={handleBackToStart}
+              createdByTelegramUserId={telegram.userInfo?.id}
+              createdByName={
+                telegram.userInfo?.firstName ||
+                telegram.userInfo?.username ||
+                'Admin'
+              }
+            />
           )}
           {currentPage === 'admin-users' && isAdmin && (
             <AdminUsersPage onBack={handleBackToStart} />

@@ -15,7 +15,11 @@
     "installApp": "Mini app o'rnatish",
     "installAndroid": "Android uchun o'rnatish",
     "installIOS": "iOS uchun qo'llanma",
-    "installNotAvailable": "O'rnatish mavjud emas"
+    "installNotAvailable": "O'rnatish mavjud emas",
+    "adminAddUser": "User qo'shish",
+    "adminAddUserDescription": "Yangi user uchun token yaratish",
+    "adminJwtUsers": "JWT Userlar",
+    "adminJwtUsersDescription": "Token olgan userlar ro'yxati"
   },
   "start": {
     "title": "Testni boshlash",
@@ -250,7 +254,9 @@
       "invalidName": "Ismni kiriting",
       "generateFailed": "JWT yaratishda xatolik yuz berdi",
       "copyFailed": "Tokenni nusxalab bo'lmadi",
-      "firebaseNotConfigured": "Firebase config to'ldirilmagan"
+      "firebaseNotConfigured": "Firebase config to'ldirilmagan",
+      "firebasePermissionDenied": "Firestore ruxsatlari yozishga yo'l bermayapti (permission-denied)",
+      "firebaseIndexRequired": "Firestore index kerak. Console'dagi index linkni yaratib qayta urinib ko'ring"
     },
     "expiryOptions": {
       "3hours": "3 soat",
@@ -259,6 +265,22 @@
       "3days": "3 kun",
       "1week": "1 hafta",
       "1month": "1 oy"
+    }
+  },
+  "adminUsers": {
+    "title": "JWT olgan userlar",
+    "searchPlaceholder": "User ID yoki Name bo'yicha qidirish...",
+    "empty": "Hozircha JWT generatsiya qilingan userlar yo'q",
+    "errorLoad": "Userlar ro'yxatini yuklab bo'lmadi",
+    "rowsPerPage": "Sahifadagi satrlar",
+    "unknownTime": "Noma'lum vaqt",
+    "back": "Orqaga qaytish",
+    "columns": {
+      "telegramUserId": "Telegram User ID",
+      "name": "Name",
+      "createdBy": "Create By",
+      "tokenCount": "Tokenlar soni",
+      "lastTokenTime": "Oxirgi token vaqti"
     }
   }
 }

@@ -509,8 +509,8 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
                 </Box>
               </ListItemIcon>
               <ListItemText
-                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Admin JWT</Typography>}
-                secondary={isMobile ? '' : 'Admin token yaratish sahifasi'}
+                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.adminAddUser')}</Typography>}
+                secondary={isMobile ? '' : t('drawer.adminAddUserDescription')}
                 secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
               />
             </ListItemButton>
@@ -556,8 +556,8 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
                 </Box>
               </ListItemIcon>
               <ListItemText
-                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>JWT Userlar</Typography>}
-                secondary={isMobile ? '' : 'Token olgan userlar roʻyxati'}
+                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.adminJwtUsers')}</Typography>}
+                secondary={isMobile ? '' : t('drawer.adminJwtUsersDescription')}
                 secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
               />
             </ListItemButton>
