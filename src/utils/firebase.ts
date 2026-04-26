@@ -64,6 +64,25 @@ export const getLatestJwtTokenByTelegramUserId = async (telegramUserId: number):
   return typeof docData.token === 'string' ? docData.token : null
 }
 
+export const getJwtTokensByTelegramUserId = async (
+  telegramUserId: number,
+  maxCount: number = 20
+): Promise<string[]> => {
+  const db = getDb()
+  const tokensQuery = query(
+    collection(db, FIRESTORE_JWT_TOKENS_COLLECTION),
+    where('telegramUserId', '==', telegramUserId),
+    orderBy('createdAt', 'desc'),
+    limit(maxCount)
+  )
+  const snapshot = await getDocs(tokensQuery)
+  if (snapshot.empty) return []
+
+  return snapshot.docs
+    .map((doc) => doc.data()?.token)
+    .filter((token): token is string => typeof token === 'string' && token.length > 0)
+}
+
 export interface JwtTokenUserItem {
   telegramUserId: number
   name: string

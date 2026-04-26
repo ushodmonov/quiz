@@ -16,7 +16,7 @@ import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import { ADMIN_CONTACTS, CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
-import { getLatestJwtTokenByTelegramUserId } from './utils/firebase'
+import { getJwtTokensByTelegramUserId } from './utils/firebase'
 import { verifyJwtToken } from './utils/jwt'
 import './i18n/config'
 import type { QuizData, QuizResults, ThemeMode, Language, Question } from './types'
@@ -60,14 +60,20 @@ function App() {
       }
 
       try {
-        const token = await getLatestJwtTokenByTelegramUserId(telegramUserId)
-        if (!token) {
+        const tokens = await getJwtTokensByTelegramUserId(telegramUserId, 20)
+        if (tokens.length === 0) {
           setHasValidAccessToken(false)
           return
         }
 
-        const isValid = await verifyJwtToken(token, JWT_SECRET_KEY, telegramUserId)
-        setHasValidAccessToken(isValid)
+        for (const token of tokens) {
+          const isValid = await verifyJwtToken(token, JWT_SECRET_KEY, telegramUserId)
+          if (isValid) {
+            setHasValidAccessToken(true)
+            return
+          }
+        }
+        setHasValidAccessToken(false)
       } catch (error) {
         console.error('JWT access check failed:', error)
         setHasValidAccessToken(false)
