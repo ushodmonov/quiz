@@ -284,6 +284,7 @@
       "createdBy": "Create By",
       "tokenCount": "Количество токенов",
       "lastTokenTime": "Время последнего токена",
+      "expiresAt": "Время истечения",
       "actions": "Действия"
     }
   }

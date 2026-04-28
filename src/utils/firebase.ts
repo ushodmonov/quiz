@@ -97,6 +97,7 @@ export interface JwtTokenUserItem {
   createdBy: string
   tokenCount: number
   lastCreatedAt: Date | null
+  expiresAt: Date | null
 }
 
 export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
@@ -116,6 +117,10 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
     if (!Number.isFinite(userId) || userId <= 0) return
 
     const createdAtDate: Date | null = data.createdAt?.toDate ? data.createdAt.toDate() : null
+    const expirySeconds = Number(data.expirySeconds)
+    const expiresAtDate: Date | null = createdAtDate && Number.isFinite(expirySeconds)
+      ? new Date(createdAtDate.getTime() + expirySeconds * 1000)
+      : null
     const existing = usersMap.get(userId)
 
     if (!existing) {
@@ -126,7 +131,8 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
           ? data.createdByName
           : (Number.isFinite(Number(data.createdByTelegramUserId)) ? `ID: ${Number(data.createdByTelegramUserId)}` : '-'),
         tokenCount: 1,
-        lastCreatedAt: createdAtDate
+        lastCreatedAt: createdAtDate,
+        expiresAt: expiresAtDate
       })
       return
     }
@@ -145,7 +151,8 @@ export const getJwtTokenUsers = async (): Promise<JwtTokenUserItem[]> => {
           : (Number.isFinite(Number(data.createdByTelegramUserId)) ? `ID: ${Number(data.createdByTelegramUserId)}` : existing.createdBy))
         : existing.createdBy,
       tokenCount: existing.tokenCount + 1,
-      lastCreatedAt: shouldUpdateLastDate ? createdAtDate : existing.lastCreatedAt
+      lastCreatedAt: shouldUpdateLastDate ? createdAtDate : existing.lastCreatedAt,
+      expiresAt: shouldUpdateLastDate ? expiresAtDate : existing.expiresAt
     })
   })
 

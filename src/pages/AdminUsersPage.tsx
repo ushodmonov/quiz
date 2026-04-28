@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
   Box,
-  Card,
-  CardContent,
-  Container,
   Typography,
   Button,
   Alert,
@@ -107,115 +104,127 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   return (
     <Box
       sx={{
-        minHeight: 'calc(100vh - 128px)',
-        display: 'flex',
-        alignItems: 'center',
+        minHeight: 'calc(100vh - 64px)',
         background: (theme) => theme.palette.mode === 'dark'
           ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
           : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4
+        py: { xs: 1, sm: 2 },
+        px: { xs: 1, sm: 2 }
       }}
     >
-      <Container maxWidth="md">
-        <Card
+      <Box sx={{ width: '100%' }}>
+        <Box
           sx={{
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 1.5,
+            px: { xs: 0.5, sm: 1 }
           }}
         >
-          <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
-            <Typography variant="h5" align="center" sx={{ mb: 2, fontWeight: 800 }}>
-              {t('adminUsers.title')}
-            </Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'common.white', fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
+            {t('adminUsers.title')}
+          </Typography>
+          <Button variant="contained" size="small" onClick={onBack}>
+            {t('adminUsers.back')}
+          </Button>
+        </Box>
 
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 1.5 }}>{error}</Alert>}
 
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : users.length === 0 ? (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                {t('adminUsers.empty')}
-              </Alert>
-            ) : (
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  fullWidth
-                  placeholder={t('adminUsers.searchPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    setPage(0)
-                  }}
-                  sx={{ mb: 2 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>{t('adminUsers.columns.telegramUserId')}</TableCell>
-                        <TableCell>{t('adminUsers.columns.name')}</TableCell>
-                        <TableCell>{t('adminUsers.columns.createdBy')}</TableCell>
-                        <TableCell align="right">{t('adminUsers.columns.tokenCount')}</TableCell>
-                        <TableCell>{t('adminUsers.columns.lastTokenTime')}</TableCell>
-                        <TableCell align="center">{t('adminUsers.columns.actions')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {paginatedUsers.map((user) => (
-                        <TableRow key={user.telegramUserId} hover>
-                          <TableCell>{user.telegramUserId}</TableCell>
-                          <TableCell>{user.name || '-'}</TableCell>
-                          <TableCell>{user.createdBy || '-'}</TableCell>
-                          <TableCell align="right">{user.tokenCount}</TableCell>
-                          <TableCell>{formatDateTime(user.lastCreatedAt, i18n.language, t('adminUsers.unknownTime'))}</TableCell>
-                          <TableCell align="center">
-                            <Button
-                              color="error"
-                              size="small"
-                              variant="outlined"
-                              startIcon={<DeleteOutline />}
-                              onClick={() => handleDeleteUser(user)}
-                              disabled={deletingUserId === user.telegramUserId}
-                            >
-                              {t('adminUsers.delete')}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <TablePagination
-                  component="div"
-                  count={filteredUsers.length}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  rowsPerPageOptions={[5, 10, 20, 50]}
-                  labelRowsPerPage={t('adminUsers.rowsPerPage')}
-                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
-                />
-              </Box>
-            )}
-
-            <Button fullWidth variant="text" onClick={onBack}>
-              {t('adminUsers.back')}
-            </Button>
-          </CardContent>
-        </Card>
-      </Container>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : users.length === 0 ? (
+          <Alert severity="info" sx={{ mb: 1.5 }}>
+            {t('adminUsers.empty')}
+          </Alert>
+        ) : (
+          <Box>
+            <TextField
+              fullWidth
+              placeholder={t('adminUsers.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(0)
+              }}
+              sx={{ mb: 1.5, bgcolor: 'background.paper', borderRadius: 1 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TableContainer
+              component={Paper}
+              variant="outlined"
+              sx={{
+                width: '100%',
+                overflowX: 'auto',
+                maxHeight: 'calc(100vh - 240px)'
+              }}
+            >
+              <Table size="small" stickyHeader sx={{ minWidth: 780 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('adminUsers.columns.telegramUserId')}</TableCell>
+                    <TableCell>{t('adminUsers.columns.name')}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{t('adminUsers.columns.createdBy')}</TableCell>
+                    <TableCell align="right">{t('adminUsers.columns.tokenCount')}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{t('adminUsers.columns.lastTokenTime')}</TableCell>
+                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{t('adminUsers.columns.expiresAt')}</TableCell>
+                    <TableCell align="center">{t('adminUsers.columns.actions')}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedUsers.map((user) => (
+                    <TableRow key={user.telegramUserId} hover>
+                      <TableCell>{user.telegramUserId}</TableCell>
+                      <TableCell>{user.name || '-'}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{user.createdBy || '-'}</TableCell>
+                      <TableCell align="right">{user.tokenCount}</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                        {formatDateTime(user.lastCreatedAt, i18n.language, t('adminUsers.unknownTime'))}
+                      </TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                        {formatDateTime(user.expiresAt, i18n.language, t('adminUsers.unknownTime'))}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Button
+                          color="error"
+                          size="small"
+                          variant="outlined"
+                          startIcon={<DeleteOutline />}
+                          onClick={() => handleDeleteUser(user)}
+                          disabled={deletingUserId === user.telegramUserId}
+                        >
+                          {t('adminUsers.delete')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredUsers.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 20, 50]}
+              labelRowsPerPage={t('adminUsers.rowsPerPage')}
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
+              sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 }

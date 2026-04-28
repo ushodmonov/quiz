@@ -18,7 +18,7 @@
     "installNotAvailable": "O'rnatish mavjud emas",
     "adminAddUser": "User qo'shish",
     "adminAddUserDescription": "Yangi user uchun token yaratish",
-    "adminJwtUsers": "JWT Userlar",
+    "adminJwtUsers": "Tizim foydalanuvchilar",
     "adminJwtUsersDescription": "Token olgan userlar ro'yxati"
   },
   "start": {
@@ -284,6 +284,7 @@
       "createdBy": "Create By",
       "tokenCount": "Tokenlar soni",
       "lastTokenTime": "Oxirgi token vaqti",
+      "expiresAt": "Muddati tugash vaqti",
       "actions": "Amallar"
     }
   }

@@ -11,7 +11,7 @@ import AdminUsersPage from './pages/AdminUsersPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
-import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions } from './utils/storage'
+import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions, loadAccessJwt, saveAccessJwt, clearAccessJwt } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
@@ -60,6 +60,16 @@ function App() {
       }
 
       try {
+        const localToken = loadAccessJwt(telegramUserId)
+        if (localToken) {
+          const isLocalTokenValid = await verifyJwtToken(localToken, JWT_SECRET_KEY, telegramUserId)
+          if (isLocalTokenValid) {
+            setHasValidAccessToken(true)
+            return
+          }
+          clearAccessJwt(telegramUserId)
+        }
+
         const tokens = await getJwtTokensByTelegramUserId(telegramUserId, 20)
         if (tokens.length === 0) {
           setHasValidAccessToken(false)
@@ -69,10 +79,12 @@ function App() {
         for (const token of tokens) {
           const isValid = await verifyJwtToken(token, JWT_SECRET_KEY, telegramUserId)
           if (isValid) {
+            saveAccessJwt(telegramUserId, token)
             setHasValidAccessToken(true)
             return
           }
         }
+        clearAccessJwt(telegramUserId)
         setHasValidAccessToken(false)
       } catch (error) {
         console.error('JWT access check failed:', error)
@@ -566,7 +578,6 @@ function App() {
             <StartPage 
               onStart={handleStartQuiz} 
               onViewAllQuestions={handleViewAllQuestions}
-              telegramUserName={telegram.userInfo?.firstName}
             />
           )}
           {currentPage === 'formats' && (

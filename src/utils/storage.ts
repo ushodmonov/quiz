@@ -4,6 +4,7 @@ const STORAGE_KEY = 'quiz_progress'
 const THEME_KEY = 'quiz_theme'
 const LANGUAGE_KEY = 'quiz_language'
 const ALL_QUESTIONS_KEY = 'quiz_all_questions'
+const ACCESS_JWT_KEY_PREFIX = 'quiz_access_jwt_'
 
 export function saveProgress(progress: QuizProgress): void {
   try {
@@ -92,5 +93,30 @@ export function clearAllQuestions(): void {
     localStorage.removeItem(ALL_QUESTIONS_KEY)
   } catch (error) {
     console.error('Failed to clear all questions:', error)
+  }
+}
+
+export function saveAccessJwt(telegramUserId: number, token: string): void {
+  try {
+    localStorage.setItem(`${ACCESS_JWT_KEY_PREFIX}${telegramUserId}`, token)
+  } catch (error) {
+    console.error('Failed to save access JWT:', error)
+  }
+}
+
+export function loadAccessJwt(telegramUserId: number): string | null {
+  try {
+    return localStorage.getItem(`${ACCESS_JWT_KEY_PREFIX}${telegramUserId}`)
+  } catch (error) {
+    console.error('Failed to load access JWT:', error)
+    return null
+  }
+}
+
+export function clearAccessJwt(telegramUserId: number): void {
+  try {
+    localStorage.removeItem(`${ACCESS_JWT_KEY_PREFIX}${telegramUserId}`)
+  } catch (error) {
+    console.error('Failed to clear access JWT:', error)
   }
 }

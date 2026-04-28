@@ -42,10 +42,9 @@ import type { QuizData, Question } from '../types'
 interface StartPageProps {
   onStart: (data: QuizData) => void
   onViewAllQuestions?: (questions: Question[]) => void
-  telegramUserName?: string
 }
 
-export default function StartPage({ onStart, onViewAllQuestions, telegramUserName }: StartPageProps) {
+export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
   const { t } = useTranslation()
   const [tabValue, setTabValue] = useState(1)
   const [files, setFiles] = useState<File[]>([])
@@ -625,16 +624,6 @@ export default function StartPage({ onStart, onViewAllQuestions, telegramUserNam
             >
               {t('start.title')}
             </Typography>
-            {telegramUserName && (
-              <Typography
-                variant="subtitle1"
-                align="center"
-                sx={{ mb: 2, fontWeight: 600 }}
-              >
-                Salom, {telegramUserName}!
-              </Typography>
-            )}
-
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
               <Tabs 
                 value={tabValue} 
