@@ -11,7 +11,7 @@ import AdminUsersPage from './pages/AdminUsersPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
-import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions, loadAccessJwt, saveAccessJwt, clearAccessJwt, isBrowserDevModeEnabled, BROWSER_DEV_MODE_STORAGE_KEY } from './utils/storage'
+import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions, loadAccessJwt, saveAccessJwt, clearAccessJwt, isBrowserDevModeEnabled } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
@@ -464,9 +464,6 @@ function App() {
                 </Typography>
                 <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
                   Oddiy websaytdan foydalanish yopilgan. Iltimos, Telegram bot ichidan Mini App'ni oching.
-                </Typography>
-                <Typography variant="caption" component="div" align="center" color="text.secondary" sx={{ mb: 2, display: 'block', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                  {`Dev: localStorage.setItem('${BROWSER_DEV_MODE_STORAGE_KEY}', '1'); location.reload()`}
                 </Typography>
                 <Box
                   sx={{

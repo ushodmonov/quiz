@@ -121,7 +121,7 @@ export function clearAccessJwt(telegramUserId: number): void {
   }
 }
 
-/** Brauzerda (Telegramdan tashqari) sinash uchun. Konsolda: localStorage.setItem(BROWSER_DEV_MODE_STORAGE_KEY, '1') */
+/** Brauzerda Telegramsiz sinash rejimi (kalit: `BROWSER_DEV_MODE_STORAGE_KEY`). */
 export const BROWSER_DEV_MODE_STORAGE_KEY = 'dev'
 
 export function isBrowserDevModeEnabled(): boolean {
