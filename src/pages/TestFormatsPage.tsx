@@ -86,8 +86,12 @@ export default function TestFormatsPage({ onBack }: TestFormatsPageProps) {
               qolgan barcha ustunlar — noto‘g‘ri variantlar. Ustunlar tartibi ixtiyoriy.
             </Typography>
             <Typography variant="body1" paragraph>
+              <strong>Savol | To‘g‘ri | Noto‘g‘ri (ustunlar):</strong> birinchi qatorda sarlavha — birinchi ustun <strong>Savol</strong> (ixtiyoriy <code>#Savol</code>), ikkinchi — <strong>To‘g‘ri javob</strong>,
+              uchinchi va keyingi ustunlar — noto‘g‘ri variantlar (masalan, bir nechta <strong>Noto‘g‘ri javob</strong> ustuni). Har bir keyingi qator alohida savol.
+            </Typography>
+            <Typography variant="body1" paragraph>
               <strong>Eski TFKU jadvali:</strong> birinchi ustun — <strong>Test topshirig’i</strong>, ikkinchi — <strong>To‘g‘ri javob</strong>,
-              keyingilar — <strong>Muqobil javob</strong>. Agar birinchi qatorda <code>#</code> va <code>+</code> sarlavhalar bo‘lmasa, shu format ishlatiladi.
+              keyingilar — <strong>Muqobil javob</strong>. Agar <code>#</code>/<code>+</code> yoki <strong>Savol</strong> sarlavhali format aniqlanmasa, shu format ishlatiladi.
             </Typography>
           </CardContent>
         </Card>

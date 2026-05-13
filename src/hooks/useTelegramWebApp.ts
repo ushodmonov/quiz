@@ -11,18 +11,29 @@ import {
   hideTelegramBackButton,
   hapticFeedback
 } from '../utils/telegramWebApp'
+import { isBrowserDevModeEnabled } from '../utils/storage'
+
+function initialTelegramDetection(): boolean | null {
+  if (typeof window === 'undefined') return null
+  if (isBrowserDevModeEnabled()) return false
+  return null
+}
 
 /**
  * Hook to use Telegram Web App features
  */
 export const useTelegramWebApp = () => {
-  const [isTelegram, setIsTelegram] = useState<boolean | null>(null)
+  const [isTelegram, setIsTelegram] = useState<boolean | null>(initialTelegramDetection)
   const [user, setUser] = useState<ReturnType<typeof getTelegramUser>>(null)
   const [userInfo, setUserInfo] = useState<ReturnType<typeof getTelegramUserInfo>>(null)
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light')
   const colorSchemeRef = useRef<'light' | 'dark'>('light')
 
   useEffect(() => {
+    if (isBrowserDevModeEnabled()) {
+      return
+    }
+
     let themeInterval: ReturnType<typeof setInterval> | null = null
     let detectInterval: ReturnType<typeof setInterval> | null = null
     let attempts = 0

@@ -120,3 +120,17 @@ export function clearAccessJwt(telegramUserId: number): void {
     console.error('Failed to clear access JWT:', error)
   }
 }
+
+/** Brauzerda (Telegramdan tashqari) sinash uchun. Konsolda: localStorage.setItem(BROWSER_DEV_MODE_STORAGE_KEY, '1') */
+export const BROWSER_DEV_MODE_STORAGE_KEY = 'dev'
+
+export function isBrowserDevModeEnabled(): boolean {
+  try {
+    const v = localStorage.getItem(BROWSER_DEV_MODE_STORAGE_KEY)
+    if (v == null || v === '') return false
+    const s = v.trim().toLowerCase()
+    return s === '1' || s === 'true' || s === 'yes' || s === 'on'
+  } catch {
+    return false
+  }
+}

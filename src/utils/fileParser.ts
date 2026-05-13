@@ -941,15 +941,41 @@ function normalizeExcelHeaderCell(s: string): string {
 /**
  * Detect header row: col A "Test topshirig'i", col B "To'g'ri javob", further cols "Muqobil javob".
  */
-function isTfkuStyleHeader(c0: string, c1: string): boolean {
-  const h0 = normalizeExcelHeaderCell(c0)
+function isTogriJavobHeaderCell(c1: string): boolean {
   const h1 = normalizeExcelHeaderCell(c1)
-  const hasQuestion = h0.includes('topshirig')
   const togri =
     h1.includes("to'g'ri") ||
     h1.includes('togri') ||
     /to[\s']*g[\s']*ri/.test(h1)
-  return hasQuestion && togri && h1.includes('javob')
+  return togri && h1.includes('javob')
+}
+
+function isTfkuStyleHeader(c0: string, c1: string): boolean {
+  const h0 = normalizeExcelHeaderCell(c0)
+  const hasQuestion = h0.includes('topshirig')
+  return hasQuestion && isTogriJavobHeaderCell(c1)
+}
+
+/**
+ * Jadval sarlavhasi: **Savol** | **To'g'ri javob** | **Noto'g'ri javob** | ...
+ * (masalan, ingliz tili testlari .xlsx). Birinchi ustun "Savol" bo'lishi kerak (ixtiyoriy `#` prefiks).
+ */
+function isSavolColumnHeaderRow(c0: string, c1: string): boolean {
+  const h0 = normalizeExcelHeaderCell(c0).replace(/^#\s*/, '')
+  if (h0 !== 'savol') return false
+  return isTogriJavobHeaderCell(c1)
+}
+
+function findExcelSavolColumnHeaderRow(rows: (string | number | undefined)[][]): number {
+  const max = Math.min(rows.length, 60)
+  for (let r = 0; r < max; r++) {
+    const row = rows[r]
+    if (!row || row.length < 3) continue
+    const c0 = String(row[0] ?? '')
+    const c1 = String(row[1] ?? '')
+    if (isSavolColumnHeaderRow(c0, c1)) return r
+  }
+  return -1
 }
 
 function findExcelTfkuHeaderRow(rows: (string | number | undefined)[][]): number {
@@ -1111,6 +1137,7 @@ function xlsxRowSignature(row: (string | number | undefined)[] | undefined, maxC
 /**
  * Parse Excel (.xlsx):
  * - **# / + format** (ustun sarlavhasi `#...` — savol, `+...` — to'g'ri javob, qolgan ustunlar — noto'g'ri).
+ * - **Savol | To'g'ri javob | Noto'g'ri...** (birinchi qator — `Savol`, `To'g'ri javob`, keyingi ustunlar — noto'g'ri variantlar).
  * - **TFKU format**: Test topshirig'i | To'g'ri javob | Muqobil javob ...
  */
 export async function parseXlsxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise<Question[]> {
@@ -1126,8 +1153,14 @@ export async function parseXlsxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise
     applyMergedCellValues(rows, ws['!merges'])
 
     const hashPlus = findExcelHashPlusHeaderRow(rows)
-    const tfkuHeaderRow = hashPlus ? -1 : findExcelTfkuHeaderRow(rows)
-    const headerRow = hashPlus ? hashPlus.headerRow : tfkuHeaderRow
+    const savolHeaderRow = hashPlus ? -1 : findExcelSavolColumnHeaderRow(rows)
+    const tfkuHeaderRow =
+      hashPlus || savolHeaderRow !== -1 ? -1 : findExcelTfkuHeaderRow(rows)
+    const headerRow = hashPlus
+      ? hashPlus.headerRow
+      : savolHeaderRow !== -1
+        ? savolHeaderRow
+        : tfkuHeaderRow
     if (headerRow === -1) continue
 
     const ref = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : null
