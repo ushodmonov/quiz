@@ -46,6 +46,11 @@
     "questionCountPerTest": "Har bir testda",
     "times": "marta",
     "questions": "ta savol",
+    "timer": {
+      "enable": "Vaqt chegarasi (ixtiyoriy)",
+      "minutes": "Vaqt (daqiqa)",
+      "helper": "Belgilangan vaqt ichida barcha savollarni yakunlang. Vaqt tugasa test avtomatik yakunlanadi."
+    },
     "startTest": "Testni boshlash",
     "loading": "Fayl yuklanmoqda...",
     "loadingCatalog": "Katalog yuklanmoqda...",
@@ -85,7 +90,8 @@
       "invalidCountRange": "Savollar soni noto'g'ri. Berilgan oraliqda maksimal",
       "startEndSame": "Boshlanish va oxirgi savol bir xil bo'lishi mumkin emas",
       "noFileName": "Fayl nomi topilmadi",
-      "noAnswers": "Javob variantlari mavjud emas!"
+      "noAnswers": "Javob variantlari mavjud emas!",
+      "invalidTimer": "Vaqt 1 dan 300 daqiqagacha bo'lishi kerak"
     }
   },
   "test": {
@@ -94,6 +100,10 @@
     "checkAnswer": "Javobni tekshirish",
     "nextQuestion": "Keyingi savol",
     "viewResults": "Natijalarni ko'rish",
+    "timer": {
+      "limit": "Umumiy vaqt: {{minutes}} daqiqa",
+      "expired": "Vaqt tugadi! Test avtomatik yakunlandi."
+    },
     "correct": "To'g'ri!",
     "incorrect": "Noto'g'ri",
     "sequence": {
@@ -117,6 +127,7 @@
     }
   },
   "results": {
+    "timedOut": "Vaqt tugagani uchun test yakunlandi",
     "title": "Test natijalari",
     "correct": "To'g'ri javoblar",
     "incorrect": "Noto'g'ri javoblar",

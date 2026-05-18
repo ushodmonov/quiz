@@ -35,6 +35,10 @@ export interface QuizProgress {
   results?: QuizResults
   nextStartIndex?: number | null
   timestamp?: number
+  /** Test uchun umumiy vaqt cheklovi (soniya). */
+  timeLimitSeconds?: number
+  /** Vaqt tugash vaqti (Date.now() + ms). */
+  timerEndsAt?: number
 }
 
 export interface QuizResults {
@@ -43,6 +47,8 @@ export interface QuizResults {
   total: number
   percentage: number
   nextStartIndex: number | null
+  /** Vaqt tugaganda avtomatik yakunlangan. */
+  timedOut?: boolean
 }
 
 export interface QuizData {
@@ -66,6 +72,8 @@ export interface QuizData {
   originalNextStartIndex?: number | null // For retake: original position to continue from
   isRetake?: boolean // Flag to indicate this is a retake of incorrect questions
   endQuestionIndex?: number | null // For range-based tests: the end question index (inclusive)
+  timeLimitSeconds?: number
+  timerEndsAt?: number
 }
 
 export type ThemeMode = 'light' | 'dark'

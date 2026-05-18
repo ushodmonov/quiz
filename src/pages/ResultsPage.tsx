@@ -77,6 +77,25 @@ export default function ResultsPage({
       }}
     >
       <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 500 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {results.timedOut && (
+          <Typography
+            variant="body1"
+            align="center"
+            sx={{
+              mb: 2,
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              bgcolor: 'warning.main',
+              color: 'warning.contrastText',
+              fontWeight: 600,
+              maxWidth: '100%'
+            }}
+          >
+            {t('results.timedOut')}
+          </Typography>
+        )}
+
         {/* Title */}
         <Typography 
           variant="h3" 

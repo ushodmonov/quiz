@@ -11,6 +11,7 @@ import {
   Radio,
   FormControl,
   FormLabel,
+  Checkbox,
   Box,
   Alert,
   CircularProgress,
@@ -55,6 +56,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [endQuestion, setEndQuestion] = useState<string>('')
   const [endQuestionError, setEndQuestionError] = useState<string>('')
   const [selectionMethod, setSelectionMethod] = useState<'sequential' | 'random'>('sequential')
+  const [timerEnabled, setTimerEnabled] = useState(false)
+  const [timerMinutes, setTimerMinutes] = useState('30')
   const [loading, setLoading] = useState(false)
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [error, setError] = useState('')
@@ -557,6 +560,18 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       }
     }
 
+    let timeLimitSeconds: number | undefined
+    let timerEndsAt: number | undefined
+    if (timerEnabled) {
+      const minutes = parseInt(timerMinutes, 10)
+      if (!minutes || minutes < 1 || minutes > 300) {
+        setError(t('start.error.invalidTimer'))
+        return
+      }
+      timeLimitSeconds = minutes * 60
+      timerEndsAt = Date.now() + timeLimitSeconds * 1000
+    }
+
     const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod, endQuestionIndex)
     
     const fileId = files.length > 0
@@ -579,7 +594,9 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       selectionMethod,
       answers: {},
       score: { correct: 0, incorrect: 0 },
-      endQuestionIndex: endQuestionIndex
+      endQuestionIndex: endQuestionIndex,
+      timeLimitSeconds,
+      timerEndsAt
     })
   }
 
@@ -1370,6 +1387,36 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 }
                 sx={{ mb: { xs: 2, sm: 3 } }}
               />
+
+              <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={timerEnabled}
+                      onChange={(e) => setTimerEnabled(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={t('start.timer.enable')}
+                  sx={{ mb: timerEnabled ? 1.5 : 0 }}
+                />
+                {timerEnabled && (
+                  <TextField
+                    fullWidth
+                    label={t('start.timer.minutes')}
+                    type="number"
+                    value={timerMinutes}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0 && Number(value) <= 300)) {
+                        setTimerMinutes(value)
+                      }
+                    }}
+                    inputProps={{ min: 1, max: 300 }}
+                    helperText={t('start.timer.helper')}
+                  />
+                )}
+              </Box>
 
               <Button
                 variant="contained"

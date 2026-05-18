@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Container, Box, LinearProgress, Typography, Button, Card, CardContent } from '@mui/material'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Container, Box, LinearProgress, Typography, Button, Card, CardContent, Chip, Alert } from '@mui/material'
+import { AccessTime } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { calculateScore } from '../utils/questionUtils'
 import { saveProgress } from '../utils/storage'
+import { formatTimerDisplay, getRemainingSeconds } from '../utils/quizTimer'
 import QuestionDisplay from '../components/QuestionDisplay'
 import type { QuizData, QuizResults } from '../types'
 
@@ -17,10 +19,66 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
+  const [timedOut, setTimedOut] = useState(false)
+  const expiryHandledRef = useRef(false)
 
+  const hasTimer = quizData.timerEndsAt != null
   const currentQuestion = quizData.selectedQuestions[quizData.currentQuestionIndex]
   const totalQuestions = quizData.selectedQuestions.length
   const progress = ((quizData.currentQuestionIndex + 1) / totalQuestions) * 100
+
+  const finishTest = useCallback((options?: { timedOut?: boolean }) => {
+    const nextStartIndex = quizData.startIndex + totalQuestions
+
+    let finalNextStartIndex: number | null = null
+    if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
+      if (nextStartIndex <= quizData.endQuestionIndex) {
+        finalNextStartIndex = nextStartIndex
+      }
+    } else {
+      finalNextStartIndex = nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
+    }
+
+    onComplete({
+      correct: quizData.score.correct,
+      incorrect: quizData.score.incorrect,
+      total: totalQuestions,
+      percentage: Math.round((quizData.score.correct / totalQuestions) * 100),
+      nextStartIndex: finalNextStartIndex,
+      timedOut: options?.timedOut
+    })
+  }, [quizData, totalQuestions, onComplete])
+
+  const handleTimeExpired = useCallback(() => {
+    if (expiryHandledRef.current) return
+    expiryHandledRef.current = true
+    setTimedOut(true)
+    setRemainingSeconds(0)
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200])
+    }
+    finishTest({ timedOut: true })
+  }, [finishTest])
+
+  useEffect(() => {
+    if (!hasTimer) {
+      setRemainingSeconds(null)
+      return
+    }
+
+    const tick = () => {
+      const remaining = getRemainingSeconds(quizData.timerEndsAt)
+      setRemainingSeconds(remaining)
+      if (remaining !== null && remaining <= 0) {
+        handleTimeExpired()
+      }
+    }
+
+    tick()
+    const id = window.setInterval(tick, 1000)
+    return () => window.clearInterval(id)
+  }, [hasTimer, quizData.timerEndsAt, handleTimeExpired])
 
   useEffect(() => {
     const savedAnswer = quizData.answers[quizData.currentQuestionIndex]
@@ -37,7 +95,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }, [quizData.currentQuestionIndex, quizData.answers])
 
   const handleAnswerSelect = (answerIndex: number) => {
-    if (isAnswered) return
+    if (isAnswered || timedOut) return
 
     if (currentQuestion.isMultiSelect) {
       setSelectedAnswers((prev: number[]) => {
@@ -53,17 +111,14 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }
 
   const handleSequenceSelect = (position: number, answerIndex: number) => {
-    if (isAnswered) return
+    if (isAnswered || timedOut) return
 
     setSelectedAnswers((prev: number[]) => {
       const newAnswers = [...prev]
-      // Remove answerIndex from any previous position
       const prevPosition = newAnswers.indexOf(answerIndex)
       if (prevPosition !== -1) {
-        newAnswers[prevPosition] = -1 // Mark as empty
+        newAnswers[prevPosition] = -1
       }
-      // Set answerIndex at the new position
-      // Ensure array is large enough
       while (newAnswers.length <= position) {
         newAnswers.push(-1)
       }
@@ -73,11 +128,10 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }
 
   const handleMatchingSelect = (leftIndex: number, rightIndex: number) => {
-    if (isAnswered) return
+    if (isAnswered || timedOut) return
 
     setSelectedAnswers((prev: number[]) => {
       const newAnswers = [...prev]
-      // Ensure array is large enough
       while (newAnswers.length <= leftIndex) {
         newAnswers.push(-1)
       }
@@ -87,8 +141,8 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }
 
   const handleSubmit = () => {
+    if (timedOut) return
     if (currentQuestion.isMatching) {
-      // For matching: check if all left answers have a match
       const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
       const allMatched = leftAnswers.every((_, leftIdx) => 
         selectedAnswers[leftIdx] !== undefined && selectedAnswers[leftIdx] !== -1
@@ -102,7 +156,6 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     setIsCorrect(correct)
     setIsAnswered(true)
 
-    // Vibrate on incorrect answer (mobile devices)
     if (!correct && 'vibrate' in navigator) {
       navigator.vibrate([100, 50, 100])
     }
@@ -131,37 +184,15 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     saveProgress({
       ...updatedData,
       timestamp: Date.now()
-    } as any)
+    })
   }
 
   const handleNext = () => {
+    if (timedOut) return
     const nextIndex = quizData.currentQuestionIndex + 1
     
     if (nextIndex >= totalQuestions) {
-      const nextStartIndex = quizData.startIndex + totalQuestions
-      
-      // If endQuestionIndex is set, check if we've reached it
-      let finalNextStartIndex: number | null = null
-      if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
-        // Check if nextStartIndex exceeds endQuestionIndex
-        if (nextStartIndex <= quizData.endQuestionIndex) {
-          finalNextStartIndex = nextStartIndex
-        } else {
-          // We've reached the end of the range
-          finalNextStartIndex = null
-        }
-      } else {
-        // Normal behavior: check if there are more questions
-        finalNextStartIndex = nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
-      }
-      
-      onComplete({
-        correct: quizData.score.correct,
-        incorrect: quizData.score.incorrect,
-        total: totalQuestions,
-        percentage: Math.round((quizData.score.correct / totalQuestions) * 100),
-        nextStartIndex: finalNextStartIndex
-      })
+      finishTest()
     } else {
       onUpdateData({
         ...quizData,
@@ -171,7 +202,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }
 
   const canSubmit = (() => {
-    if (isAnswered) return false
+    if (isAnswered || timedOut) return false
     if (currentQuestion.isMatching) {
       const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
       return leftAnswers.every((_, leftIdx) => 
@@ -184,6 +215,10 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     }
   })()
 
+  const timerUrgent = remainingSeconds !== null && remainingSeconds <= 60 && remainingSeconds > 0
+  const timerDisplay =
+    remainingSeconds !== null ? formatTimerDisplay(remainingSeconds) : null
+
   return (
     <Box
       sx={{
@@ -195,6 +230,12 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
       }}
     >
       <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+        {timedOut && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {t('test.timer.expired')}
+          </Alert>
+        )}
+
         <Card 
           sx={{ 
             mb: { xs: 2, sm: 3 },
@@ -205,7 +246,32 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
           }}
         >
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
+            <Box sx={{ mb: { xs: 1.5, sm: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600,
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' }
+                }}
+              >
+                {t('test.progress', { current: quizData.currentQuestionIndex + 1, total: totalQuestions })}
+              </Typography>
+              {hasTimer && timerDisplay !== null && (
+                <Chip
+                  icon={<AccessTime sx={{ fontSize: '1rem !important' }} />}
+                  label={timerDisplay}
+                  color={timedOut ? 'error' : timerUrgent ? 'warning' : 'default'}
+                  variant={timedOut || timerUrgent ? 'filled' : 'outlined'}
+                  sx={{
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                    fontSize: { xs: '0.95rem', sm: '1.05rem' },
+                    '& .MuiChip-label': { px: 1 }
+                  }}
+                />
+              )}
+            </Box>
+            <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
               <LinearProgress 
                 variant="determinate" 
                 value={progress} 
@@ -219,17 +285,11 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
                 }} 
               />
             </Box>
-            <Typography 
-              variant="h6" 
-              align="center" 
-              sx={{ 
-                fontWeight: 600, 
-                mt: 1,
-                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' }
-              }}
-            >
-              {t('test.progress', { current: quizData.currentQuestionIndex + 1, total: totalQuestions })}
-            </Typography>
+            {hasTimer && quizData.timeLimitSeconds && !timedOut && (
+              <Typography variant="caption" color="text.secondary" align="center" display="block">
+                {t('test.timer.limit', { minutes: Math.round(quizData.timeLimitSeconds / 60) })}
+              </Typography>
+            )}
           </CardContent>
         </Card>
 
@@ -239,6 +299,8 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
+            opacity: timedOut ? 0.85 : 1,
+            pointerEvents: timedOut ? 'none' : 'auto',
           }}
         >
           <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
@@ -256,7 +318,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
           />
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 3, sm: 4 } }}>
-            {!isAnswered && (
+            {!isAnswered && !timedOut && (
               <Button
                 variant="contained"
                 size="large"
@@ -279,7 +341,7 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
               </Button>
             )}
             
-            {isAnswered && (
+            {isAnswered && !timedOut && (
               <Button
                 variant="contained"
                 color="success"
