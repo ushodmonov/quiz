@@ -38,7 +38,7 @@ import { parseTxtFile, parseDocxFile, parseXlsxFile, isMultiSelect } from '../ut
 import { selectQuestions } from '../utils/questionUtils'
 import { clearProgress } from '../utils/storage'
 import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
-import type { QuizData, Question } from '../types'
+import type { QuizData, Question, QuestionDisplayMode } from '../types'
 
 interface StartPageProps {
   onStart: (data: QuizData) => void
@@ -58,6 +58,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [selectionMethod, setSelectionMethod] = useState<'sequential' | 'random'>('sequential')
   const [timerEnabled, setTimerEnabled] = useState(false)
   const [timerMinutes, setTimerMinutes] = useState('30')
+  const [displayMode, setDisplayMode] = useState<QuestionDisplayMode>('single')
   const [loading, setLoading] = useState(false)
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [error, setError] = useState('')
@@ -596,7 +597,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       score: { correct: 0, incorrect: 0 },
       endQuestionIndex: endQuestionIndex,
       timeLimitSeconds,
-      timerEndsAt
+      timerEndsAt,
+      displayMode
     })
   }
 
@@ -1387,6 +1389,28 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 }
                 sx={{ mb: { xs: 2, sm: 3 } }}
               />
+
+              <FormControl component="fieldset" sx={{ mb: { xs: 2, sm: 3 } }}>
+                <FormLabel component="legend" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  {t('start.displayMode.label')}
+                </FormLabel>
+                <RadioGroup
+                  value={displayMode}
+                  onChange={(e) => setDisplayMode(e.target.value as QuestionDisplayMode)}
+                  sx={{ gap: 0.5 }}
+                >
+                  <FormControlLabel
+                    value="single"
+                    control={<Radio size="small" />}
+                    label={t('start.displayMode.single')}
+                  />
+                  <FormControlLabel
+                    value="all"
+                    control={<Radio size="small" />}
+                    label={t('start.displayMode.all')}
+                  />
+                </RadioGroup>
+              </FormControl>
 
               <Box sx={{ mb: { xs: 2, sm: 3 } }}>
                 <FormControlLabel

@@ -46,6 +46,11 @@
     "questionCountPerTest": "В каждом тесте",
     "times": "раз",
     "questions": "вопросов",
+    "displayMode": {
+      "label": "Отображение вопросов",
+      "single": "Каждый вопрос на отдельном экране",
+      "all": "Все вопросы на одном экране"
+    },
     "timer": {
       "enable": "Ограничение по времени (необязательно)",
       "minutes": "Время (минуты)",
@@ -96,6 +101,27 @@
   },
   "test": {
     "progress": "Вопрос {{current}} / {{total}}",
+    "progressAnswered": "Отвечено: {{answered}} / {{total}}",
+    "progressChecked": "Проверено: {{checked}} / {{total}}",
+    "nav": {
+      "previous": "Назад",
+      "next": "Следующий вопрос",
+      "jumpTo": "Перейти к вопросу {{number}}",
+      "statusCorrect": "Верно проверено",
+      "statusIncorrect": "Неверно проверено",
+      "statusDraft": "Выбрано (не проверено)",
+      "statusEmpty": "Не сделано",
+      "statusCorrectShort": "Верно",
+      "statusIncorrectShort": "Неверно",
+      "statusDraftShort": "Выбрано",
+      "statusEmptyShort": "Пусто",
+      "scrollHint": "Проведите пальцем для просмотра всех вопросов",
+      "mapTitle": "Карта вопросов"
+    },
+    "allMode": {
+      "finishHint": "Ответьте ещё на {{remaining}} вопрос(ов), чтобы увидеть результат",
+      "finishTest": "Завершить тест и посмотреть результат"
+    },
     "questionNumber": "Вопрос №{{number}}",
     "checkAnswer": "Проверить ответ",
     "nextQuestion": "Следующий вопрос",
@@ -142,7 +168,10 @@
     "retakeIncorrect": "Повторить неправильные ответы",
     "question": "Вопрос",
     "yourAnswer": "Ваш ответ",
-    "correctAnswer": "Правильный ответ"
+    "correctAnswer": "Правильный ответ",
+    "perQuestionReview": "Результат по каждому вопросу",
+    "statusCorrect": "Верно",
+    "statusIncorrect": "Неверно"
   },
   "resume": {
     "title": "Существует предыдущий тест",

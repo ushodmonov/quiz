@@ -16,6 +16,9 @@ export interface Question {
   originalIndex?: number
 }
 
+/** `single` — har bir savol alohida ekranda; `all` — barcha savollar bir ekranda. */
+export type QuestionDisplayMode = 'single' | 'all'
+
 export interface QuizProgress {
   fileId: string
   fileName: string
@@ -39,6 +42,9 @@ export interface QuizProgress {
   timeLimitSeconds?: number
   /** Vaqt tugash vaqti (Date.now() + ms). */
   timerEndsAt?: number
+  displayMode?: QuestionDisplayMode
+  /** `all` rejimida: yakunlashgacha tanlangan javoblar (tekshirilmagan). */
+  pendingAnswers?: Record<number, number[]>
 }
 
 export interface QuizResults {
@@ -74,6 +80,8 @@ export interface QuizData {
   endQuestionIndex?: number | null // For range-based tests: the end question index (inclusive)
   timeLimitSeconds?: number
   timerEndsAt?: number
+  displayMode?: QuestionDisplayMode
+  pendingAnswers?: Record<number, number[]>
 }
 
 export type ThemeMode = 'light' | 'dark'

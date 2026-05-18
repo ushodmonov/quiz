@@ -8,7 +8,8 @@ import {
 import { Refresh, ArrowForward, Home, Replay, Visibility } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import WrongAnswersModal from '../components/WrongAnswersModal'
-import type { QuizResults, Question } from '../types'
+import TestResultsReview from '../components/TestResultsReview'
+import type { QuizResults, Question, QuestionDisplayMode } from '../types'
 
 interface ResultsPageProps {
   results: QuizResults
@@ -16,6 +17,8 @@ interface ResultsPageProps {
   nextStartIndex: number | null | undefined
   questions?: Question[]
   answers?: Record<number, { selected: number[]; correct: boolean }>
+  displayMode?: QuestionDisplayMode
+  startIndex?: number
   onRestart: () => void
   onNextTest: () => void
   onRetakeIncorrect: () => void
@@ -28,6 +31,8 @@ export default function ResultsPage({
   nextStartIndex,
   questions = [],
   answers = {},
+  displayMode = 'single',
+  startIndex = 0,
   onRestart,
   onNextTest,
   onRetakeIncorrect,
@@ -61,19 +66,22 @@ export default function ResultsPage({
     return t('results.poor')
   }
 
+  const showPerQuestionReview =
+    displayMode === 'all' && questions.length > 0 && Object.keys(answers).length > 0
+
   return (
     <Box
       sx={{
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
         background: (theme) => theme.palette.mode === 'dark'
           ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
           : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         py: { xs: 2, sm: 3 },
         px: { xs: 1.5, sm: 2 },
+        justifyContent: showPerQuestionReview ? 'flex-start' : 'center',
       }}
     >
       <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 500 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -441,6 +449,16 @@ export default function ResultsPage({
           </Box>
         </Box>
       </Box>
+
+      {showPerQuestionReview && (
+        <Box sx={{ width: '100%', maxWidth: 'lg', px: { xs: 0, sm: 1 } }}>
+          <TestResultsReview
+            questions={questions}
+            answers={answers}
+            startIndex={startIndex}
+          />
+        </Box>
+      )}
     </Box>
   )
 }

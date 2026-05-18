@@ -1,54 +1,239 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Container, Box, LinearProgress, Typography, Button, Card, CardContent, Chip, Alert } from '@mui/material'
-import { AccessTime } from '@mui/icons-material'
+import {
+  Container,
+  Box,
+  LinearProgress,
+  Typography,
+  Button,
+  Chip,
+  Alert
+} from '@mui/material'
+import type { Theme } from '@mui/material/styles'
+import { AccessTime, ArrowBack, ArrowForward } from '@mui/icons-material'
+import SingleModeQuestionNav, { type SingleQuestionNavStatus } from '../components/SingleModeQuestionNav'
 import { useTranslation } from 'react-i18next'
 import { calculateScore } from '../utils/questionUtils'
 import { saveProgress } from '../utils/storage'
 import { formatTimerDisplay, getRemainingSeconds } from '../utils/quizTimer'
+import { canSubmitQuestionSelection, hasQuestionDraftSelection } from '../utils/questionSubmit'
 import QuestionDisplay from '../components/QuestionDisplay'
-import type { QuizData, QuizResults } from '../types'
+import type { QuizData, QuizResults, Question } from '../types'
 
 interface TestPageProps {
   quizData: QuizData
-  onComplete: (results: QuizResults) => void
+  onComplete: (results: QuizResults, patch?: Partial<QuizData>) => void
   onUpdateData: (data: QuizData) => void
+}
+
+function getQuestionNumber(quizData: QuizData, questionIndex: number, question: Question): number {
+  if (question.originalIndex !== undefined) return question.originalIndex + 1
+  return quizData.startIndex + questionIndex + 1
+}
+
+const TEST_PANEL_PADDING = { p: { xs: 2, sm: 3 } }
+
+function testPageGradient(theme: Theme) {
+  return theme.palette.mode === 'dark'
+    ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+}
+
+function testPanelBackground(theme: Theme, opacity = 0.95) {
+  return theme.palette.mode === 'dark'
+    ? `rgba(30, 30, 30, ${opacity})`
+    : `rgba(255, 255, 255, ${opacity})`
+}
+
+const testPanelSx = {
+  borderRadius: { xs: 0, sm: 2 },
+  boxShadow: { xs: 'none', sm: 2 },
+  bgcolor: (theme: Theme) => testPanelBackground(theme),
+  backdropFilter: 'blur(10px)'
+}
+
+function TestPageHeader({
+  quizData,
+  progressValue,
+  progressLabel,
+  remainingSeconds,
+  timedOut,
+  hasTimer
+}: {
+  quizData: QuizData
+  progressValue: number
+  progressLabel: string
+  remainingSeconds: number | null
+  timedOut: boolean
+  hasTimer: boolean
+}) {
+  const { t } = useTranslation()
+  const timerUrgent = remainingSeconds !== null && remainingSeconds <= 60 && remainingSeconds > 0
+  const timerDisplay = remainingSeconds !== null ? formatTimerDisplay(remainingSeconds) : null
+
+  return (
+    <Box sx={TEST_PANEL_PADDING}>
+      <Box
+        sx={{
+          mb: { xs: 1.5, sm: 2 },
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
+          flexWrap: 'wrap'
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' } }}>
+          {progressLabel}
+        </Typography>
+        {hasTimer && timerDisplay !== null && (
+          <Chip
+            icon={<AccessTime sx={{ fontSize: '1rem !important' }} />}
+            label={timerDisplay}
+            color={timedOut ? 'error' : timerUrgent ? 'warning' : 'default'}
+            variant={timedOut || timerUrgent ? 'filled' : 'outlined'}
+            sx={{
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              fontSize: { xs: '0.95rem', sm: '1.05rem' },
+              '& .MuiChip-label': { px: 1 }
+            }}
+          />
+        )}
+      </Box>
+      <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
+        <LinearProgress
+          variant="determinate"
+          value={progressValue}
+          sx={{
+            height: { xs: 8, sm: 12 },
+            borderRadius: { xs: 1, sm: 2 },
+            bgcolor: 'action.hover',
+            '& .MuiLinearProgress-bar': {
+              background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+            }
+          }}
+        />
+      </Box>
+      {hasTimer && quizData.timeLimitSeconds && !timedOut && (
+        <Typography variant="caption" color="text.secondary" align="center" display="block">
+          {t('test.timer.limit', { minutes: Math.round(quizData.timeLimitSeconds / 60) })}
+        </Typography>
+      )}
+    </Box>
+  )
 }
 
 export default function TestPage({ quizData, onComplete, onUpdateData }: TestPageProps) {
   const { t } = useTranslation()
+  const isAllMode = (quizData.displayMode ?? 'single') === 'all'
+
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([])
   const [isAnswered, setIsAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [draftAnswers, setDraftAnswers] = useState<Record<number, number[]>>({})
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
   const [timedOut, setTimedOut] = useState(false)
   const expiryHandledRef = useRef(false)
 
   const hasTimer = quizData.timerEndsAt != null
-  const currentQuestion = quizData.selectedQuestions[quizData.currentQuestionIndex]
   const totalQuestions = quizData.selectedQuestions.length
-  const progress = ((quizData.currentQuestionIndex + 1) / totalQuestions) * 100
+  const currentQuestion = quizData.selectedQuestions[quizData.currentQuestionIndex]
+  const finishTest = useCallback(
+    (options?: {
+      timedOut?: boolean
+      score?: { correct: number; incorrect: number }
+      patch?: Partial<QuizData>
+    }) => {
+      const nextStartIndex = quizData.startIndex + totalQuestions
+      const score = options?.score ?? quizData.score
 
-  const finishTest = useCallback((options?: { timedOut?: boolean }) => {
-    const nextStartIndex = quizData.startIndex + totalQuestions
-
-    let finalNextStartIndex: number | null = null
-    if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
-      if (nextStartIndex <= quizData.endQuestionIndex) {
-        finalNextStartIndex = nextStartIndex
+      let finalNextStartIndex: number | null = null
+      if (quizData.endQuestionIndex !== null && quizData.endQuestionIndex !== undefined) {
+        if (nextStartIndex <= quizData.endQuestionIndex) {
+          finalNextStartIndex = nextStartIndex
+        }
+      } else {
+        finalNextStartIndex = nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
       }
-    } else {
-      finalNextStartIndex = nextStartIndex < quizData.allQuestions.length ? nextStartIndex : null
-    }
 
-    onComplete({
-      correct: quizData.score.correct,
-      incorrect: quizData.score.incorrect,
-      total: totalQuestions,
-      percentage: Math.round((quizData.score.correct / totalQuestions) * 100),
-      nextStartIndex: finalNextStartIndex,
-      timedOut: options?.timedOut
-    })
-  }, [quizData, totalQuestions, onComplete])
+      onComplete(
+        {
+          correct: score.correct,
+          incorrect: score.incorrect,
+          total: totalQuestions,
+          percentage: Math.round((score.correct / totalQuestions) * 100),
+          nextStartIndex: finalNextStartIndex,
+          timedOut: options?.timedOut
+        },
+        options?.patch
+      )
+    },
+    [quizData, totalQuestions, onComplete]
+  )
+
+  const persistQuiz = useCallback(
+    (updated: QuizData) => {
+      onUpdateData(updated)
+      saveProgress({ ...updated, timestamp: Date.now() })
+    },
+    [onUpdateData]
+  )
+
+  const getPendingSelection = useCallback(
+    (index: number): number[] => {
+      if (draftAnswers[index] !== undefined) return draftAnswers[index]
+      return quizData.pendingAnswers?.[index] ?? []
+    },
+    [draftAnswers, quizData.pendingAnswers]
+  )
+
+  const gradeAndFinishAllMode = useCallback(
+    (options?: { timedOut?: boolean }) => {
+      let correct = 0
+      let incorrect = 0
+      const answers: QuizData['answers'] = {}
+
+      for (let i = 0; i < totalQuestions; i++) {
+        const question = quizData.selectedQuestions[i]
+        const selected = getPendingSelection(i)
+        const hasSelection = canSubmitQuestionSelection(question, selected)
+        const isQuestionCorrect = hasSelection && calculateScore(question, selected)
+
+        if (isQuestionCorrect) {
+          correct++
+        } else {
+          incorrect++
+        }
+
+        answers[i] = {
+          selected: hasSelection ? selected : [],
+          correct: isQuestionCorrect
+        }
+      }
+
+      const score = { correct, incorrect }
+      const updated: QuizData = {
+        ...quizData,
+        answers,
+        score,
+        pendingAnswers: undefined
+      }
+      persistQuiz(updated)
+      finishTest({
+        timedOut: options?.timedOut,
+        score,
+        patch: { answers, score, pendingAnswers: undefined }
+      })
+    },
+    [quizData, totalQuestions, getPendingSelection, persistQuiz, finishTest]
+  )
+
+  const answeredCountAll = isAllMode
+    ? quizData.selectedQuestions.filter((q, i) =>
+        canSubmitQuestionSelection(q, getPendingSelection(i))
+      ).length
+    : 0
+  const allAnswered = isAllMode && answeredCountAll >= totalQuestions
 
   const handleTimeExpired = useCallback(() => {
     if (expiryHandledRef.current) return
@@ -58,8 +243,12 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
     if ('vibrate' in navigator) {
       navigator.vibrate([200, 100, 200])
     }
-    finishTest({ timedOut: true })
-  }, [finishTest])
+    if (isAllMode) {
+      gradeAndFinishAllMode({ timedOut: true })
+    } else {
+      finishTest({ timedOut: true })
+    }
+  }, [isAllMode, gradeAndFinishAllMode, finishTest])
 
   useEffect(() => {
     if (!hasTimer) {
@@ -81,30 +270,92 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   }, [hasTimer, quizData.timerEndsAt, handleTimeExpired])
 
   useEffect(() => {
-    const savedAnswer = quizData.answers[quizData.currentQuestionIndex]
-    
+    if (isAllMode && quizData.pendingAnswers) {
+      setDraftAnswers(quizData.pendingAnswers)
+    }
+  }, [isAllMode, quizData.fileId])
+
+  const getSingleQuestionStatus = useCallback(
+    (index: number): SingleQuestionNavStatus => {
+      const saved = quizData.answers[index]
+      if (saved) return saved.correct ? 'correct' : 'incorrect'
+
+      const question = quizData.selectedQuestions[index]
+      if (index === quizData.currentQuestionIndex) {
+        if (hasQuestionDraftSelection(question, selectedAnswers)) return 'draft'
+      }
+
+      const pending = quizData.pendingAnswers?.[index]
+      if (pending && hasQuestionDraftSelection(question, pending)) return 'draft'
+      return 'empty'
+    },
+    [
+      quizData.answers,
+      quizData.pendingAnswers,
+      quizData.currentQuestionIndex,
+      quizData.selectedQuestions,
+      selectedAnswers
+    ]
+  )
+
+  const buildPendingPatchForIndex = useCallback(
+    (idx: number, selection: number[]) => {
+      if (quizData.answers[idx]) return quizData.pendingAnswers
+
+      const question = quizData.selectedQuestions[idx]
+      if (!hasQuestionDraftSelection(question, selection)) {
+        if (!quizData.pendingAnswers?.[idx]) return quizData.pendingAnswers
+        const pendingAnswers = { ...quizData.pendingAnswers }
+        delete pendingAnswers[idx]
+        return Object.keys(pendingAnswers).length > 0 ? pendingAnswers : undefined
+      }
+      return { ...quizData.pendingAnswers, [idx]: selection }
+    },
+    [quizData]
+  )
+
+  const goToQuestion = useCallback(
+    (index: number) => {
+      if (timedOut || index < 0 || index >= totalQuestions || index === quizData.currentQuestionIndex) {
+        return
+      }
+
+      const fromIdx = quizData.currentQuestionIndex
+      const pendingAnswers = buildPendingPatchForIndex(fromIdx, selectedAnswers)
+
+      persistQuiz({
+        ...quizData,
+        pendingAnswers,
+        currentQuestionIndex: index
+      })
+    },
+    [timedOut, totalQuestions, quizData, selectedAnswers, buildPendingPatchForIndex, persistQuiz]
+  )
+
+  // —— Single-question mode ——
+  useEffect(() => {
+    if (isAllMode) return
+    const idx = quizData.currentQuestionIndex
+    const savedAnswer = quizData.answers[idx]
+
     if (savedAnswer) {
       setSelectedAnswers(savedAnswer.selected)
       setIsAnswered(true)
       setIsCorrect(savedAnswer.correct)
     } else {
-      setSelectedAnswers([])
+      const pending = quizData.pendingAnswers?.[idx]
+      setSelectedAnswers(pending ?? [])
       setIsAnswered(false)
       setIsCorrect(false)
     }
-  }, [quizData.currentQuestionIndex, quizData.answers])
+  }, [isAllMode, quizData.currentQuestionIndex, quizData.answers, quizData.pendingAnswers])
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (isAnswered || timedOut) return
-
     if (currentQuestion.isMultiSelect) {
-      setSelectedAnswers((prev: number[]) => {
-        if (prev.includes(answerIndex)) {
-          return prev.filter((i: number) => i !== answerIndex)
-        } else {
-          return [...prev, answerIndex]
-        }
-      })
+      setSelectedAnswers((prev) =>
+        prev.includes(answerIndex) ? prev.filter((i) => i !== answerIndex) : [...prev, answerIndex]
+      )
     } else {
       setSelectedAnswers([answerIndex])
     }
@@ -112,16 +363,11 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
 
   const handleSequenceSelect = (position: number, answerIndex: number) => {
     if (isAnswered || timedOut) return
-
-    setSelectedAnswers((prev: number[]) => {
+    setSelectedAnswers((prev) => {
       const newAnswers = [...prev]
       const prevPosition = newAnswers.indexOf(answerIndex)
-      if (prevPosition !== -1) {
-        newAnswers[prevPosition] = -1
-      }
-      while (newAnswers.length <= position) {
-        newAnswers.push(-1)
-      }
+      if (prevPosition !== -1) newAnswers[prevPosition] = -1
+      while (newAnswers.length <= position) newAnswers.push(-1)
       newAnswers[position] = answerIndex
       return newAnswers
     })
@@ -129,28 +375,17 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
 
   const handleMatchingSelect = (leftIndex: number, rightIndex: number) => {
     if (isAnswered || timedOut) return
-
-    setSelectedAnswers((prev: number[]) => {
+    setSelectedAnswers((prev) => {
       const newAnswers = [...prev]
-      while (newAnswers.length <= leftIndex) {
-        newAnswers.push(-1)
-      }
+      while (newAnswers.length <= leftIndex) newAnswers.push(-1)
       newAnswers[leftIndex] = rightIndex
       return newAnswers
     })
   }
 
-  const handleSubmit = () => {
+  const handleSubmitSingle = () => {
     if (timedOut) return
-    if (currentQuestion.isMatching) {
-      const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
-      const allMatched = leftAnswers.every((_, leftIdx) => 
-        selectedAnswers[leftIdx] !== undefined && selectedAnswers[leftIdx] !== -1
-      )
-      if (!allMatched) return
-    } else if (selectedAnswers.length === 0) {
-      return
-    }
+    if (!canSubmitQuestionSelection(currentQuestion, selectedAnswers)) return
 
     const correct = calculateScore(currentQuestion, selectedAnswers)
     setIsCorrect(correct)
@@ -160,212 +395,399 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
       navigator.vibrate([100, 50, 100])
     }
 
-    const newScore = {
-      correct: correct ? quizData.score.correct + 1 : quizData.score.correct,
-      incorrect: correct ? quizData.score.incorrect : quizData.score.incorrect + 1
-    }
+    const idx = quizData.currentQuestionIndex
+    const pendingAnswers = { ...(quizData.pendingAnswers ?? {}) }
+    delete pendingAnswers[idx]
 
-    const newAnswers = {
-      ...quizData.answers,
-      [quizData.currentQuestionIndex]: {
-        selected: selectedAnswers,
-        correct
-      }
-    }
-
-    const updatedData: QuizData = {
+    persistQuiz({
       ...quizData,
-      score: newScore,
-      answers: newAnswers
-    }
-
-    onUpdateData(updatedData)
-
-    saveProgress({
-      ...updatedData,
-      timestamp: Date.now()
+      pendingAnswers: Object.keys(pendingAnswers).length > 0 ? pendingAnswers : undefined,
+      score: {
+        correct: correct ? quizData.score.correct + 1 : quizData.score.correct,
+        incorrect: correct ? quizData.score.incorrect : quizData.score.incorrect + 1
+      },
+      answers: {
+        ...quizData.answers,
+        [idx]: { selected: selectedAnswers, correct }
+      }
     })
   }
 
-  const handleNext = () => {
+  const handlePrevSingle = () => {
+    goToQuestion(quizData.currentQuestionIndex - 1)
+  }
+
+  const handleNextSkipSingle = () => {
+    goToQuestion(quizData.currentQuestionIndex + 1)
+  }
+
+  const handleNextSingle = () => {
     if (timedOut) return
     const nextIndex = quizData.currentQuestionIndex + 1
-    
     if (nextIndex >= totalQuestions) {
-      finishTest()
-    } else {
-      onUpdateData({
-        ...quizData,
-        currentQuestionIndex: nextIndex
+      finishTest({
+        patch: { answers: quizData.answers, score: quizData.score, pendingAnswers: undefined }
       })
+    } else {
+      goToQuestion(nextIndex)
     }
   }
 
-  const canSubmit = (() => {
-    if (isAnswered || timedOut) return false
-    if (currentQuestion.isMatching) {
-      const leftAnswers = currentQuestion.answers.filter(a => a.isLeftColumn)
-      return leftAnswers.every((_, leftIdx) => 
-        selectedAnswers[leftIdx] !== undefined && selectedAnswers[leftIdx] !== -1
-      )
-    } else if (currentQuestion.isSequence) {
-      return selectedAnswers.filter(a => a !== -1 && a !== undefined).length === currentQuestion.answers.length
-    } else {
-      return selectedAnswers.length > 0
-    }
-  })()
+  const checkedCountSingle = Object.keys(quizData.answers).length
+  const canFinishSingle = checkedCountSingle >= totalQuestions
 
-  const timerUrgent = remainingSeconds !== null && remainingSeconds <= 60 && remainingSeconds > 0
-  const timerDisplay =
-    remainingSeconds !== null ? formatTimerDisplay(remainingSeconds) : null
+  const handleFinishSingle = () => {
+    if (timedOut || !canFinishSingle) return
+    const idx = quizData.currentQuestionIndex
+    const pendingAnswers = buildPendingPatchForIndex(idx, selectedAnswers)
+    finishTest({
+      patch: {
+        answers: quizData.answers,
+        score: quizData.score,
+        pendingAnswers,
+        currentQuestionIndex: idx
+      }
+    })
+  }
+
+  // —— All-questions mode ——
+  const savePendingSelection = (index: number, selected: number[]) => {
+    setDraftAnswers((prev) => ({ ...prev, [index]: selected }))
+    const pendingAnswers = { ...quizData.pendingAnswers, [index]: selected }
+    persistQuiz({ ...quizData, pendingAnswers })
+  }
+
+  const handleAnswerSelectAll = (questionIndex: number, answerIndex: number) => {
+    if (timedOut) return
+    const question = quizData.selectedQuestions[questionIndex]
+    const current = getPendingSelection(questionIndex)
+    let next: number[]
+    if (question.isMultiSelect) {
+      next = current.includes(answerIndex)
+        ? current.filter((i) => i !== answerIndex)
+        : [...current, answerIndex]
+    } else {
+      next = [answerIndex]
+    }
+    savePendingSelection(questionIndex, next)
+  }
+
+  const handleSequenceSelectAll = (questionIndex: number, position: number, answerIndex: number) => {
+    if (timedOut) return
+    const current = [...getPendingSelection(questionIndex)]
+    const prevPosition = current.indexOf(answerIndex)
+    if (prevPosition !== -1) current[prevPosition] = -1
+    while (current.length <= position) current.push(-1)
+    current[position] = answerIndex
+    savePendingSelection(questionIndex, current)
+  }
+
+  const handleMatchingSelectAll = (questionIndex: number, leftIndex: number, rightIndex: number) => {
+    if (timedOut) return
+    const current = [...getPendingSelection(questionIndex)]
+    while (current.length <= leftIndex) current.push(-1)
+    current[leftIndex] = rightIndex
+    savePendingSelection(questionIndex, current)
+  }
+
+  const singleProgress =
+    totalQuestions > 0 ? (checkedCountSingle / totalQuestions) * 100 : 0
+  const allProgress = totalQuestions > 0 ? (answeredCountAll / totalQuestions) * 100 : 0
+  const canSubmitSingle =
+    !isAnswered && !timedOut && canSubmitQuestionSelection(currentQuestion, selectedAnswers)
 
   return (
     <Box
       sx={{
-        minHeight: 'calc(100vh - 64px)',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: { xs: 2, sm: 3 },
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: { xs: 'calc(100dvh - 56px)', sm: 'calc(100vh - 64px)' },
+        background: (theme: Theme) => testPageGradient(theme),
+        py: { xs: 0, sm: 3 }
       }}
     >
-      <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+      <Container
+        maxWidth="lg"
+        disableGutters
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          px: { xs: 0, sm: 2 },
+          pb: { xs: 0, sm: 3 }
+        }}
+      >
         {timedOut && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert severity="warning" sx={{ mx: { xs: 2, sm: 0 }, mt: { xs: 2, sm: 0 }, mb: { xs: 1, sm: 2 } }}>
             {t('test.timer.expired')}
           </Alert>
         )}
 
-        <Card 
-          sx={{ 
-            mb: { xs: 2, sm: 3 },
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            <Box sx={{ mb: { xs: 1.5, sm: 2 }, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 600,
-                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' }
-                }}
-              >
-                {t('test.progress', { current: quizData.currentQuestionIndex + 1, total: totalQuestions })}
-              </Typography>
-              {hasTimer && timerDisplay !== null && (
-                <Chip
-                  icon={<AccessTime sx={{ fontSize: '1rem !important' }} />}
-                  label={timerDisplay}
-                  color={timedOut ? 'error' : timerUrgent ? 'warning' : 'default'}
-                  variant={timedOut || timerUrgent ? 'filled' : 'outlined'}
-                  sx={{
-                    fontWeight: 700,
-                    fontFamily: 'monospace',
-                    fontSize: { xs: '0.95rem', sm: '1.05rem' },
-                    '& .MuiChip-label': { px: 1 }
-                  }}
-                />
-              )}
-            </Box>
-            <Box sx={{ mb: { xs: 1, sm: 1.5 } }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={progress} 
-                sx={{ 
-                  height: { xs: 8, sm: 12 }, 
-                  borderRadius: { xs: 1, sm: 2 },
-                  bgcolor: 'action.hover',
-                  '& .MuiLinearProgress-bar': {
-                    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-                  },
-                }} 
-              />
-            </Box>
-            {hasTimer && quizData.timeLimitSeconds && !timedOut && (
-              <Typography variant="caption" color="text.secondary" align="center" display="block">
-                {t('test.timer.limit', { minutes: Math.round(quizData.timeLimitSeconds / 60) })}
-              </Typography>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card
+        <Box
           sx={{
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            opacity: timedOut ? 0.85 : 1,
-            pointerEvents: timedOut ? 'none' : 'auto',
+            flexShrink: 0,
+            mb: { xs: 0, sm: 3 },
+            ...testPanelSx,
+            borderBottom: { xs: 1, sm: 0 },
+            borderColor: 'divider'
           }}
         >
-          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <QuestionDisplay
-            question={currentQuestion}
-            selectedAnswers={selectedAnswers}
-            isAnswered={isAnswered}
-            isCorrect={isCorrect}
-            onAnswerSelect={handleAnswerSelect}
-            onSequenceSelect={handleSequenceSelect}
-            onMatchingSelect={handleMatchingSelect}
-            questionNumber={currentQuestion.originalIndex !== undefined 
-              ? currentQuestion.originalIndex + 1 
-              : quizData.startIndex + quizData.currentQuestionIndex + 1}
+          <TestPageHeader
+            quizData={quizData}
+            progressValue={isAllMode ? allProgress : singleProgress}
+            progressLabel={
+              isAllMode
+                ? t('test.progressAnswered', { answered: answeredCountAll, total: totalQuestions })
+                : t('test.progressChecked', { checked: checkedCountSingle, total: totalQuestions })
+            }
+            remainingSeconds={remainingSeconds}
+            timedOut={timedOut}
+            hasTimer={hasTimer}
           />
+        </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 3, sm: 4 } }}>
-            {!isAnswered && !timedOut && (
-              <Button
-                variant="contained"
-                size="large"
-                onClick={handleSubmit}
-                disabled={!canSubmit}
-                fullWidth
-                sx={{ 
-                  maxWidth: { xs: '100%', sm: 220 },
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  py: { xs: 1.25, sm: 1.5 },
-                  background: canSubmit 
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : undefined,
-                  '&:hover': canSubmit ? {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #5e35b1 100%)',
-                  } : {},
-                }}
-              >
-                {t('test.checkAnswer')}
-              </Button>
-            )}
-            
-            {isAnswered && !timedOut && (
-              <Button
-                variant="contained"
-                color="success"
-                size="large"
-                onClick={handleNext}
-                fullWidth
-                sx={{ 
-                  maxWidth: { xs: '100%', sm: 220 },
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  py: { xs: 1.25, sm: 1.5 },
-                  background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #43a047 0%, #1b5e20 100%)',
-                  },
-                }}
-              >
-                {quizData.currentQuestionIndex + 1 >= totalQuestions 
-                  ? t('test.viewResults')
-                  : t('test.nextQuestion')}
-              </Button>
-            )}
+        {isAllMode ? (
+          <Box
+            sx={{
+              flex: { xs: 1, sm: 'none' },
+              minHeight: { xs: 0, sm: 'auto' },
+              overflow: { xs: 'auto', sm: 'visible' },
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {quizData.selectedQuestions.map((question, index) => {
+              const selected = getPendingSelection(index)
+
+              return (
+                <Box
+                  key={index}
+                  sx={{
+                    ...testPanelSx,
+                    mb: { xs: 0, sm: 2 },
+                    opacity: timedOut ? 0.85 : 1,
+                    borderBottom: { xs: 1, sm: 0 },
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Box sx={TEST_PANEL_PADDING}>
+                    <QuestionDisplay
+                      question={question}
+                      selectedAnswers={selected}
+                      isAnswered={false}
+                      isCorrect={false}
+                      showAlert={false}
+                      onAnswerSelect={(answerIndex) => handleAnswerSelectAll(index, answerIndex)}
+                      onSequenceSelect={(position, answerIndex) =>
+                        handleSequenceSelectAll(index, position, answerIndex)
+                      }
+                      onMatchingSelect={(leftIndex, rightIndex) =>
+                        handleMatchingSelectAll(index, leftIndex, rightIndex)
+                      }
+                      questionNumber={getQuestionNumber(quizData, index, question)}
+                    />
+                  </Box>
+                </Box>
+              )
+            })}
+
+            <Box
+              sx={{
+                ...testPanelSx,
+                pointerEvents: timedOut ? 'none' : 'auto',
+                pb: 'max(16px, env(safe-area-inset-bottom, 0px))'
+              }}
+            >
+              <Box sx={{ ...TEST_PANEL_PADDING, textAlign: 'center' }}>
+                {!allAnswered && !timedOut && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {t('test.allMode.finishHint', {
+                      remaining: totalQuestions - answeredCountAll
+                    })}
+                  </Typography>
+                )}
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="large"
+                  onClick={() => gradeAndFinishAllMode()}
+                  disabled={!allAnswered || timedOut}
+                  sx={{
+                    background: allAnswered
+                      ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+                      : undefined
+                  }}
+                >
+                  {t('test.allMode.finishTest')}
+                </Button>
+              </Box>
+            </Box>
           </Box>
-        </CardContent>
-      </Card>
+        ) : (
+          <>
+            <Box
+              sx={{
+                flex: { xs: 1, sm: 'none' },
+                minHeight: { xs: 0, sm: 'auto' },
+                overflow: { xs: 'auto', sm: 'visible' },
+                WebkitOverflowScrolling: 'touch',
+                mb: { xs: 0, sm: 3 },
+                ...testPanelSx,
+                opacity: timedOut ? 0.85 : 1,
+                pointerEvents: timedOut ? 'none' : 'auto',
+                borderBottom: { xs: 1, sm: 0 },
+                borderColor: 'divider'
+              }}
+            >
+              <Box sx={{ ...TEST_PANEL_PADDING, p: { xs: 2, sm: 3, md: 4 } }}>
+                <QuestionDisplay
+                  question={currentQuestion}
+                  selectedAnswers={selectedAnswers}
+                  isAnswered={isAnswered}
+                  isCorrect={isCorrect}
+                  onAnswerSelect={handleAnswerSelect}
+                  onSequenceSelect={handleSequenceSelect}
+                  onMatchingSelect={handleMatchingSelect}
+                  questionNumber={getQuestionNumber(
+                    quizData,
+                    quizData.currentQuestionIndex,
+                    currentQuestion
+                  )}
+                />
+
+                {!timedOut && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1,
+                      mt: { xs: 2, sm: 3 },
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      startIcon={<ArrowBack />}
+                      onClick={handlePrevSingle}
+                      disabled={quizData.currentQuestionIndex <= 0}
+                      sx={{
+                        flex: { xs: '1 1 45%', sm: '0 0 auto' },
+                        minWidth: { xs: 0, sm: 120 },
+                        minHeight: { xs: 44, sm: 36 },
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                      }}
+                    >
+                      {t('test.nav.previous')}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      endIcon={<ArrowForward />}
+                      onClick={handleNextSkipSingle}
+                      disabled={quizData.currentQuestionIndex >= totalQuestions - 1}
+                      sx={{
+                        flex: { xs: '1 1 45%', sm: '0 0 auto' },
+                        minWidth: { xs: 0, sm: 120 },
+                        minHeight: { xs: 44, sm: 36 },
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                      }}
+                    >
+                      {t('test.nav.next')}
+                    </Button>
+                  </Box>
+                )}
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    mt: { xs: 2, sm: 3 },
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    pb: { xs: 1, sm: 0 }
+                  }}
+                >
+                  {!isAnswered && !timedOut && (
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={handleSubmitSingle}
+                      disabled={!canSubmitSingle}
+                      fullWidth
+                      sx={{
+                        maxWidth: { xs: '100%', sm: 280 },
+                        background: canSubmitSingle
+                          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                          : undefined
+                      }}
+                    >
+                      {t('test.checkAnswer')}
+                    </Button>
+                  )}
+
+                  {canFinishSingle && !timedOut && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="large"
+                      onClick={handleFinishSingle}
+                      fullWidth
+                      sx={{
+                        maxWidth: { xs: '100%', sm: 280 },
+                        background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+                      }}
+                    >
+                      {t('test.viewResults')}
+                    </Button>
+                  )}
+
+                  {isAnswered && !canFinishSingle && !timedOut && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="large"
+                      onClick={handleNextSingle}
+                      fullWidth
+                      sx={{
+                        maxWidth: { xs: '100%', sm: 280 },
+                        background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+                      }}
+                    >
+                      {t('test.nextQuestion')}
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                flexShrink: 0,
+                mt: { xs: 0, sm: 3 },
+                borderRadius: { xs: 0, sm: 2 },
+                bgcolor: (theme: Theme) => testPanelBackground(theme, 0.98),
+                backdropFilter: 'blur(12px)',
+                pointerEvents: timedOut ? 'none' : 'auto',
+                pb: 'max(10px, env(safe-area-inset-bottom, 0px))'
+              }}
+            >
+              <Box sx={{ px: { xs: 1.5, sm: 2.5 }, py: { xs: 1, sm: 1.5 } }}>
+                <SingleModeQuestionNav
+                  total={totalQuestions}
+                  currentIndex={quizData.currentQuestionIndex}
+                  getQuestionNumber={(index) =>
+                    getQuestionNumber(quizData, index, quizData.selectedQuestions[index])
+                  }
+                  getStatus={getSingleQuestionStatus}
+                  onJump={goToQuestion}
+                  disabled={timedOut}
+                />
+              </Box>
+            </Box>
+          </>
+        )}
       </Container>
     </Box>
   )

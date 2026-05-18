@@ -235,7 +235,7 @@ function App() {
     setShowResumeModal(false)
   }
 
-  const handleTestComplete = (results: QuizResults) => {
+  const handleTestComplete = (results: QuizResults, patch?: Partial<QuizData>) => {
     if (quizData) {
       telegram.haptic.notification('success')
       
@@ -272,8 +272,8 @@ function App() {
         }
       }
       
-      // Normal completion - show results
-      setQuizData({ ...quizData, results })
+      // Normal completion - show results (patch: all-mode grading yozilgan javoblar)
+      setQuizData({ ...quizData, ...patch, results })
       setCurrentPage('results')
     }
   }
@@ -575,7 +575,14 @@ function App() {
           onViewAdminToken={isAdmin ? handleViewAdminToken : undefined}
           onViewAdminUsers={isAdmin ? handleViewAdminUsers : undefined}
         />
-        <Box sx={{ flexGrow: 1 }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0
+          }}
+        >
           <ResumeModal
             open={showResumeModal}
             onResume={handleResumeQuiz}
@@ -621,6 +628,8 @@ function App() {
               nextStartIndex={quizData.results?.nextStartIndex}
               questions={quizData.selectedQuestions}
               answers={quizData.answers}
+              displayMode={quizData.displayMode}
+              startIndex={quizData.startIndex}
               onRestart={handleRestart}
               onNextTest={handleNextTest}
               onRetakeIncorrect={handleRetakeIncorrect}

@@ -46,6 +46,11 @@
     "questionCountPerTest": "Har bir testda",
     "times": "marta",
     "questions": "ta savol",
+    "displayMode": {
+      "label": "Savollarni ko'rsatish",
+      "single": "Har bir savol alohida ekranda",
+      "all": "Barcha savollar bir ekranda"
+    },
     "timer": {
       "enable": "Vaqt chegarasi (ixtiyoriy)",
       "minutes": "Vaqt (daqiqa)",
@@ -96,6 +101,27 @@
   },
   "test": {
     "progress": "Savol {{current}} / {{total}}",
+    "progressAnswered": "Javob berilgan: {{answered}} / {{total}}",
+    "progressChecked": "Tekshirilgan: {{checked}} / {{total}}",
+    "nav": {
+      "previous": "Orqaga",
+      "next": "Keyingi savol",
+      "jumpTo": "{{number}}-savolga o'tish",
+      "statusCorrect": "To'g'ri tekshirilgan",
+      "statusIncorrect": "Noto'g'ri tekshirilgan",
+      "statusDraft": "Tanlangan (tekshirilmagan)",
+      "statusEmpty": "Ishlanmagan",
+      "statusCorrectShort": "To'g'ri",
+      "statusIncorrectShort": "Noto'g'ri",
+      "statusDraftShort": "Tanlangan",
+      "statusEmptyShort": "Bo'sh",
+      "scrollHint": "Ko'proq savollar uchun gorizontal suring",
+      "mapTitle": "Savollar xaritasi"
+    },
+    "allMode": {
+      "finishHint": "Natijani ko'rish uchun yana {{remaining}} ta savolga javob bering",
+      "finishTest": "Testni yakunlash va natijani ko'rish"
+    },
     "questionNumber": "Savol №{{number}}",
     "checkAnswer": "Javobni tekshirish",
     "nextQuestion": "Keyingi savol",
@@ -142,7 +168,10 @@
     "retakeIncorrect": "Noto'g'ri javoblarni qayta o'tish",
     "question": "Savol",
     "yourAnswer": "Sizning javobingiz",
-    "correctAnswer": "To'g'ri javob"
+    "correctAnswer": "To'g'ri javob",
+    "perQuestionReview": "Har bir savol bo'yicha natija",
+    "statusCorrect": "To'g'ri",
+    "statusIncorrect": "Noto'g'ri"
   },
   "resume": {
     "title": "Oldingi test mavjud",
