@@ -1,0 +1,51 @@
+{
+  "tests": [
+    {
+      "name": "Tibbiy kimyo",
+      "subject": "Tibbiy kimyo",
+      "semester": 1,
+      "courses": 1,
+      "institute": "TTDU",
+      "language": "uz",
+      "years": "2025-2026",
+      "is_show": true,
+      "is_new": false,
+      "path": "tests/ttdu/1/tibbiy_kimyo/1_semester/tibbiy_kimyo.docx"
+    },
+    {
+      "name": "Gistologiya",
+      "subject": "Gistologiya",
+      "semester": 3,
+      "courses": 2,
+      "institute": "TMA",
+      "language": "uz/ru",
+      "years": "2025-2026",
+      "is_show": true,
+      "is_new": true,
+      "work_it_all": true,
+      "sub_catalogs": [
+        {
+          "name": "Bir javobli.docx",
+          "path": "tests/tma/2/gistologiya/3_semester/bir_javobli.docx",
+          "is_show": true,
+          "is_new": false
+        },
+        {
+          "name": "Ko'p javobli.docx",
+          "path": "tests/tma/2/gistologiya/3_semester/kop_javobli.docx",
+          "is_show": true,
+          "is_new": false
+        }
+      ]
+    },
+    {
+      "name": "Tashqi havola (Google Drive)",
+      "subject": "Namuna",
+      "institute": "TTDU",
+      "language": "uz",
+      "is_show": true,
+      "path": "https://docs.google.com/document/d/YOUR_FILE_ID/edit",
+      "fileType": "docx"
+    }
+  ]
+}

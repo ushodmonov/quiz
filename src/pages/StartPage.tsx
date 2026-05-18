@@ -47,7 +47,7 @@ interface StartPageProps {
 
 export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
   const { t } = useTranslation()
-  const [tabValue, setTabValue] = useState(1)
+  const [tabValue, setTabValue] = useState(0)
   const [files, setFiles] = useState<File[]>([])
   const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(null)
   const [testCatalog, setTestCatalog] = useState<TestCatalogItem[]>([])

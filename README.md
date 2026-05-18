@@ -21,21 +21,43 @@ Quiz veb-sayti - TXT va Word fayllardan savollar yuklab, testlar ishlatish imkon
 
 ## Test katalogini qo'shish
 
-1. DOCX fayllarni `public/assets/` papkasiga qo'ying
-2. Katalogni avtomatik generate qiling:
+Repozitoriyada tayyor katalog yo'q. Katalogni siz o'zingiz qo'shasiz.
+
+### 1-usul: namuna fayldan
+
+```bash
+cp example/test-catalog.json public/assets/test-catalog.json
+```
+
+Keyin `example/test-catalog.json` dagi `path` larni o'z fayllaringizga moslang. Fayllar `public/assets/` ichida bo'lishi kerak (masalan, `path: "tests/ttdu/1/fan/test.docx"` → fayl joyi: `public/assets/tests/ttdu/1/fan/test.docx`).
+
+### 2-usul: avtomatik generate
+
+1. DOCX/TXT/XLSX fayllarni `public/assets/` (odatda `public/assets/tests/...`) ichiga qo'ying.
+2. Katalogni yarating:
 
 ```bash
 npm run generate-catalog
 ```
 
-Bu komanda `public/assets/` papkasidagi barcha DOCX fayllarni topadi va `test-catalog.json` faylini avtomatik yaratadi. Har bir fayl uchun:
-- **id**: Fayl nomidan avtomatik generate qilinadi (masalan: `tibbiy_kimyo_1_1.docx` → `tibbiy-kimyo-1-1`)
-- **name**: Fayl nomidan avtomatik generate qilinadi (masalan: `tibbiy_kimyo_1_1.docx` → `Tibbiy Kimyo 1 1`)
-- **fileName**: Fayl nomi
-- **questionCount**: 0 (qo'lda yangilash mumkin)
-- **description**: Bo'sh (qo'lda qo'shish mumkin)
+Bu komanda `public/assets/` papkasidagi fayllarni topadi va `public/assets/test-catalog.json` ni yozadi.
 
-3. Agar kerak bo'lsa, `public/assets/test-catalog.json` faylini ochib, `questionCount` va `description` ni qo'lda yangilang.
+### Katalog maydonlari (qisqacha)
+
+| Maydon | Tavsif |
+|--------|--------|
+| `name` | UI da ko'rinadigan nom |
+| `path` | `public/assets/` ga nisbatan yo'l yoki Google Drive/Docs havolasi |
+| `fileType` | `txt`, `docx`, `xlsx` (ixtiyoriy, URL uchun foydali) |
+| `institute`, `courses`, `semester`, `language`, `years` | Filter va ko'rinish uchun |
+| `is_show` | `false` bo'lsa katalogda yashirin |
+| `is_new` | `true` bo'lsa "YANGI" belgisi |
+| `work_it_all` | `sub_catalogs` bo'lganda barcha sub-testlarni birga yuklash |
+| `sub_catalogs` | Ichki testlar ro'yxati (har biri o'z `path` bilan) |
+
+`id` maydoni ixtiyoriy — ilova `path` / `subject` / `name` dan avtomatik yaratadi.
+
+To'liq namuna: [`example/test-catalog.json`](example/test-catalog.json).
 
 ## O'rnatish
 
