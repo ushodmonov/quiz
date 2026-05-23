@@ -1,6 +1,7 @@
 export interface Answer {
   text: string
   isCorrect: boolean
+  imageData?: string // base64 data URL for image-based answers (e.g. formulas)
   orderNumber?: number // For sequence questions - the correct order position
   matchIndex?: number // For matching questions - the index of the matching answer (0-based)
   matchVariants?: Record<number, number>[] // For matching questions - multiple correct matching variants

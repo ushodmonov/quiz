@@ -542,17 +542,24 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
                   )
                 }
                 label={
-                  <Typography 
+                  <Typography
                     variant="body1"
-                    sx={{ 
-                      cursor: isAnswered ? 'default' : 'pointer', 
-                      width: '100%', 
+                    component="div"
+                    sx={{
+                      cursor: isAnswered ? 'default' : 'pointer',
+                      width: '100%',
                       userSelect: 'none',
                       fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                       lineHeight: { xs: 1.3, sm: 1.4 }
                     }}
                   >
-                    {answerParts.map((part, idx) => {
+                    {answer.imageData ? (
+                      <img
+                        src={answer.imageData}
+                        alt={answer.text || 'formula'}
+                        style={{ maxWidth: '100%', maxHeight: 80, verticalAlign: 'middle', display: 'block' }}
+                      />
+                    ) : answerParts.map((part, idx) => {
                       if (part.type === 'inlineMath') {
                         try {
                           return <InlineMath key={idx} math={part.content} />

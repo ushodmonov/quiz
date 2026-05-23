@@ -589,8 +589,188 @@ function parseTableFromHTML(html: string): { index: string, isCorrect: boolean, 
 }
 
 /**
- * Parse questions from DOCX file with table format support
+ * Parse DOCX with 6-column TFKU table format using JSZip:
+ * Qiyinlik darajasi | Test topshirig'i | To'g'ri javob | Muqobil javob x3
+ *
+ * Cells can contain plain text OR embedded images (OLE Equation / PNG).
+ * PNG/JPEG images are extracted as base64 data URLs (imageData on Answer).
+ * WMF images (Equation Editor 3.0) are rendered to PNG via the `wmf` package.
+ * If rendering fails, the cell falls back to text="[formula]".
  */
+async function parseDocxTfkuTableFormat(arrayBuffer: ArrayBuffer): Promise<Question[]> {
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(arrayBuffer)
+
+  // Build rId -> zip path map from relationships file
+  const relsText = await zip.file('word/_rels/document.xml.rels')?.async('text')
+  const rIdMap: Record<string, string> = {}
+  if (relsText) {
+    const parser = new DOMParser()
+    const relsDoc = parser.parseFromString(relsText, 'application/xml')
+    for (const rel of Array.from(relsDoc.querySelectorAll('Relationship'))) {
+      const id = rel.getAttribute('Id')
+      const target = rel.getAttribute('Target')
+      if (id && target) rIdMap[id] = target
+    }
+  }
+
+  // Helper: extract image from zip entry as base64 data URL
+  async function extractImageDataUrl(zipPath: string): Promise<string | null> {
+    const entry = zip.file(`word/${zipPath}`)
+    if (!entry) return null
+    const lower = zipPath.toLowerCase()
+
+    // WMF: render to canvas via wmf package (loaded as raw JS, exports global var WMF)
+    if (lower.endsWith('.wmf')) {
+      try {
+        const { default: wmfRaw } = await import('wmf/dist/wmf.js?raw')
+        // Patch: skip invalid/unrecognised META_ESCAPE records instead of throwing.
+        // throw"Escape:..." ends with ; or } — keep the terminator to preserve block structure.
+        const wmfSrc = wmfRaw.replace(/throw"Escape:[^};]*([;}])/g, (_m, t) => `t.l=d;break${t}`)
+        // eslint-disable-next-line no-new-func
+        const wmf = new Function(wmfSrc + '\nreturn WMF;')() as {
+          image_size: (d: Uint8Array) => [number, number]
+          draw_canvas: (d: Uint8Array, c: HTMLCanvasElement) => void
+        }
+        let bytes = await entry.async('uint8array')
+        // Placeable WMF (APM) has a 22-byte header before standard WMF; skip it
+        const APM_MAGIC = 0x9AC6CDD7
+        const magic = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)
+        if ((magic >>> 0) === APM_MAGIC) bytes = bytes.slice(22)
+        const size = wmf.image_size(bytes)
+        if (!size || isNaN(size[0]) || isNaN(size[1]) || size[0] <= 0 || size[1] <= 0) return null
+        const canvas = document.createElement('canvas')
+        canvas.width = size[0]
+        canvas.height = size[1]
+        wmf.draw_canvas(bytes, canvas)
+        return canvas.toDataURL('image/png')
+      } catch {
+        return null
+      }
+    }
+
+    let mimeType = ''
+    if (lower.endsWith('.png')) mimeType = 'image/png'
+    else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) mimeType = 'image/jpeg'
+    else if (lower.endsWith('.gif')) mimeType = 'image/gif'
+    else if (lower.endsWith('.svg')) mimeType = 'image/svg+xml'
+    else return null
+    const base64 = await entry.async('base64')
+    return `data:${mimeType};base64,${base64}`
+  }
+
+  // Parse document.xml
+  const docXml = await zip.file('word/document.xml')?.async('text')
+  if (!docXml) return []
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(docXml, 'application/xml')
+
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+  const R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+
+  const tables = doc.getElementsByTagNameNS(W, 'tbl')
+  if (!tables.length) return []
+
+  // Find the table with the TFKU header
+  let targetTable: Element | null = null
+  for (const table of Array.from(tables)) {
+    const firstRow = table.getElementsByTagNameNS(W, 'tr')[0]
+    if (!firstRow) continue
+    const cells = firstRow.getElementsByTagNameNS(W, 'tc')
+    if (cells.length < 4) continue
+    const cellTexts = Array.from(cells).map(c =>
+      Array.from(c.getElementsByTagNameNS(W, 't'))
+        .map(t => t.textContent || '')
+        .join('')
+        .trim()
+    )
+    const hasTogri = cellTexts.some(t => /to.?g.?ri\s*javob/i.test(t))
+    const hasMuqobil = cellTexts.some(t => /muqobil\s*javob/i.test(t))
+    if (hasTogri && hasMuqobil) {
+      targetTable = table
+      break
+    }
+  }
+  if (!targetTable) return []
+
+  const rows = Array.from(targetTable.getElementsByTagNameNS(W, 'tr'))
+  const questions: Question[] = []
+
+  for (let ri = 1; ri < rows.length; ri++) {
+    const row = rows[ri]
+    const cells = Array.from(row.getElementsByTagNameNS(W, 'tc'))
+    if (cells.length < 4) continue
+
+    // Extract text and optional image from a single cell
+    async function parseCell(cell: Element): Promise<{ text: string; imageData?: string }> {
+      const text = Array.from(cell.getElementsByTagNameNS(W, 't'))
+        .map(t => t.textContent || '')
+        .join('')
+        .trim()
+
+      if (text) return { text }
+
+      // Look for image references (imagedata element in VML or drawing)
+      const allElements = Array.from(cell.getElementsByTagName('*'))
+      for (const el of allElements) {
+        // VML imagedata uses r:id; DrawingML blip uses r:embed
+        const rid =
+          el.getAttributeNS(R, 'id') ||
+          el.getAttributeNS(R, 'embed') ||
+          el.getAttribute('r:id') ||
+          el.getAttribute('r:embed')
+        if (!rid) continue
+        const zipPath = rIdMap[rid]
+        if (!zipPath) continue
+        const dataUrl = await extractImageDataUrl(zipPath)
+        if (dataUrl) return { text: '', imageData: dataUrl }
+      }
+
+      // WMF or unrecognised OLE — return placeholder text
+      const hasOle = cell.querySelector
+        ? cell.querySelector('[ProgID]') !== null || allElements.some(e => e.nodeName.includes('OLEObject'))
+        : false
+      if (hasOle || allElements.some(e => e.nodeName === 'o:OLEObject' || e.getAttribute?.('ProgID') === 'Equation.3')) {
+        return { text: '[formula]' }
+      }
+
+      return { text: '' }
+    }
+
+    const [diffCell, qCell, ...answerCells] = cells
+    const questionText = fixEncoding(
+      Array.from(qCell.getElementsByTagNameNS(W, 't'))
+        .map(t => t.textContent || '')
+        .join('')
+        .trim()
+    )
+    if (!questionText) continue
+
+    const parsedAnswers = await Promise.all(answerCells.slice(0, 4).map(parseCell))
+
+    // First answerCell = correct answer
+    const answers: Answer[] = []
+    for (let i = 0; i < parsedAnswers.length; i++) {
+      const { text, imageData } = parsedAnswers[i]
+      if (!text && !imageData) continue
+      answers.push({
+        text: fixEncoding(text),
+        isCorrect: i === 0,
+        ...(imageData ? { imageData } : {})
+      })
+    }
+
+    void diffCell // difficulty level — not used by quiz engine yet
+
+    if (answers.length >= 2) {
+      questions.push({ text: questionText, answers })
+    }
+  }
+
+  return questions
+}
+
 /**
  * Parse DOCX file from ArrayBuffer
  */
@@ -598,17 +778,25 @@ export async function parseDocxFileFromBuffer(arrayBuffer: ArrayBuffer): Promise
   // Get raw text for question text extraction
   const textResult = await mammoth.extractRawText({ arrayBuffer })
   let rawText = textResult.value
-  
+
   // Fix encoding issues before parsing
   rawText = fixEncoding(rawText)
-  
+
   // Check if content uses the new format (==== and ++++ separators)
   // If so, use parseTxtFile directly as it handles this format
   const hasNewFormat = rawText.includes('====') && rawText.includes('++++')
   if (hasNewFormat) {
     return parseTxtFile(rawText)
   }
-  
+
+  // Detect TFKU 6-column table format (To'g'ri javob | Muqobil javob)
+  const hasTfkuTableFormat =
+    /to.?g.?ri\s*javob/i.test(rawText) && /muqobil\s*javob/i.test(rawText)
+  if (hasTfkuTableFormat) {
+    const result = await parseDocxTfkuTableFormat(arrayBuffer)
+    if (result.length > 0) return result
+  }
+
   // Get HTML to extract table structure
   let htmlResult
   try {
