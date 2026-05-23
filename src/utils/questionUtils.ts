@@ -14,22 +14,70 @@ export function selectQuestions(
     return questions.slice(startIndex, end)
   } else {
     const availableIndices: number[] = []
-    // If endIndex is provided, use it; otherwise use questions.length
-    const maxIndex = endIndex !== null && endIndex !== undefined 
+    const maxIndex = endIndex !== null && endIndex !== undefined
       ? Math.min(endIndex, questions.length - 1)
       : questions.length - 1
-    
+
     for (let i = startIndex; i <= maxIndex; i++) {
       availableIndices.push(i)
     }
-    
-    const selectedIndices: number[] = []
-    const shuffled = [...availableIndices].sort(() => Math.random() - 0.5)
-    
-    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
-      selectedIndices.push(shuffled[i])
+
+    const actualCount = Math.min(count, availableIndices.length)
+    const hasDifficulty = availableIndices.some(i => questions[i].difficulty)
+
+    let selectedIndices: number[]
+
+    if (hasDifficulty) {
+      // Stratified sampling: pick proportionally from each difficulty group
+      const groups: Record<string, number[]> = { '1': [], '2': [], '3': [], 'none': [] }
+      for (const idx of availableIndices) {
+        const d = questions[idx].difficulty
+        groups[d ? String(d) : 'none'].push(idx)
+      }
+
+      const activeGroups = Object.entries(groups).filter(([, indices]) => indices.length > 0)
+      const total = availableIndices.length
+
+      // Proportional floor allocation
+      const allocs = activeGroups.map(([key, indices]) => ({
+        key,
+        indices,
+        allocated: Math.floor(actualCount * indices.length / total),
+      }))
+
+      // Distribute remainder to groups with largest fractional parts
+      let remainder = actualCount - allocs.reduce((s, g) => s + g.allocated, 0)
+      activeGroups
+        .map(([, indices], i) => ({
+          i,
+          frac: (actualCount * indices.length / total) % 1,
+        }))
+        .sort((a, b) => b.frac - a.frac)
+        .forEach(({ i }) => { if (remainder-- > 0) allocs[i].allocated++ })
+
+      // Pick randomly from each group; overflow goes to a shared pool
+      const pickedIndices: number[] = []
+      const leftoverPool: number[] = []
+
+      for (const { indices, allocated } of allocs) {
+        const shuffledGroup = [...indices].sort(() => Math.random() - 0.5)
+        pickedIndices.push(...shuffledGroup.slice(0, allocated))
+        leftoverPool.push(...shuffledGroup.slice(allocated))
+      }
+
+      // Fill any shortfall from leftover pool (shouldn't normally happen)
+      const shortfall = actualCount - pickedIndices.length
+      if (shortfall > 0) {
+        leftoverPool.sort(() => Math.random() - 0.5)
+        pickedIndices.push(...leftoverPool.slice(0, shortfall))
+      }
+
+      selectedIndices = pickedIndices.sort(() => Math.random() - 0.5)
+    } else {
+      const shuffled = [...availableIndices].sort(() => Math.random() - 0.5)
+      selectedIndices = shuffled.slice(0, actualCount)
     }
-    
+
     return selectedIndices.map(index => ({
       ...questions[index],
       originalIndex: index

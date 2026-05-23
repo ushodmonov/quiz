@@ -15,6 +15,7 @@ export interface Question {
   isSequence?: boolean // For sequence/ordering questions
   isMatching?: boolean // For matching questions
   originalIndex?: number
+  difficulty?: 1 | 2 | 3 // Qiyinlik darajasi: 1=oson, 2=o'rta, 3=qiyin
 }
 
 /** `single` — har bir savol alohida ekranda; `all` — barcha savollar bir ekranda. */

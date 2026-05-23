@@ -216,12 +216,33 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
           color={formatInfo.color}
           size="small"
           variant="outlined"
-          sx={{ 
+          sx={{
             fontSize: { xs: '0.7rem', sm: '0.75rem' },
             height: { xs: 24, sm: 28 },
             fontWeight: 600
           }}
         />
+        {question.difficulty && (
+          <Chip
+            label={
+              question.difficulty === 1 ? t('difficulty.easy', 'Oson') :
+              question.difficulty === 2 ? t('difficulty.medium', "O'rta") :
+              t('difficulty.hard', 'Qiyin')
+            }
+            size="small"
+            variant="filled"
+            sx={{
+              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+              height: { xs: 24, sm: 28 },
+              fontWeight: 700,
+              bgcolor:
+                question.difficulty === 1 ? 'success.main' :
+                question.difficulty === 2 ? 'warning.main' :
+                'error.main',
+              color: 'white',
+            }}
+          />
+        )}
       </Box>
       <Typography 
         variant="h5" 

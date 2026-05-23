@@ -761,10 +761,14 @@ async function parseDocxTfkuTableFormat(arrayBuffer: ArrayBuffer): Promise<Quest
       })
     }
 
-    void diffCell // difficulty level — not used by quiz engine yet
+    const diffText = Array.from(diffCell.getElementsByTagNameNS(W, 't'))
+      .map(t => t.textContent || '').join('').trim()
+    const difficulty = (diffText === '1' || diffText === '2' || diffText === '3')
+      ? (parseInt(diffText) as 1 | 2 | 3)
+      : undefined
 
     if (answers.length >= 2) {
-      questions.push({ text: questionText, answers })
+      questions.push({ text: questionText, answers, ...(difficulty ? { difficulty } : {}) })
     }
   }
 
