@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment, useMemo } from 'react'
+import { useState, useEffect, Fragment, useMemo, useRef } from 'react'
 import {
   Container,
   Card,
@@ -24,7 +24,6 @@ import {
   ListItemText,
   Divider,
   InputAdornment,
-  Pagination,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -63,7 +62,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [error, setError] = useState('')
   const [catalogSearchQuery, setCatalogSearchQuery] = useState('')
-  const [catalogPage, setCatalogPage] = useState(1)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [selectedInstitute, setSelectedInstitute] = useState<string>('')
   const [selectedCourse, setSelectedCourse] = useState<string>('')
@@ -355,23 +353,34 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     return filtered
   }, [testCatalog, catalogSearchQuery, selectedInstitute, selectedCourse, selectedLanguage])
 
-  // Pagination for catalog
-  const catalogTotalPages = Math.max(1, Math.ceil(filteredCatalog.length / TESTS_PER_PAGE))
-  const catalogStartIndex = (catalogPage - 1) * TESTS_PER_PAGE
-  const catalogEndIndex = catalogStartIndex + TESTS_PER_PAGE
-  const paginatedCatalog = filteredCatalog.slice(catalogStartIndex, catalogEndIndex)
+  // Infinity scroll for catalog
+  const [catalogLoadedCount, setCatalogLoadedCount] = useState(TESTS_PER_PAGE)
+  const catalogSentinelRef = useRef<HTMLDivElement>(null)
+  const visibleCatalog = filteredCatalog.slice(0, catalogLoadedCount)
+  const hasMoreCatalog = catalogLoadedCount < filteredCatalog.length
 
-  // Reset page if current page is out of bounds
+  // Reset visible count when filter/search changes
   useEffect(() => {
-    if (catalogPage > catalogTotalPages && catalogTotalPages > 0) {
-      setCatalogPage(catalogTotalPages)
-    }
-  }, [catalogPage, catalogTotalPages])
+    setCatalogLoadedCount(TESTS_PER_PAGE)
+  }, [catalogSearchQuery, selectedInstitute, selectedCourse, selectedLanguage])
 
-  // Reset to page 1 when search query or institute changes
+  // IntersectionObserver — load next batch
   useEffect(() => {
-    setCatalogPage(1)
-  }, [catalogSearchQuery, selectedInstitute])
+    const sentinel = catalogSentinelRef.current
+    if (!sentinel || !hasMoreCatalog) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setCatalogLoadedCount((prev) => Math.min(prev + TESTS_PER_PAGE, filteredCatalog.length))
+        }
+      },
+      { rootMargin: '400px 0px' }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMoreCatalog, filteredCatalog.length])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -609,44 +618,30 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
         minHeight: 'calc(100vh - 128px)',
         display: 'flex',
         alignItems: 'center',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4,
+        bgcolor: 'background.default',
+        py: { xs: 2, sm: 4 },
       }}
     >
       <Container maxWidth="md" sx={{ px: { xs: 1, sm: 2 } }}>
-        <Card
-          sx={{
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
+        <Card>
           <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-            <Typography 
-              variant="h4" 
-              component="h1" 
-              gutterBottom 
-              align="center" 
-              sx={{ 
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              align="center"
+              sx={{
                 mb: { xs: 3, sm: 4 },
                 fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'linear-gradient(135deg, #90caf9 0%, #f48fb1 100%)'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontWeight: 800,
+                color: 'primary.main',
+                fontWeight: 500,
               }}
             >
               {t('start.title')}
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Tabs 
-                value={tabValue} 
+            <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={tabValue}
                 onChange={(_, newValue) => {
                   setTabValue(newValue)
                   setFiles([])
@@ -656,6 +651,14 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   setEndQuestion('')
                   setEndQuestionError('')
                 }}
+                variant="fullWidth"
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: { xs: '0.85rem', sm: '0.95rem' },
+                  },
+                }}
               >
                 <Tab label={t('start.selectFile')} />
                 <Tab label={t('start.selectFromCatalog')} />
@@ -663,19 +666,22 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
             </Box>
 
             {tabValue === 0 && (
-              <Box 
-                sx={{ 
+              <Box
+                sx={{
                   mb: { xs: 2, sm: 3 },
-                  p: { xs: 2, sm: 3 },
-                  border: '2px dashed',
-                  borderColor: 'primary.main',
-                  borderRadius: { xs: 2, sm: 3 },
-                  bgcolor: 'action.hover',
-                  transition: 'all 0.3s',
+                  p: { xs: 2.5, sm: 3.5 },
+                  border: '1.5px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  bgcolor: 'background.default',
+                  textAlign: 'center',
+                  transition: 'border-color 0.2s ease, background-color 0.2s ease',
                   '&:hover': {
-                    borderColor: 'primary.dark',
-                    bgcolor: 'action.selected',
-                    transform: { xs: 'none', sm: 'scale(1.01)' },
+                    borderColor: 'primary.main',
+                    bgcolor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(138,180,248,0.06)'
+                        : 'rgba(26,115,232,0.04)',
                   },
                 }}
               >
@@ -688,39 +694,54 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   onChange={handleFileChange}
                   disabled={loading}
                 />
+                <CloudUpload
+                  sx={{
+                    fontSize: { xs: 36, sm: 44 },
+                    color: 'primary.main',
+                    mb: 1,
+                  }}
+                />
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1.5, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                >
+                  {t('start.fileFormats') || 'TXT, DOCX, XLSX'}
+                </Typography>
                 <label htmlFor="file-upload">
                   <Button
                     variant="contained"
                     component="span"
                     startIcon={<CloudUpload />}
-                    fullWidth
                     disabled={loading}
-                    sx={{ 
-                      py: { xs: 1.5, sm: 2 },
-                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                    }}
+                    sx={{ fontSize: { xs: '0.875rem', sm: '0.9rem' } }}
                   >
                     {t('start.selectFile')}
                   </Button>
                 </label>
                 {files.length > 0 && (
-                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
                       {files.map((file, index) => (
-                        <Chip 
+                        <Chip
                           key={index}
-                          label={file.name} 
-                          color="primary" 
-                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                          label={file.name}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          icon={<Description sx={{ fontSize: '0.9rem !important' }} />}
+                          sx={{ fontSize: '0.8rem' }}
                         />
                       ))}
                     </Box>
                     {allQuestions.length > 0 && (
                       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <Chip 
-                          label={`${t('start.totalQuestions')}: ${allQuestions.length}`} 
+                        <Chip
+                          label={`${t('start.totalQuestions')}: ${allQuestions.length}`}
+                          size="small"
                           color="success"
-                          sx={{ fontSize: '0.9rem', fontWeight: 600 }}
+                          variant="filled"
+                          sx={{ fontSize: '0.8rem' }}
                         />
                       </Box>
                     )}
@@ -741,29 +762,35 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   </Alert>
                 ) : (
                   <>
-                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 600 }}>
-                        {t('start.selectFromCatalog')}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip 
-                          label={`${testCatalog.length} ${testCatalog.length === 1 ? t('start.test') : t('start.tests')}`}
+                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                        <Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', sm: '1.15rem' }, fontWeight: 500, color: 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {t('start.selectFromCatalog')}
+                        </Typography>
+                        <Chip
+                          label={testCatalog.length}
                           color="primary"
                           variant="outlined"
-                          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
+                          size="small"
+                          sx={{ fontSize: '0.75rem', fontWeight: 500, height: 22 }}
                         />
-                        <Button
-                          variant="outlined"
-                          startIcon={<FilterList />}
-                          onClick={() => setShowFilters(!showFilters)}
-                          sx={{ 
-                            minWidth: 'auto',
-                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                          }}
-                        >
-                          {t('start.filter.title') || 'Filter'}
-                        </Button>
                       </Box>
+                      <Button
+                        variant={showFilters ? 'contained' : 'outlined'}
+                        startIcon={<FilterList />}
+                        onClick={() => setShowFilters(!showFilters)}
+                        size="small"
+                        sx={{
+                          minWidth: 'auto',
+                          fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                          flexShrink: 0,
+                          '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.5 } },
+                        }}
+                      >
+                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                          {t('start.filter.title') || 'Filter'}
+                        </Box>
+                      </Button>
                     </Box>
                     
                     {/* Institute Tabs */}
@@ -773,7 +800,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                           value={selectedInstitute || 'all'}
                           onChange={(_, newValue) => {
                             setSelectedInstitute(newValue === 'all' ? '' : newValue)
-                            setCatalogPage(1) // Reset to first page when tab changes
                           }}
                           variant="scrollable"
                           scrollButtons="auto"
@@ -801,11 +827,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                     <Chip
                                       label={t('start.new') || 'YANGI'}
                                       size="small"
-                                      color="error"
-                                      sx={{ 
-                                        fontSize: '0.6rem', 
+                                      color="success"
+                                      variant="filled"
+                                      sx={{
+                                        fontSize: '0.6rem',
                                         height: 16,
-                                        fontWeight: 700,
+                                        fontWeight: 500,
                                         minWidth: 'auto',
                                         px: 0.5
                                       }}
@@ -843,7 +870,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                               value={selectedCourse}
                               onChange={(e) => {
                                 setSelectedCourse(e.target.value)
-                                setCatalogPage(1) // Reset to first page when filter changes
                               }}
                               label={t('start.filter.course') || 'Kurs'}
                             >
@@ -864,7 +890,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                               value={selectedLanguage}
                               onChange={(e) => {
                                 setSelectedLanguage(e.target.value)
-                                setCatalogPage(1) // Reset to first page when filter changes
                               }}
                               label={t('start.filter.language') || 'Til'}
                             >
@@ -900,7 +925,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                       <>
                         <Card variant="outlined">
                           <List>
-                            {paginatedCatalog.map((test, index) => {
+                            {visibleCatalog.map((test, index) => {
                               const hasSubs = hasSubCatalogs(test)
                               const subCatalogs = getSubCatalogs(test)
                               const isExpanded = expandedCategories.has(test.id)
@@ -939,12 +964,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                     <Chip
                                                       label={t('start.new') || 'YANGI'}
                                                       size="small"
-                                                      color="error"
-                                                      sx={{ 
-                                                        fontSize: '0.65rem', 
+                                                      color="success"
+                                                      variant="filled"
+                                                      sx={{
+                                                        fontSize: '0.65rem',
                                                         height: 18,
-                                                        fontWeight: 700,
-                                                        animation: 'pulse 2s infinite'
+                                                        fontWeight: 500,
                                                       }}
                                                     />
                                                   )}
@@ -1008,11 +1033,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                             <Chip
                                                               label={t('start.new') || 'YANGI'}
                                                               size="small"
-                                                              color="error"
-                                                              sx={{ 
-                                                                fontSize: '0.65rem', 
+                                                              color="success"
+                                                              variant="filled"
+                                                              sx={{
+                                                                fontSize: '0.65rem',
                                                                 height: 18,
-                                                                fontWeight: 700
+                                                                fontWeight: 500
                                                               }}
                                                             />
                                                           )}
@@ -1059,11 +1085,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                                 <Chip
                                                   label={t('start.new') || 'YANGI'}
                                                   size="small"
-                                                  color="error"
-                                                  sx={{ 
-                                                    fontSize: '0.65rem', 
+                                                  color="success"
+                                                  variant="filled"
+                                                  sx={{
+                                                    fontSize: '0.65rem',
                                                     height: 18,
-                                                    fontWeight: 700
+                                                    fontWeight: 500
                                                   }}
                                                 />
                                               )}
@@ -1104,31 +1131,32 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                                       </ListItemButton>
                                     </ListItem>
                                   )}
-                                  {index < paginatedCatalog.length - 1 && <Divider />}
+                                  {index < visibleCatalog.length - 1 && <Divider />}
                                 </Fragment>
                               )
                             })}
                           </List>
                         </Card>
-                        
-                        {catalogTotalPages > 1 && (
-                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                            <Pagination
-                              count={catalogTotalPages}
-                              page={catalogPage}
-                              onChange={(_, page) => setCatalogPage(page)}
-                              color="primary"
-                              size="small"
-                              showFirstButton
-                              showLastButton
-                            />
+
+                        {hasMoreCatalog && (
+                          <Box
+                            ref={catalogSentinelRef}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              py: 2.5,
+                              minHeight: 60,
+                            }}
+                          >
+                            <CircularProgress size={24} thickness={4} />
                           </Box>
                         )}
-                        
-                        {filteredCatalog.length > TESTS_PER_PAGE && (
-                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+
+                        {!hasMoreCatalog && filteredCatalog.length > TESTS_PER_PAGE && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
                             <Typography variant="caption" color="text.secondary">
-                              {t('start.showing') || 'Ko\'rsatilmoqda'}: {catalogStartIndex + 1}-{Math.min(catalogEndIndex, filteredCatalog.length)} {t('start.of') || 'dan'} {filteredCatalog.length}
+                              {visibleCatalog.length} / {filteredCatalog.length}
                             </Typography>
                           </Box>
                         )}
@@ -1183,10 +1211,9 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   {t('start.selectionMethod')}
                 </FormLabel>
                 <RadioGroup
-                  row={false}
                   sx={{
                     flexDirection: { xs: 'column', sm: 'row' },
-                    gap: { xs: 1, sm: 0 }
+                    gap: { xs: 0.5, sm: 2 }
                   }}
                   value={selectionMethod}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectionMethod(e.target.value as 'sequential' | 'random')}
@@ -1448,14 +1475,16 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 size="large"
                 fullWidth
                 onClick={handleStart}
-                disabled={loading}
-                sx={{ 
-                  py: { xs: 1.5, sm: 2 },
-                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #5e35b1 100%)',
-                  },
+                disabled={
+                  loading ||
+                  !!endQuestionError ||
+                  !startQuestion ||
+                  !questionCount ||
+                  (timerEnabled && (!timerMinutes || parseInt(timerMinutes) <= 0))
+                }
+                sx={{
+                  py: { xs: 1.25, sm: 1.5 },
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                 }}
               >
                 {t('start.startTest')}

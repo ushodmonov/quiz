@@ -167,33 +167,59 @@ function convertGoogleUrlToDirectDownload(url: string): string {
 }
 
 /**
- * Simple cache for remote files using localStorage
+ * Simple cache for remote files using localStorage.
+ *
+ * Notes:
+ * - Cache key uses UTF-8 safe encoding (non-Latin1 chars like Uzbek/Cyrillic).
+ * - Binary files larger than MAX_BINARY_CACHE_BYTES are skipped — localStorage
+ *   has a ~5-10 MB quota and base64 inflates by ~33%, so a single multi-MB DOCX
+ *   could fill the whole quota.
  */
 const CACHE_PREFIX = 'quiz_file_cache_'
 const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7 days
+const MAX_BINARY_CACHE_BYTES = 500 * 1024     // 500 KB raw — skip caching larger
+
+function makeCacheKey(filePath: string): string {
+  // btoa() throws on non-Latin1 characters; encode via TextEncoder for UTF-8 safety.
+  const bytes = new TextEncoder().encode(filePath)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  return CACHE_PREFIX + btoa(binary).replace(/[+/=]/g, '')
+}
+
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf)
+  // Process in chunks to avoid call-stack overflow with large buffers
+  const CHUNK = 0x8000
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[])
+  }
+  return btoa(binary)
+}
+
+function base64ToArrayBuffer(b64: string): ArrayBuffer {
+  const binary = atob(b64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes.buffer
+}
 
 function getCachedFile(filePath: string): { data: string | ArrayBuffer, type: 'text' | 'buffer' } | null {
   try {
-    const cacheKey = CACHE_PREFIX + btoa(filePath).replace(/[+/=]/g, '')
+    const cacheKey = makeCacheKey(filePath)
     const cached = localStorage.getItem(cacheKey)
     if (!cached) return null
-    
+
     const { data, type, timestamp } = JSON.parse(cached)
     if (Date.now() - timestamp > CACHE_EXPIRY) {
       localStorage.removeItem(cacheKey)
       return null
     }
-    
+
     if (type === 'buffer') {
-      // Convert base64 back to ArrayBuffer
-      const binaryString = atob(data)
-      const bytes = new Uint8Array(binaryString.length)
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-      }
-      return { data: bytes.buffer, type: 'buffer' }
+      return { data: base64ToArrayBuffer(data), type: 'buffer' }
     }
-    
     return { data, type: 'text' }
   } catch {
     return null
@@ -202,30 +228,17 @@ function getCachedFile(filePath: string): { data: string | ArrayBuffer, type: 't
 
 function setCachedFile(filePath: string, data: string | ArrayBuffer, type: 'text' | 'buffer'): void {
   try {
-    const cacheKey = CACHE_PREFIX + btoa(filePath).replace(/[+/=]/g, '')
-    let serialized: string
-    
-    if (type === 'buffer') {
-      // Convert ArrayBuffer to base64
-      const bytes = new Uint8Array(data as ArrayBuffer)
-      let binary = ''
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i])
-      }
-      serialized = btoa(binary)
-    } else {
-      serialized = data as string
+    if (type === 'buffer' && (data as ArrayBuffer).byteLength > MAX_BINARY_CACHE_BYTES) {
+      return // too big — would risk filling the quota
     }
-    
-    const cacheData = {
-      data: serialized,
-      type,
-      timestamp: Date.now()
-    }
-    
-    localStorage.setItem(cacheKey, JSON.stringify(cacheData))
-  } catch (error) {
-    console.warn('Failed to cache file:', error)
+    const cacheKey = makeCacheKey(filePath)
+    const serialized = type === 'buffer'
+      ? arrayBufferToBase64(data as ArrayBuffer)
+      : (data as string)
+
+    localStorage.setItem(cacheKey, JSON.stringify({ data: serialized, type, timestamp: Date.now() }))
+  } catch {
+    // Quota exceeded or other error — silently skip caching
   }
 }
 

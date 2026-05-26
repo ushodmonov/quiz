@@ -9,7 +9,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Divider,
   Switch,
@@ -110,514 +109,261 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
     setDrawerOpen(open)
   }
 
+  const sectionLabelSx = {
+    px: 2,
+    pt: { xs: 1.5, sm: 2 },
+    pb: { xs: 0.5, sm: 0.75 },
+    display: 'block',
+    color: 'text.secondary',
+    fontWeight: 500,
+    fontSize: '0.7rem',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+  }
+
+  const navItemSx = {
+    borderRadius: 2,
+    py: { xs: 0.75, sm: 1 },
+    px: 1.5,
+    transition: 'background-color 0.15s ease',
+    '&:hover': {
+      bgcolor: 'action.hover',
+    },
+  }
+
+  const navIconSx = {
+    minWidth: 0,
+    mr: 2,
+    color: 'text.secondary',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24,
+  }
+
+  const renderLanguageItem = (lang: Language, label: string, flag: string) => {
+    const selected = language === lang
+    return (
+      <ListItem disablePadding sx={{ mb: 0.25 }}>
+        <ListItemButton
+          onClick={() => {
+            handleLanguageSelect(lang)
+            setDrawerOpen(false)
+          }}
+          sx={{
+            ...navItemSx,
+            bgcolor: selected
+              ? (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(138,180,248,0.14)'
+                    : 'rgba(26,115,232,0.08)'
+              : 'transparent',
+            '&:hover': {
+              bgcolor: selected
+                ? (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(138,180,248,0.20)'
+                      : 'rgba(26,115,232,0.12)'
+                : 'action.hover',
+            },
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              fontSize: '1.4rem',
+              lineHeight: 1,
+              mr: 2,
+              width: 24,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {flag}
+          </Box>
+          <ListItemText
+            primary={
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: selected ? 500 : 400,
+                  color: selected ? 'primary.main' : 'text.primary',
+                  fontSize: '0.9rem',
+                }}
+              >
+                {label}
+              </Typography>
+            }
+          />
+          {selected && (
+            <Box sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', ml: 1 }}>
+              {/* Compact check */}
+              <Box component="span" sx={{ fontSize: '1.1rem', lineHeight: 1, fontWeight: 600 }}>✓</Box>
+            </Box>
+          )}
+        </ListItemButton>
+      </ListItem>
+    )
+  }
+
+  const renderNavItem = (
+    icon: React.ReactNode,
+    primary: string,
+    onClick: () => void,
+    secondary?: string,
+  ) => (
+    <ListItem disablePadding sx={{ mb: 0.25 }}>
+      <ListItemButton
+        onClick={() => {
+          onClick()
+          setDrawerOpen(false)
+        }}
+        sx={navItemSx}
+      >
+        <Box sx={navIconSx}>{icon}</Box>
+        <ListItemText
+          primary={
+            <Typography variant="body2" sx={{ fontSize: '0.9rem', color: 'text.primary' }}>
+              {primary}
+            </Typography>
+          }
+          secondary={
+            !isMobile && secondary
+              ? (
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  {secondary}
+                </Typography>
+              )
+              : null
+          }
+        />
+      </ListItemButton>
+    </ListItem>
+  )
+
   const drawerContent = (
-    <Box 
-      sx={{ 
-        width: { xs: '100%', sm: 320 },
+    <Box
+      sx={{
+        width: { xs: '85vw', sm: 320 },
+        maxWidth: 360,
         height: '100%',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)'
-          : 'linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%)',
-      }} 
+        bgcolor: 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
       role="presentation"
     >
       {/* Header */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          p: { xs: 2, sm: 3 },
-          background: (theme) => theme.palette.mode === 'dark'
-            ? 'rgba(102, 126, 234, 0.1)'
-            : 'rgba(102, 126, 234, 0.05)',
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 2,
+          py: 1.5,
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-          <MenuBook sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, color: 'primary.main' }} />
-          <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <MenuBook sx={{ fontSize: '1.5rem', color: 'primary.main' }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
             {t('app.title')}
           </Typography>
         </Box>
-        <IconButton 
-          onClick={toggleDrawer(false)}
-          size={isMobile ? 'small' : 'medium'}
-          sx={{
-            '&:hover': {
-              background: (theme) => theme.palette.mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.1)'
-                : 'rgba(0, 0, 0, 0.05)'
-            }
-          }}
-        >
+        <IconButton onClick={toggleDrawer(false)} size="small">
           <Close />
         </IconButton>
       </Box>
 
-      <List sx={{ px: { xs: 1, sm: 2 }, py: { xs: 1.5, sm: 2 } }}>
-        {/* Language Section */}
-        {!isMobile && (
-          <Typography 
-            variant="overline" 
-            sx={{ 
-              px: { xs: 1, sm: 2 }, 
-              py: { xs: 0.5, sm: 1 }, 
-              display: 'block',
-              color: 'text.secondary',
-              fontWeight: 600,
-              fontSize: { xs: '0.65rem', sm: '0.75rem' },
-              letterSpacing: '0.1em'
-            }}
-          >
-            {t('drawer.language') || 'Til'}
-          </Typography>
-        )}
-        <ListItem disablePadding sx={{ mb: { xs: 0.25, sm: 0.5 } }}>
-          <ListItemButton 
-            onClick={() => {
-              handleLanguageSelect('uz')
-              setDrawerOpen(false)
-            }}
-            sx={{
-              borderRadius: { xs: 1.5, sm: 2 },
-              py: { xs: 0.75, sm: 1 },
-              background: language === 'uz' 
-                ? (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(102, 126, 234, 0.2)'
-                  : 'rgba(102, 126, 234, 0.1)'
-                : 'transparent',
-              '&:hover': {
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.04)',
-                transform: { xs: 'none', sm: 'translateX(4px)' },
-                transition: 'all 0.2s ease'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-              <Box
-                component="span"
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '2rem' },
-                  lineHeight: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: { xs: 32, sm: 40 },
-                  height: { xs: 32, sm: 40 },
-                  borderRadius: '50%',
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.05)',
-                  p: 0.5
-                }}
-              >
-                🇺🇿
-              </Box>
-            </ListItemIcon>
-            <ListItemText 
-              primary={
-                <Typography variant="body2" sx={{ fontWeight: language === 'uz' ? 600 : 400, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                  O'zbek
-                </Typography>
-              }
-              secondary={language === 'uz' ? (isMobile ? '' : (t('drawer.selected') || 'Tanlangan')) : ''}
-              secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-            />
-            {language === 'uz' && (
-              <Box 
-                sx={{ 
-                  color: 'primary.main', 
-                  fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                  ml: 1
-                }}
-              >
-                ✓
-              </Box>
-            )}
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 1 } }}>
-          <ListItemButton 
-            onClick={() => {
-              handleLanguageSelect('ru')
-              setDrawerOpen(false)
-            }}
-            sx={{
-              borderRadius: { xs: 1.5, sm: 2 },
-              py: { xs: 0.75, sm: 1 },
-              background: language === 'ru' 
-                ? (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(102, 126, 234, 0.2)'
-                  : 'rgba(102, 126, 234, 0.1)'
-                : 'transparent',
-              '&:hover': {
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.04)',
-                transform: { xs: 'none', sm: 'translateX(4px)' },
-                transition: 'all 0.2s ease'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-              <Box
-                component="span"
-                sx={{
-                  fontSize: { xs: '1.5rem', sm: '2rem' },
-                  lineHeight: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: { xs: 32, sm: 40 },
-                  height: { xs: 32, sm: 40 },
-                  borderRadius: '50%',
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.05)',
-                  p: 0.5
-                }}
-              >
-                🇷🇺
-              </Box>
-            </ListItemIcon>
-            <ListItemText 
-              primary={
-                <Typography variant="body2" sx={{ fontWeight: language === 'ru' ? 600 : 400, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                  Русский
-                </Typography>
-              }
-              secondary={language === 'ru' ? (isMobile ? '' : (t('drawer.selected') || 'Tanlangan')) : ''}
-              secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-            />
-            {language === 'ru' && (
-              <Box 
-                sx={{ 
-                  color: 'primary.main', 
-                  fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                  ml: 1
-                }}
-              >
-                ✓
-              </Box>
-            )}
-          </ListItemButton>
-        </ListItem>
+      <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <List sx={{ px: 1, py: 1 }}>
+          <Typography sx={sectionLabelSx}>{t('drawer.language') || 'Til'}</Typography>
+          {renderLanguageItem('uz', "O'zbek", '🇺🇿')}
+          {renderLanguageItem('ru', 'Русский', '🇷🇺')}
 
-        <Divider sx={{ my: { xs: 1, sm: 2 }, opacity: 0.5 }} />
+          <Divider sx={{ my: 1 }} />
 
-        {/* Theme Section */}
-        {!isMobile && (
-          <Typography 
-            variant="overline" 
-            sx={{ 
-              px: { xs: 1, sm: 2 }, 
-              py: { xs: 0.5, sm: 1 }, 
-              display: 'block',
-              color: 'text.secondary',
-              fontWeight: 600,
-              fontSize: { xs: '0.65rem', sm: '0.75rem' },
-              letterSpacing: '0.1em'
-            }}
-          >
-            {t('drawer.appearance') || 'Ko\'rinish'}
-          </Typography>
-        )}
-        <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 1 } }}>
-          <ListItemButton
-            sx={{
-              borderRadius: { xs: 1.5, sm: 2 },
-              py: { xs: 0.75, sm: 1 },
-              '&:hover': {
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.08)'
-                  : 'rgba(0, 0, 0, 0.04)',
-                transform: { xs: 'none', sm: 'translateX(4px)' },
-                transition: 'all 0.2s ease'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-              <Box
-                sx={{
-                  width: { xs: 32, sm: 40 },
-                  height: { xs: 32, sm: 40 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.05)',
-                  color: 'primary.main'
-                }}
-              >
-                {themeMode === 'dark' ? <Brightness7 sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} /> : <Brightness4 sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />}
+          <Typography sx={sectionLabelSx}>{t('drawer.appearance') || "Ko'rinish"}</Typography>
+          <ListItem disablePadding sx={{ mb: 0.25 }}>
+            <ListItemButton onClick={onThemeToggle} sx={navItemSx}>
+              <Box sx={navIconSx}>
+                {themeMode === 'dark'
+                  ? <Brightness7 sx={{ fontSize: 22 }} />
+                  : <Brightness4 sx={{ fontSize: 22 }} />}
               </Box>
-            </ListItemIcon>
-            <ListItemText 
-              primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.theme') || 'Tema'}</Typography>}
-              secondary={isMobile ? '' : (themeMode === 'dark' ? t('drawer.dark') || 'Qorong\'i' : t('drawer.light') || 'Yorug\'')}
-              secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-            />
-            <Switch
-              checked={themeMode === 'dark'}
-              onChange={onThemeToggle}
-              color="primary"
-              size={isMobile ? 'small' : 'medium'}
-            />
-          </ListItemButton>
-        </ListItem>
-
-        <Divider sx={{ my: { xs: 1, sm: 2 }, opacity: 0.5 }} />
-
-        {/* Contact Section */}
-        <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
-          <ListItemButton 
-            onClick={() => {
-              setContactModalOpen(true)
-              setDrawerOpen(false)
-            }}
-            sx={{
-              borderRadius: { xs: 1.5, sm: 2 },
-              py: { xs: 0.75, sm: 1 },
-              '&:hover': {
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'rgba(102, 126, 234, 0.2)'
-                  : 'rgba(102, 126, 234, 0.1)',
-                transform: { xs: 'none', sm: 'translateX(4px)' },
-                transition: 'all 0.2s ease'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-              <Box
-                sx={{
-                  width: { xs: 32, sm: 40 },
-                  height: { xs: 32, sm: 40 },
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.05)',
-                  color: 'primary.main'
-                }}
-              >
-                <HelpOutline sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
-              </Box>
-            </ListItemIcon>
-            <ListItemText 
-              primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('footer.contact')}</Typography>}
-              secondary={isMobile ? '' : (t('drawer.contactDescription') || 'Murojaat va yordam')}
-              secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-            />
-          </ListItemButton>
-        </ListItem>
-
-        {/* Test Formats Section */}
-        {onViewFormats && (
-          <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
-            <ListItemButton 
-              onClick={() => {
-                onViewFormats()
-                setDrawerOpen(false)
-              }}
-              sx={{
-                borderRadius: { xs: 1.5, sm: 2 },
-                py: { xs: 0.75, sm: 1 },
-                '&:hover': {
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(102, 126, 234, 0.2)'
-                    : 'rgba(102, 126, 234, 0.1)',
-                  transform: { xs: 'none', sm: 'translateX(4px)' },
-                  transition: 'all 0.2s ease'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-                <Box
-                  sx={{
-                    width: { xs: 32, sm: 40 },
-                    height: { xs: 32, sm: 40 },
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    color: 'primary.main'
-                  }}
-                >
-                  <InfoOutlined sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
-                </Box>
-              </ListItemIcon>
-              <ListItemText 
-                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('formats.title') || 'Formatlar'}</Typography>}
-                secondary={isMobile ? '' : (t('formats.description') || 'Test formatlari haqida ma\'lumot')}
-                secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-              />
-            </ListItemButton>
-          </ListItem>
-        )}
-
-        {onViewAdminToken && (
-          <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
-            <ListItemButton
-              onClick={() => {
-                onViewAdminToken()
-                setDrawerOpen(false)
-              }}
-              sx={{
-                borderRadius: { xs: 1.5, sm: 2 },
-                py: { xs: 0.75, sm: 1 },
-                '&:hover': {
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(102, 126, 234, 0.2)'
-                    : 'rgba(102, 126, 234, 0.1)',
-                  transform: { xs: 'none', sm: 'translateX(4px)' },
-                  transition: 'all 0.2s ease'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-                <Box
-                  sx={{
-                    width: { xs: 32, sm: 40 },
-                    height: { xs: 32, sm: 40 },
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    color: 'primary.main'
-                  }}
-                >
-                  <AdminPanelSettings sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
-                </Box>
-              </ListItemIcon>
               <ListItemText
-                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.adminAddUser')}</Typography>}
-                secondary={isMobile ? '' : t('drawer.adminAddUserDescription')}
-                secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+                primary={
+                  <Typography variant="body2" sx={{ fontSize: '0.9rem', color: 'text.primary' }}>
+                    {t('drawer.theme') || 'Tema'}
+                  </Typography>
+                }
+                secondary={
+                  !isMobile && (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                      {themeMode === 'dark' ? (t('drawer.dark') || "Qorong'i") : (t('drawer.light') || "Yorug'")}
+                    </Typography>
+                  )
+                }
               />
-            </ListItemButton>
-          </ListItem>
-        )}
-
-        {onViewAdminUsers && (
-          <ListItem disablePadding sx={{ mb: { xs: 0.5, sm: 0.5 } }}>
-            <ListItemButton
-              onClick={() => {
-                onViewAdminUsers()
-                setDrawerOpen(false)
-              }}
-              sx={{
-                borderRadius: { xs: 1.5, sm: 2 },
-                py: { xs: 0.75, sm: 1 },
-                '&:hover': {
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(102, 126, 234, 0.2)'
-                    : 'rgba(102, 126, 234, 0.1)',
-                  transform: { xs: 'none', sm: 'translateX(4px)' },
-                  transition: 'all 0.2s ease'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-                <Box
-                  sx={{
-                    width: { xs: 32, sm: 40 },
-                    height: { xs: 32, sm: 40 },
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    color: 'primary.main'
-                  }}
-                >
-                  <Group sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
-                </Box>
-              </ListItemIcon>
-              <ListItemText
-                primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.adminJwtUsers')}</Typography>}
-                secondary={isMobile ? '' : t('drawer.adminJwtUsersDescription')}
-                secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-              />
-            </ListItemButton>
-          </ListItem>
-        )}
-
-        {/* Install App Section - Moved to the end */}
-        {canInstall && (
-          <>
-            <Divider sx={{ my: { xs: 1, sm: 2 }, opacity: 0.5 }} />
-            <ListItem disablePadding>
-              <ListItemButton 
-                onClick={handleInstallClick}
-                sx={{
-                  borderRadius: { xs: 1.5, sm: 2 },
-                  py: { xs: 0.75, sm: 1 },
-                  '&:hover': {
-                    background: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(102, 126, 234, 0.2)'
-                      : 'rgba(102, 126, 234, 0.1)',
-                    transform: { xs: 'none', sm: 'translateX(4px)' },
-                    transition: 'all 0.2s ease'
-                  },
-                  transition: 'all 0.2s ease'
+              <Switch
+                checked={themeMode === 'dark'}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  onThemeToggle()
                 }}
-              >
-                <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
-                  <Box
-                    sx={{
-                      width: { xs: 32, sm: 40 },
-                      height: { xs: 32, sm: 40 },
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: (theme) => theme.palette.mode === 'dark'
-                        ? 'rgba(255, 255, 255, 0.1)'
-                        : 'rgba(0, 0, 0, 0.05)',
-                      color: 'primary.main'
-                    }}
-                  >
-                    <GetApp sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
-                  </Box>
-                </ListItemIcon>
-                <ListItemText 
-                  primary={<Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>{t('drawer.installApp') || 'Mini app o\'rnatish'}</Typography>}
-                  secondary={isMobile ? '' : (
-                    isIOS() 
-                      ? t('drawer.installIOS') || 'iOS uchun qo\'llanma'
-                      : deferredPrompt
-                      ? t('drawer.installAndroid') || 'Android uchun o\'rnatish'
-                      : t('drawer.installNotAvailable') || 'O\'rnatish mavjud emas'
-                  )}
-                  secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
-                />
-              </ListItemButton>
-            </ListItem>
-          </>
-        )}
-      </List>
+                onClick={(e) => e.stopPropagation()}
+                color="primary"
+                size="small"
+              />
+            </ListItemButton>
+          </ListItem>
+
+          <Divider sx={{ my: 1 }} />
+
+          <Typography sx={sectionLabelSx}>{t('drawer.more') || "Boshqalar"}</Typography>
+          {renderNavItem(
+            <HelpOutline sx={{ fontSize: 22 }} />,
+            t('footer.contact'),
+            () => setContactModalOpen(true),
+            t('drawer.contactDescription') || 'Murojaat va yordam',
+          )}
+          {onViewFormats && renderNavItem(
+            <InfoOutlined sx={{ fontSize: 22 }} />,
+            t('formats.title') || 'Formatlar',
+            onViewFormats,
+            t('formats.description') || "Test formatlari haqida ma'lumot",
+          )}
+          {onViewAdminToken && renderNavItem(
+            <AdminPanelSettings sx={{ fontSize: 22 }} />,
+            t('drawer.adminAddUser'),
+            onViewAdminToken,
+            t('drawer.adminAddUserDescription'),
+          )}
+          {onViewAdminUsers && renderNavItem(
+            <Group sx={{ fontSize: 22 }} />,
+            t('drawer.adminJwtUsers'),
+            onViewAdminUsers,
+            t('drawer.adminJwtUsersDescription'),
+          )}
+          {canInstall && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              {renderNavItem(
+                <GetApp sx={{ fontSize: 22 }} />,
+                t('drawer.installApp') || "Mini app o'rnatish",
+                handleInstallClick,
+                isIOS()
+                  ? (t('drawer.installIOS') || "iOS uchun qo'llanma")
+                  : deferredPrompt
+                  ? (t('drawer.installAndroid') || "Android uchun o'rnatish")
+                  : (t('drawer.installNotAvailable') || "O'rnatish mavjud emas"),
+              )}
+            </>
+          )}
+        </List>
+      </Box>
     </Box>
   )
 

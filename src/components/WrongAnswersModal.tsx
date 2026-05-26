@@ -7,10 +7,11 @@ import {
   Box,
   Typography,
   Chip,
-  Divider,
-  IconButton
+  IconButton,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
-import { Close } from '@mui/icons-material'
+import { Close, Cancel, CheckCircle } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { InlineMath, BlockMath } from 'react-katex'
 import type { Question } from '../types'
@@ -28,65 +29,121 @@ interface WrongAnswersModalProps {
   wrongAnswers: WrongAnswer[]
 }
 
-export default function WrongAnswersModal({ open, onClose, wrongAnswers }: WrongAnswersModalProps) {
-  const { t } = useTranslation()
+type RenderedPart = { type: 'text' | 'inlineMath' | 'blockMath'; content: string }
 
-  const renderText = (text: string) => {
-    const parts: Array<{ type: string; content: string }> = []
-    let lastIndex = 0
-    let inInlineMath = false
-    let inBlockMath = false
-    
-    for (let i = 0; i < text.length; i++) {
-      if (text.substring(i, i + 2) === '$$' && !inInlineMath) {
-        if (inBlockMath) {
-          parts.push({
-            type: 'blockMath',
-            content: text.substring(lastIndex + 2, i)
-          })
-          lastIndex = i + 2
-          inBlockMath = false
-        } else {
-          if (i > lastIndex) {
-            parts.push({
-              type: 'text',
-              content: text.substring(lastIndex, i)
-            })
-          }
-          lastIndex = i
-          inBlockMath = true
-        }
-        i++
-      } else if (text[i] === '$' && !inBlockMath) {
-        if (inInlineMath) {
-          parts.push({
-            type: 'inlineMath',
-            content: text.substring(lastIndex + 1, i)
-          })
-          lastIndex = i + 1
-          inInlineMath = false
-        } else {
-          if (i > lastIndex) {
-            parts.push({
-              type: 'text',
-              content: text.substring(lastIndex, i)
-            })
-          }
-          lastIndex = i
-          inInlineMath = true
-        }
+function renderText(text: string): RenderedPart[] {
+  const parts: RenderedPart[] = []
+  let lastIndex = 0
+  let inInlineMath = false
+  let inBlockMath = false
+
+  for (let i = 0; i < text.length; i++) {
+    if (text.substring(i, i + 2) === '$$' && !inInlineMath) {
+      if (inBlockMath) {
+        parts.push({ type: 'blockMath', content: text.substring(lastIndex + 2, i) })
+        lastIndex = i + 2
+        inBlockMath = false
+      } else {
+        if (i > lastIndex) parts.push({ type: 'text', content: text.substring(lastIndex, i) })
+        lastIndex = i
+        inBlockMath = true
+      }
+      i++
+    } else if (text[i] === '$' && !inBlockMath) {
+      if (inInlineMath) {
+        parts.push({ type: 'inlineMath', content: text.substring(lastIndex + 1, i) })
+        lastIndex = i + 1
+        inInlineMath = false
+      } else {
+        if (i > lastIndex) parts.push({ type: 'text', content: text.substring(lastIndex, i) })
+        lastIndex = i
+        inInlineMath = true
       }
     }
-    
-    if (lastIndex < text.length) {
-      parts.push({
-        type: inBlockMath || inInlineMath ? (inBlockMath ? 'blockMath' : 'inlineMath') : 'text',
-        content: text.substring(lastIndex + (inBlockMath || inInlineMath ? 2 : 0))
-      })
-    }
-    
-    return parts.length > 0 ? parts : [{ type: 'text', content: text }]
   }
+
+  if (lastIndex < text.length) {
+    parts.push({
+      type: inBlockMath || inInlineMath ? (inBlockMath ? 'blockMath' : 'inlineMath') : 'text',
+      content: text.substring(lastIndex + (inBlockMath || inInlineMath ? 2 : 0)),
+    })
+  }
+
+  return parts.length > 0 ? parts : [{ type: 'text', content: text }]
+}
+
+function RichText({ text, inline = false }: { text: string; inline?: boolean }) {
+  return (
+    <>
+      {renderText(text).map((part, idx) => {
+        if (part.type === 'inlineMath') {
+          try { return <InlineMath key={idx} math={part.content} /> }
+          catch { return <span key={idx}>${part.content}$</span> }
+        }
+        if (part.type === 'blockMath' && !inline) {
+          try { return <BlockMath key={idx} math={part.content} /> }
+          catch { return <div key={idx}>$${part.content}$$</div> }
+        }
+        if (part.type === 'blockMath') {
+          // block math inside an inline context — fall back to inline
+          try { return <InlineMath key={idx} math={part.content} /> }
+          catch { return <span key={idx}>${part.content}$</span> }
+        }
+        return <span key={idx}>{part.content}</span>
+      })}
+    </>
+  )
+}
+
+function AnswerRow({
+  text,
+  variant,
+}: {
+  text: string
+  variant: 'correct' | 'incorrect'
+}) {
+  const color = variant === 'correct' ? 'success' : 'error'
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1,
+        p: { xs: 1, sm: 1.25 },
+        bgcolor: (theme) =>
+          variant === 'correct'
+            ? theme.palette.mode === 'dark' ? 'rgba(129, 201, 149, 0.10)' : 'rgba(24, 128, 56, 0.06)'
+            : theme.palette.mode === 'dark' ? 'rgba(242, 139, 130, 0.10)' : 'rgba(217, 48, 37, 0.06)',
+        border: '1.5px solid',
+        borderColor: `${color}.main`,
+        borderRadius: 1.5,
+      }}
+    >
+      <Box sx={{ color: `${color}.main`, display: 'flex', alignItems: 'center', flexShrink: 0, mt: '2px' }}>
+        {variant === 'correct'
+          ? <CheckCircle sx={{ fontSize: 18 }} />
+          : <Cancel sx={{ fontSize: 18 }} />}
+      </Box>
+      <Typography
+        component="div"
+        sx={{
+          fontSize: { xs: '0.85rem', sm: '0.9rem' },
+          lineHeight: 1.5,
+          color: 'text.primary',
+          wordBreak: 'break-word',
+          flex: 1,
+        }}
+      >
+        <RichText text={text} inline />
+      </Typography>
+    </Box>
+  )
+}
+
+export default function WrongAnswersModal({ open, onClose, wrongAnswers }: WrongAnswersModalProps) {
+  const { t } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   return (
     <Dialog
@@ -94,194 +151,170 @@ export default function WrongAnswersModal({ open, onClose, wrongAnswers }: Wrong
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          maxHeight: '90vh',
-          m: { xs: 1, sm: 2 },
-        }
+          maxHeight: { xs: '100%', sm: '90vh' },
+          m: { xs: 0, sm: 2 },
+        },
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        p: { xs: 2, sm: 3 },
-        pb: { xs: 1.5, sm: 2 }
-      }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            fontWeight: 600,
-            fontSize: { xs: '1rem', sm: '1.25rem' }
-          }}
-        >
-          {t('results.wrongAnswers')} ({wrongAnswers.length})
-        </Typography>
-        <IconButton onClick={onClose} size="small">
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 1,
+          px: { xs: 2, sm: 3 },
+          py: { xs: 1.5, sm: 2 },
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 500,
+              fontSize: { xs: '1rem', sm: '1.15rem' },
+              color: 'text.primary',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {t('results.wrongAnswers')}
+          </Typography>
+          <Chip
+            label={wrongAnswers.length}
+            color="error"
+            size="small"
+            sx={{ fontWeight: 500, height: 22 }}
+          />
+        </Box>
+        <IconButton onClick={onClose} size="small" aria-label={t('common.close')}>
           <Close fontSize="small" />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
-          {wrongAnswers.map((item, idx) => (
-            <Box key={idx}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, mb: { xs: 1.5, sm: 2 }, flexWrap: 'wrap' }}>
-                <Typography 
-                  variant="subtitle1" 
-                  sx={{ 
-                    fontWeight: 600,
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }}
-                >
-                  {t('results.question')} {item.question.originalIndex !== undefined 
-                    ? item.question.originalIndex + 1 
-                    : item.questionIndex + 1}
-                </Typography>
-                <Chip 
-                  label={t('results.incorrect')} 
-                  color="error" 
-                  size="small"
-                  sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
-                />
-              </Box>
-              
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  mb: { xs: 1.5, sm: 2 }, 
-                  fontWeight: 500,
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  lineHeight: 1.5
+
+      <DialogContent sx={{ p: { xs: 1.5, sm: 2.5 }, bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
+          {wrongAnswers.map((item, idx) => {
+            const questionNumber = item.question.originalIndex !== undefined
+              ? item.question.originalIndex + 1
+              : item.questionIndex + 1
+
+            return (
+              <Box
+                key={idx}
+                sx={{
+                  p: { xs: 1.5, sm: 2 },
+                  bgcolor: 'background.paper',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
                 }}
               >
-                {renderText(item.question.text).map((part, partIdx) => {
-                  if (part.type === 'inlineMath') {
-                    try {
-                      return <InlineMath key={partIdx} math={part.content} />
-                    } catch (e) {
-                      return <span key={partIdx}>${part.content}$</span>
-                    }
-                  } else if (part.type === 'blockMath') {
-                    try {
-                      return <BlockMath key={partIdx} math={part.content} />
-                    } catch (e) {
-                      return <div key={partIdx}>$${part.content}$$</div>
-                    }
-                  } else {
-                    return <span key={partIdx}>{part.content}</span>
-                  }
-                })}
-              </Typography>
-              
-              <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
-              
-              <Box sx={{ mb: { xs: 1.5, sm: 2 } }}>
-                <Typography 
-                  variant="subtitle2" 
-                  sx={{ 
-                    mb: { xs: 0.75, sm: 1 }, 
-                    color: 'error.main', 
-                    fontWeight: 600,
-                    fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.25, flexWrap: 'wrap' }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 500,
+                      color: 'text.secondary',
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    }}
+                  >
+                    {t('results.question')} #{questionNumber}
+                  </Typography>
+                </Box>
+
+                <Typography
+                  component="div"
+                  sx={{
+                    mb: 1.75,
+                    fontWeight: 500,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    lineHeight: 1.5,
+                    color: 'text.primary',
                   }}
                 >
-                  {t('results.yourAnswer')}:
+                  <RichText text={item.question.text} />
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'error.main',
+                    fontWeight: 600,
+                    display: 'block',
+                    mb: 0.75,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  {t('results.yourAnswer')}
                 </Typography>
                 {item.selected.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 1.5 }}>
                     {item.selected.map((selectedIdx) => (
-                      <Chip
+                      <AnswerRow
                         key={selectedIdx}
-                        label={renderText(item.question.answers[selectedIdx].text).map((part, partIdx) => {
-                          if (part.type === 'inlineMath') {
-                            try {
-                              return <InlineMath key={partIdx} math={part.content} />
-                            } catch (e) {
-                              return <span key={partIdx}>${part.content}$</span>
-                            }
-                          } else {
-                            return <span key={partIdx}>{part.content}</span>
-                          }
-                        })}
-                        color="error"
-                        variant="outlined"
-                        sx={{ 
-                          justifyContent: 'flex-start', 
-                          height: 'auto', 
-                          py: { xs: 0.75, sm: 1 },
-                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                        }}
+                        text={item.question.answers[selectedIdx]?.text || ''}
+                        variant="incorrect"
                       />
                     ))}
                   </Box>
                 ) : (
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ mb: 1.5, fontStyle: 'italic', fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
                   >
-                    Javob berilmagan
+                    {t('results.noAnswerGiven')}
                   </Typography>
                 )}
-              </Box>
-              
-              <Box>
-                <Typography 
-                  variant="subtitle2" 
-                  sx={{ 
-                    mb: { xs: 0.75, sm: 1 }, 
-                    color: 'success.main', 
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'success.main',
                     fontWeight: 600,
-                    fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                    display: 'block',
+                    mb: 0.75,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
                   }}
                 >
-                  {t('results.correctAnswer')}:
+                  {t('results.correctAnswer')}
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                   {item.correct.map((correctIdx) => (
-                    <Chip
+                    <AnswerRow
                       key={correctIdx}
-                      label={renderText(item.question.answers[correctIdx].text).map((part, partIdx) => {
-                        if (part.type === 'inlineMath') {
-                          try {
-                            return <InlineMath key={partIdx} math={part.content} />
-                          } catch (e) {
-                            return <span key={partIdx}>${part.content}$</span>
-                          }
-                        } else {
-                          return <span key={partIdx}>{part.content}</span>
-                        }
-                      })}
-                      color="success"
-                      variant="outlined"
-                      sx={{ 
-                        justifyContent: 'flex-start', 
-                        height: 'auto', 
-                        py: { xs: 0.75, sm: 1 },
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                      }}
+                      text={item.question.answers[correctIdx]?.text || ''}
+                      variant="correct"
                     />
                   ))}
                 </Box>
               </Box>
-              
-              {idx < wrongAnswers.length - 1 && <Divider sx={{ mt: { xs: 2, sm: 3 } }} />}
-            </Box>
-          ))}
+            )
+          })}
         </Box>
       </DialogContent>
-      <DialogActions sx={{ p: { xs: 2, sm: 3 }, pt: { xs: 1.5, sm: 2 } }}>
-        <Button 
-          onClick={onClose} 
-          variant="contained" 
-          color="primary"
+
+      <DialogActions
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Button
+          onClick={onClose}
+          variant="contained"
           fullWidth
-          sx={{
-            fontSize: { xs: '0.875rem', sm: '1rem' },
-            py: { xs: 1, sm: 1.25 }
-          }}
+          sx={{ fontSize: { xs: '0.875rem', sm: '0.95rem' }, py: { xs: 1, sm: 1.25 } }}
         >
-          Yopish
+          {t('common.close')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -190,15 +190,7 @@ export default function InstallPrompt() {
               fullWidth
               startIcon={<GetApp />}
               onClick={handleInstall}
-              sx={{
-                mb: 1,
-                py: 1.2,
-                fontWeight: 600,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5568d3 0%, #6a4190 100%)'
-                }
-              }}
+              sx={{ mb: 1, py: 1.2 }}
             >
               {t('install.button')}
             </Button>

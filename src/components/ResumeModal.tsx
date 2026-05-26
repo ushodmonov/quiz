@@ -12,12 +12,12 @@ export default function ResumeModal({ open, onResume, onNew }: ResumeModalProps)
 
   return (
     <Dialog open={open} onClose={onNew} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('resume.title')}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 500 }}>{t('resume.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText>{t('resume.message')}</DialogContentText>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onNew} color="secondary">
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onNew} color="inherit">
           {t('resume.new')}
         </Button>
         <Button onClick={onResume} variant="contained" color="primary">

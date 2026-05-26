@@ -160,11 +160,12 @@ export const getTelegramWebApp = (): TelegramWebApp | null => {
 
 /**
  * Initialize Telegram Web App
- * Call this when the app starts
+ * Call this when the app starts. Returns a cleanup function that removes
+ * registered listeners — call it if you ever re-initialize.
  */
-export const initTelegramWebApp = (): void => {
+export const initTelegramWebApp = (): (() => void) => {
   const tg = getTelegramWebApp()
-  if (!tg) return
+  if (!tg) return () => {}
 
   // Expand the app to full height
   tg.expand()
@@ -173,36 +174,26 @@ export const initTelegramWebApp = (): void => {
   tg.enableClosingConfirmation()
 
   // Set app theme based on Telegram theme
-  if (tg.colorScheme === 'dark') {
-    // Telegram dark mode detected
-    document.documentElement.setAttribute('data-telegram-theme', 'dark')
-  } else {
-    document.documentElement.setAttribute('data-telegram-theme', 'light')
-  }
+  document.documentElement.setAttribute(
+    'data-telegram-theme',
+    tg.colorScheme === 'dark' ? 'dark' : 'light'
+  )
 
   // Apply Telegram theme colors if available
   if (tg.themeParams) {
     const root = document.documentElement
-    if (tg.themeParams.bg_color) {
-      root.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color)
-    }
-    if (tg.themeParams.text_color) {
-      root.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color)
-    }
-    if (tg.themeParams.hint_color) {
-      root.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color)
-    }
-    if (tg.themeParams.link_color) {
-      root.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color)
-    }
-    if (tg.themeParams.button_color) {
-      root.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color)
-    }
-    if (tg.themeParams.button_text_color) {
-      root.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color)
-    }
-    if (tg.themeParams.secondary_bg_color) {
-      root.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color)
+    const params: Array<[keyof typeof tg.themeParams, string]> = [
+      ['bg_color', '--tg-theme-bg-color'],
+      ['text_color', '--tg-theme-text-color'],
+      ['hint_color', '--tg-theme-hint-color'],
+      ['link_color', '--tg-theme-link-color'],
+      ['button_color', '--tg-theme-button-color'],
+      ['button_text_color', '--tg-theme-button-text-color'],
+      ['secondary_bg_color', '--tg-theme-secondary-bg-color'],
+    ]
+    for (const [key, cssVar] of params) {
+      const value = tg.themeParams[key]
+      if (value) root.style.setProperty(cssVar, value)
     }
   }
 
@@ -216,6 +207,10 @@ export const initTelegramWebApp = (): void => {
 
   // Notify Telegram that the app is ready
   tg.ready()
+
+  return () => {
+    window.removeEventListener('resize', setViewportHeight)
+  }
 }
 
 /**

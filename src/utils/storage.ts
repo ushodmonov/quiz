@@ -6,11 +6,43 @@ const LANGUAGE_KEY = 'quiz_language'
 const ALL_QUESTIONS_KEY = 'quiz_all_questions'
 const ACCESS_JWT_KEY_PREFIX = 'quiz_access_jwt_'
 
+// Base64 rasmlar localStorage quotasini tez tugatadi — saqlashdan oldin olib tashlaymiz.
+// Resume qilganda rasm ko'rinmaydi, lekin matn javoblari va progress saqlanadi.
+function stripHeavyFields(questions: Question[] | undefined): Question[] | undefined {
+  if (!questions) return questions
+  return questions.map((q) => ({
+    ...q,
+    answers: q.answers.map(({ imageData: _imageData, ...rest }) => rest),
+  }))
+}
+
+let quotaWarned = false
+
 export function saveProgress(progress: QuizProgress): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
-  } catch (error) {
-    console.error('Failed to save progress:', error)
+  const trimmed: QuizProgress = {
+    ...progress,
+    selectedQuestions: stripHeavyFields(progress.selectedQuestions) ?? progress.selectedQuestions,
+    allQuestions: stripHeavyFields(progress.allQuestions) ?? progress.allQuestions,
+  }
+  // Tobora kichraytirib urinamiz: 1) rasmsiz, 2) allQuestions yo'q, 3) faqat metadata
+  const candidates: QuizProgress[] = [
+    trimmed,
+    { ...trimmed, allQuestions: [] },
+    { ...trimmed, allQuestions: [], selectedQuestions: [] },
+  ]
+  for (const candidate of candidates) {
+    try {
+      // Avval eski qiymatni olib tashlaymiz — quotada joy ochiladi
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(candidate))
+      return
+    } catch {
+      // keyingisini sinab ko'ramiz
+    }
+  }
+  if (!quotaWarned) {
+    quotaWarned = true
+    console.warn('Progress saqlanmadi — localStorage to\'la. Resume ishlamasligi mumkin.')
   }
 }
 
@@ -33,7 +65,8 @@ export function clearProgress(): void {
 }
 
 export function hasProgress(): boolean {
-  return loadProgress() !== null
+  const p = loadProgress()
+  return !!(p && p.selectedQuestions && p.selectedQuestions.length > 0)
 }
 
 export function saveTheme(theme: 'light' | 'dark'): void {
@@ -71,10 +104,13 @@ export function loadLanguage(): 'uz' | 'ru' {
 }
 
 export function saveAllQuestions(questions: Question[]): void {
+  // Strip base64 imageData up-front — same rationale as saveProgress
+  const stripped = stripHeavyFields(questions) ?? questions
   try {
-    localStorage.setItem(ALL_QUESTIONS_KEY, JSON.stringify(questions))
+    localStorage.removeItem(ALL_QUESTIONS_KEY)
+    localStorage.setItem(ALL_QUESTIONS_KEY, JSON.stringify(stripped))
   } catch (error) {
-    console.error('Failed to save all questions:', error)
+    console.warn('All questions saqlanmadi — localStorage to\'la:', error)
   }
 }
 

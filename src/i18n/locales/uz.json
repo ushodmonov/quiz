@@ -25,6 +25,7 @@
     "title": "Testni boshlash",
     "selectFile": "Fayl tanlang (TXT yoki Word)",
     "selectFromCatalog": "Katalogdan tanlang",
+    "fileFormats": "TXT, DOCX yoki XLSX fayllarini yuklang",
     "fileSelected": "Fayl tanlandi",
     "testSelected": "Test tanlandi",
     "totalQuestions": "Jami savollar",
@@ -171,7 +172,8 @@
     "correctAnswer": "To'g'ri javob",
     "perQuestionReview": "Har bir savol bo'yicha natija",
     "statusCorrect": "To'g'ri",
-    "statusIncorrect": "Noto'g'ri"
+    "statusIncorrect": "Noto'g'ri",
+    "noAnswerGiven": "Javob berilmagan"
   },
   "resume": {
     "title": "Oldingi test mavjud",
@@ -227,7 +229,9 @@
     "format1": {
       "title": "Format 1: Oddiy format (TXT va DOCX)",
       "description": "Bu format oddiy matn fayllari va Word hujjatlari uchun ishlatiladi.",
-      "rules": "Qoidalar:"
+      "rules": "Qoidalar:",
+      "example": "Misol:",
+      "note": "💡 Maslahat: Bu format Format 0 va Format 2 ga o'xshash, lekin savollar ? belgisi bilan boshlanadi."
     },
     "format2": {
       "title": "Format 2: DOCX Table format",
@@ -246,6 +250,16 @@
       "answersNote": "Format: \"1=2\" degani birinchi javob ikkinchi o'rinda bo'lishi kerak",
       "rules": "Qoidalar:",
       "note": "Eslatma: Bu format faqat \"Укажите порядок следования\" so'zi bo'lsa ishlaydi."
+    },
+    "format5": {
+      "title": "Format 5: Moslik format",
+      "description": "Bu format javoblarni moslik bo'yicha bog'lash kerak bo'lganda ishlatiladi.",
+      "structure": "Struktura:",
+      "tableFormat": "Javoblar jadval formati:",
+      "answersTable": "Javoblar jadvali (fayl oxirida):",
+      "answersNote": "Format: \"1=4\" degani birinchi chap javob to'rtinchi o'ng javobga mos keladi",
+      "rules": "Qoidalar:",
+      "note": "Eslatma: Bu format faqat \"Укажите соответствие\" so'zi bo'lsa ishlaydi. Javoblar random qilinmaydi."
     },
     "format4": {
       "title": "Format 4: Moslik format",
@@ -318,6 +332,9 @@
     "unknownTime": "Noma'lum vaqt",
     "back": "Orqaga qaytish",
     "delete": "O'chirish",
+    "cancel": "Bekor qilish",
+    "refresh": "Yangilash",
+    "noSearchResults": "Hech narsa topilmadi",
     "columns": {
       "telegramUserId": "Telegram User ID",
       "name": "Name",

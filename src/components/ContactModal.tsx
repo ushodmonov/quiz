@@ -34,9 +34,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       pb: { xs: 1, sm: 1.5 },
       pt: { xs: 1.5, sm: 2 },
       px: { xs: 1.5, sm: 2.5 },
-      background: (theme) => theme.palette.mode === 'dark'
-        ? 'rgba(102, 126, 234, 0.1)'
-        : 'rgba(102, 126, 234, 0.05)',
+      bgcolor: 'background.default',
       borderBottom: (theme) => `1px solid ${theme.palette.divider}`
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
@@ -48,9 +46,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(102, 126, 234, 0.2)'
-              : 'rgba(102, 126, 234, 0.1)',
+            bgcolor: 'primary.light',
             color: 'primary.main'
           }}
         >
@@ -118,8 +114,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 '&:hover': {
                   transform: { xs: 'none', sm: 'translateX(4px)' },
                   bgcolor: (theme) => theme.palette.mode === 'dark' 
-                    ? 'rgba(102, 126, 234, 0.1)' 
-                    : 'rgba(102, 126, 234, 0.05)',
+                    ? 'rgba(255, 255, 255, 0.04)'
+                    : 'rgba(0, 0, 0, 0.03)',
                 }
               }}
             >
@@ -132,8 +128,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(102, 126, 234, 0.2)'
-                    : 'rgba(102, 126, 234, 0.1)',
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.06)',
                   color: 'primary.main',
                   flexShrink: 0
                 }}
@@ -188,8 +184,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   '&:hover': {
                     transform: { xs: 'none', sm: 'translateX(4px)' },
                     bgcolor: (theme) => theme.palette.mode === 'dark' 
-                      ? 'rgba(102, 126, 234, 0.1)' 
-                      : 'rgba(102, 126, 234, 0.05)',
+                      ? 'rgba(255, 255, 255, 0.04)'
+                      : 'rgba(0, 0, 0, 0.03)',
                   }
                 }}
               >
@@ -202,8 +198,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: (theme) => theme.palette.mode === 'dark'
-                      ? 'rgba(102, 126, 234, 0.2)'
-                      : 'rgba(102, 126, 234, 0.1)',
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(0, 0, 0, 0.06)',
                     color: 'primary.main',
                     flexShrink: 0
                   }}
@@ -258,8 +254,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                 '&:hover': {
                   transform: { xs: 'none', sm: 'translateX(4px)' },
                   bgcolor: (theme) => theme.palette.mode === 'dark' 
-                    ? 'rgba(102, 126, 234, 0.1)' 
-                    : 'rgba(102, 126, 234, 0.05)',
+                    ? 'rgba(255, 255, 255, 0.04)'
+                    : 'rgba(0, 0, 0, 0.03)',
                 }
               }}
             >
@@ -272,8 +268,8 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(102, 126, 234, 0.2)'
-                    : 'rgba(102, 126, 234, 0.1)',
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(0, 0, 0, 0.06)',
                   color: 'primary.main',
                   flexShrink: 0
                 }}
@@ -317,23 +313,13 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
   const footerContent = (
     <Box sx={{ px: { xs: 1.5, sm: 2.5 }, pb: { xs: 2, sm: 2.5 }, pt: 1.5 }}>
-      <Button 
-        onClick={onClose} 
-        variant="contained" 
+      <Button
+        onClick={onClose}
+        variant="contained"
         fullWidth
         sx={{
           py: { xs: 1, sm: 1.25 },
-          borderRadius: 1.5,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          fontWeight: 600,
           fontSize: { xs: '0.85rem', sm: '0.95rem' },
-          textTransform: 'none',
-          '&:hover': {
-            background: 'linear-gradient(135deg, #5568d3 0%, #6a4190 100%)',
-            transform: { xs: 'none', sm: 'translateY(-2px)' },
-            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-          },
-          transition: 'all 0.3s ease'
         }}
       >
         {t('common.close')}
@@ -354,9 +340,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
             borderTopRightRadius: 16,
             maxHeight: '90vh',
             overflow: 'hidden',
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)'
-              : 'linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%)',
+            bgcolor: 'background.paper',
             display: 'flex',
             flexDirection: 'column'
           }
@@ -397,9 +381,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
           borderRadius: 3,
           m: 2,
           maxHeight: '90vh',
-          background: (theme) => theme.palette.mode === 'dark'
-            ? 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)'
-            : 'linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%)',
+          bgcolor: 'background.paper',
         }
       }}
     >

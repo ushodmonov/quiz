@@ -11,9 +11,12 @@ import {
   Select,
   MenuItem,
   Button,
-  Alert
+  Alert,
+  IconButton,
+  CircularProgress,
+  Stack
 } from '@mui/material'
-import { Token } from '@mui/icons-material'
+import { Token, ArrowBack } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { JWT_SECRET_KEY } from '../constants/contact'
 import { saveJwtTokenToFirestore } from '../utils/firebase'
@@ -75,6 +78,8 @@ export default function AdminTokenPage({ onBack, createdByTelegramUserId, create
         createdByName
       })
       setSuccess(t('adminToken.success.saved'))
+      setTelegramUserId('')
+      setName('')
     } catch (generationError) {
       console.error('JWT generation error:', generationError)
       const firebaseCode = (generationError as { code?: string })?.code
@@ -100,28 +105,27 @@ export default function AdminTokenPage({ onBack, createdByTelegramUserId, create
         minHeight: 'calc(100vh - 128px)',
         display: 'flex',
         alignItems: 'center',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: 4
+        bgcolor: 'background.default',
+        py: { xs: 2, sm: 4 }
       }}
     >
       <Container maxWidth="md">
-        <Card
-          sx={{
-            background: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)'
-          }}
-        >
+        <Card>
           <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
-            <Typography variant="h5" align="center" sx={{ mb: 3, fontWeight: 800 }}>
-              {t('adminToken.title')}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
+              <IconButton onClick={onBack} aria-label={t('adminToken.back')} size="small">
+                <ArrowBack />
+              </IconButton>
+              <Typography
+                variant="h5"
+                sx={{ flex: 1, fontWeight: 500, color: 'primary.main', textAlign: 'center', pr: 4 }}
+              >
+                {t('adminToken.title')}
+              </Typography>
+            </Stack>
 
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-            {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
             <TextField
               fullWidth
@@ -129,6 +133,7 @@ export default function AdminTokenPage({ onBack, createdByTelegramUserId, create
               label={t('adminToken.telegramUserId')}
               value={telegramUserId}
               onChange={(e) => setTelegramUserId(e.target.value)}
+              disabled={isGenerating}
               sx={{ mb: 2 }}
             />
             <TextField
@@ -136,10 +141,11 @@ export default function AdminTokenPage({ onBack, createdByTelegramUserId, create
               label={t('adminToken.name')}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={isGenerating}
               sx={{ mb: 2 }}
             />
 
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={{ mb: 3 }} disabled={isGenerating}>
               <InputLabel>{t('adminToken.expiryLabel')}</InputLabel>
               <Select
                 value={expirySeconds}
@@ -154,20 +160,15 @@ export default function AdminTokenPage({ onBack, createdByTelegramUserId, create
               </Select>
             </FormControl>
 
-            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<Token />}
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                {t('adminToken.generate')}
-              </Button>
-            </Box>
-
-            <Button fullWidth variant="text" onClick={onBack}>
-              {t('adminToken.back')}
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              startIcon={isGenerating ? <CircularProgress size={18} color="inherit" /> : <Token />}
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {t('adminToken.generate')}
             </Button>
           </CardContent>
         </Card>

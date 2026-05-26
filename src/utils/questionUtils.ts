@@ -1,5 +1,15 @@
 import type { Question } from '../types'
 
+// Fisher-Yates shuffle — uniform distribution, unlike `.sort(() => Math.random() - 0.5)`.
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 export function selectQuestions(
   questions: Question[],
   startIndex: number,
@@ -60,7 +70,7 @@ export function selectQuestions(
       const leftoverPool: number[] = []
 
       for (const { indices, allocated } of allocs) {
-        const shuffledGroup = [...indices].sort(() => Math.random() - 0.5)
+        const shuffledGroup = shuffle(indices)
         pickedIndices.push(...shuffledGroup.slice(0, allocated))
         leftoverPool.push(...shuffledGroup.slice(allocated))
       }
@@ -68,14 +78,13 @@ export function selectQuestions(
       // Fill any shortfall from leftover pool (shouldn't normally happen)
       const shortfall = actualCount - pickedIndices.length
       if (shortfall > 0) {
-        leftoverPool.sort(() => Math.random() - 0.5)
-        pickedIndices.push(...leftoverPool.slice(0, shortfall))
+        const shuffledLeftover = shuffle(leftoverPool)
+        pickedIndices.push(...shuffledLeftover.slice(0, shortfall))
       }
 
-      selectedIndices = pickedIndices.sort(() => Math.random() - 0.5)
+      selectedIndices = shuffle(pickedIndices)
     } else {
-      const shuffled = [...availableIndices].sort(() => Math.random() - 0.5)
-      selectedIndices = shuffled.slice(0, actualCount)
+      selectedIndices = shuffle(availableIndices).slice(0, actualCount)
     }
 
     return selectedIndices.map(index => ({

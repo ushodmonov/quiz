@@ -13,7 +13,7 @@ import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
 import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions, loadAccessJwt, saveAccessJwt, clearAccessJwt, isBrowserDevModeEnabled } from './utils/storage'
 import { selectQuestions } from './utils/questionUtils'
-import { createAppTheme } from './theme/theme'
+import { createAppTheme, gmailColors } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import { ADMIN_CONTACTS, CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
 import { getJwtTokensByTelegramUserId } from './utils/firebase'
@@ -126,12 +126,9 @@ function App() {
       if (telegramTheme !== themeMode) {
         setThemeMode(telegramTheme)
         saveTheme(telegramTheme)
-        
-        // Update Telegram header and background colors
-        const headerColor = telegramTheme === 'dark' ? '#1e1e1e' : '#667eea'
-        const bgColor = telegramTheme === 'dark' ? '#0f0c29' : '#667eea'
-        telegram.setHeaderColor(headerColor)
-        telegram.setBackgroundColor(bgColor)
+        const c = gmailColors[telegramTheme]
+        telegram.setHeaderColor(c.headerBar)
+        telegram.setBackgroundColor(c.background)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,10 +137,9 @@ function App() {
   // Set Telegram header and background colors
   useEffect(() => {
     if (telegram.isTelegram) {
-      const headerColor = themeMode === 'dark' ? '#1e1e1e' : '#667eea'
-      const bgColor = themeMode === 'dark' ? '#0f0c29' : '#667eea'
-      telegram.setHeaderColor(headerColor)
-      telegram.setBackgroundColor(bgColor)
+      const c = gmailColors[themeMode]
+      telegram.setHeaderColor(c.headerBar)
+      telegram.setBackgroundColor(c.background)
     }
   }, [telegram.isTelegram, themeMode, telegram])
 
@@ -410,13 +406,11 @@ function App() {
     const newMode = themeMode === 'light' ? 'dark' : 'light'
     setThemeMode(newMode)
     saveTheme(newMode)
-    
-    // Update Telegram header and background colors immediately
+
     if (telegram.isTelegram) {
-      const headerColor = newMode === 'dark' ? '#1e1e1e' : '#667eea'
-      const bgColor = newMode === 'dark' ? '#0f0c29' : '#667eea'
-      telegram.setHeaderColor(headerColor)
-      telegram.setBackgroundColor(bgColor)
+      const c = gmailColors[newMode]
+      telegram.setHeaderColor(c.headerBar)
+      telegram.setBackgroundColor(c.background)
     }
   }
 
@@ -445,23 +439,14 @@ function App() {
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
-            background: (currentTheme) => currentTheme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            bgcolor: 'background.default',
             py: 4
           }}
         >
           <Container maxWidth="sm">
-            <Card
-              sx={{
-                background: (currentTheme) => currentTheme.palette.mode === 'dark'
-                  ? 'rgba(30, 30, 30, 0.95)'
-                  : 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
+            <Card>
               <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-                <Typography variant="h5" align="center" sx={{ fontWeight: 800, mb: 2 }}>
+                <Typography variant="h5" align="center" sx={{ fontWeight: 500, mb: 2 }}>
                   Bu ilova faqat Telegram Mini App orqali ishlaydi
                 </Typography>
                 <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>
@@ -520,23 +505,14 @@ function App() {
             minHeight: '100vh',
             display: 'flex',
             alignItems: 'center',
-            background: (currentTheme) => currentTheme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            bgcolor: 'background.default',
             py: 4
           }}
         >
           <Container maxWidth="sm">
-            <Card
-              sx={{
-                background: (currentTheme) => currentTheme.palette.mode === 'dark'
-                  ? 'rgba(30, 30, 30, 0.95)'
-                  : 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
+            <Card>
               <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
-                <Typography variant="h5" align="center" sx={{ fontWeight: 800, mb: 2 }}>
+                <Typography variant="h5" align="center" sx={{ fontWeight: 500, mb: 2 }}>
                   Ro&apos;yxatdan o&apos;tmagansiz
                 </Typography>
                 <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 3 }}>

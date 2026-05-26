@@ -22,18 +22,17 @@ export default function TestResultsReview({
       <Typography
         variant="h6"
         sx={{
-          color: '#fff',
-          fontWeight: 700,
+          color: 'text.primary',
+          fontWeight: 500,
           mb: 2,
           textAlign: 'center',
           fontSize: { xs: '1rem', sm: '1.15rem' },
-          textShadow: '0 2px 8px rgba(0,0,0,0.25)'
         }}
       >
         {t('results.perQuestionReview')}
       </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, sm: 1.75 } }}>
         {questions.map((question, index) => {
           const answerData = answers[index]
           if (!answerData) return null
@@ -46,27 +45,27 @@ export default function TestResultsReview({
           return (
             <Card
               key={index}
+              elevation={0}
               sx={{
-                background: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(30, 30, 30, 0.95)'
-                    : 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid',
-                borderColor: answerData.correct ? 'success.main' : 'error.main'
+                bgcolor: 'background.paper',
+                border: '1.5px solid',
+                borderColor: answerData.correct ? 'success.main' : 'error.main',
               }}
             >
-              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+              <CardContent sx={{ p: { xs: 1.75, sm: 2.5 } }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
                     mb: 1.5,
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 500, color: 'text.secondary' }}
+                  >
                     {t('results.question')} {questionNumber}
                   </Typography>
                   <Chip
@@ -85,6 +84,7 @@ export default function TestResultsReview({
                     color={answerData.correct ? 'success' : 'error'}
                     size="small"
                     variant="filled"
+                    sx={{ fontWeight: 500 }}
                   />
                 </Box>
 

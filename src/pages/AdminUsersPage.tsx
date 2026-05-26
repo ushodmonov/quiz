@@ -14,9 +14,19 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination
+  TablePagination,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Stack,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
-import { DeleteOutline, Search } from '@mui/icons-material'
+import { DeleteOutline, Search, ArrowBack, Refresh } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { deleteJwtTokensByTelegramUserId, getJwtTokenUsers, type JwtTokenUserItem } from '../utils/firebase'
 
@@ -34,6 +44,8 @@ const formatDateTime = (date: Date | null, locale: string, fallbackText: string)
 
 export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   const { t, i18n } = useTranslation()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [users, setUsers] = useState<JwtTokenUserItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -41,21 +53,23 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null)
+  const [confirmUser, setConfirmUser] = useState<JwtTokenUserItem | null>(null)
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true)
+      setError('')
+      const list = await getJwtTokenUsers()
+      setUsers(list)
+    } catch (loadError) {
+      console.error('Load JWT users error:', loadError)
+      setError(t('adminUsers.errorLoad'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setIsLoading(true)
-        const list = await getJwtTokenUsers()
-        setUsers(list)
-      } catch (loadError) {
-        console.error('Load JWT users error:', loadError)
-        setError(t('adminUsers.errorLoad'))
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     loadUsers()
   }, [])
 
@@ -79,15 +93,10 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
 
   const paginatedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 
-  const handleDeleteUser = async (user: JwtTokenUserItem) => {
-    const shouldDelete = window.confirm(
-      t('adminUsers.confirmDelete', {
-        userId: user.telegramUserId,
-        name: user.name || '-'
-      })
-    )
-    if (!shouldDelete) return
-
+  const handleConfirmDelete = async () => {
+    if (!confirmUser) return
+    const user = confirmUser
+    setConfirmUser(null)
     try {
       setDeletingUserId(user.telegramUserId)
       setError('')
@@ -105,30 +114,40 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
     <Box
       sx={{
         minHeight: 'calc(100vh - 64px)',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        bgcolor: 'background.default',
         py: { xs: 1, sm: 2 },
         px: { xs: 1, sm: 2 }
       }}
     >
       <Box sx={{ width: '100%' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 1.5,
-            px: { xs: 0.5, sm: 1 }
-          }}
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          sx={{ mb: 1.5, px: { xs: 0.5, sm: 1 } }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 800, color: 'common.white', fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
+          <IconButton onClick={onBack} aria-label={t('adminUsers.back')} size="small">
+            <ArrowBack />
+          </IconButton>
+          <Typography
+            variant="h5"
+            sx={{ flex: 1, fontWeight: 500, color: 'primary.main', fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
+          >
             {t('adminUsers.title')}
+            {!isLoading && users.length > 0 && (
+              <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                ({users.length})
+              </Typography>
+            )}
           </Typography>
-          <Button variant="contained" size="small" onClick={onBack}>
-            {t('adminUsers.back')}
-          </Button>
-        </Box>
+          <Tooltip title={t('adminUsers.refresh')}>
+            <span>
+              <IconButton onClick={loadUsers} disabled={isLoading} size="small">
+                <Refresh />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Stack>
 
         {error && <Alert severity="error" sx={{ mb: 1.5 }}>{error}</Alert>}
 
@@ -159,6 +178,11 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                 )
               }}
             />
+            {filteredUsers.length === 0 ? (
+              <Alert severity="info" sx={{ mb: 1.5 }}>
+                {t('adminUsers.noSearchResults')}
+              </Alert>
+            ) : (
             <TableContainer
               component={Paper}
               variant="outlined"
@@ -168,7 +192,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                 maxHeight: 'calc(100vh - 240px)'
               }}
             >
-              <Table size="small" stickyHeader sx={{ minWidth: 780 }}>
+              <Table size="small" stickyHeader sx={{ minWidth: { xs: 0, md: 780 } }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>{t('adminUsers.columns.telegramUserId')}</TableCell>
@@ -184,7 +208,12 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                   {paginatedUsers.map((user) => (
                     <TableRow key={user.telegramUserId} hover>
                       <TableCell>{user.telegramUserId}</TableCell>
-                      <TableCell>{user.name || '-'}</TableCell>
+                      <TableCell>
+                        <Box sx={{ fontWeight: 500 }}>{user.name || '-'}</Box>
+                        <Box sx={{ display: { xs: 'block', md: 'none' }, fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>
+                          {formatDateTime(user.expiresAt, i18n.language, t('adminUsers.unknownTime'))}
+                        </Box>
+                      </TableCell>
                       <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{user.createdBy || '-'}</TableCell>
                       <TableCell align="right">{user.tokenCount}</TableCell>
                       <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
@@ -194,22 +223,48 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                         {formatDateTime(user.expiresAt, i18n.language, t('adminUsers.unknownTime'))}
                       </TableCell>
                       <TableCell align="center">
-                        <Button
-                          color="error"
-                          size="small"
-                          variant="outlined"
-                          startIcon={<DeleteOutline />}
-                          onClick={() => handleDeleteUser(user)}
-                          disabled={deletingUserId === user.telegramUserId}
-                        >
-                          {t('adminUsers.delete')}
-                        </Button>
+                        {isMobile ? (
+                          <Tooltip title={t('adminUsers.delete')}>
+                            <span>
+                              <IconButton
+                                color="error"
+                                size="small"
+                                onClick={() => setConfirmUser(user)}
+                                disabled={deletingUserId === user.telegramUserId}
+                              >
+                                {deletingUserId === user.telegramUserId ? (
+                                  <CircularProgress size={18} color="inherit" />
+                                ) : (
+                                  <DeleteOutline />
+                                )}
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <Button
+                            color="error"
+                            size="small"
+                            variant="outlined"
+                            startIcon={
+                              deletingUserId === user.telegramUserId ? (
+                                <CircularProgress size={14} color="inherit" />
+                              ) : (
+                                <DeleteOutline />
+                              )
+                            }
+                            onClick={() => setConfirmUser(user)}
+                            disabled={deletingUserId === user.telegramUserId}
+                          >
+                            {t('adminUsers.delete')}
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
+            )}
             <TablePagination
               component="div"
               count={filteredUsers.length}
@@ -225,6 +280,38 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
           </Box>
         )}
       </Box>
+
+      <Dialog
+        open={confirmUser !== null}
+        onClose={() => setConfirmUser(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 500 }}>
+          {t('adminUsers.delete')}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmUser && t('adminUsers.confirmDelete', {
+              userId: confirmUser.telegramUserId,
+              name: confirmUser.name || '-'
+            })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmUser(null)} color="inherit">
+            {t('adminUsers.cancel') || 'Bekor qilish'}
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            startIcon={<DeleteOutline />}
+          >
+            {t('adminUsers.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

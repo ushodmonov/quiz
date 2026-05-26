@@ -1,15 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Typography,
   Box,
   Button,
-  LinearProgress
+  LinearProgress,
+  Fade
 } from '@mui/material'
-import { Refresh, ArrowForward, Home, Replay, Visibility } from '@mui/icons-material'
+import { Refresh, ArrowForward, Home, Replay, Visibility, CheckCircleOutline, CancelOutlined, FormatListBulleted } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import WrongAnswersModal from '../components/WrongAnswersModal'
 import TestResultsReview from '../components/TestResultsReview'
 import type { QuizResults, Question, QuestionDisplayMode } from '../types'
+
+function useCountUp(target: number, duration = 800) {
+  const [value, setValue] = useState(0)
+  const startedFor = useRef<number | null>(null)
+  useEffect(() => {
+    if (startedFor.current === target) return
+    startedFor.current = target
+    let raf = 0
+    const start = performance.now()
+    const animate = (now: number) => {
+      const elapsed = now - start
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setValue(Math.round(target * eased))
+      if (progress < 1) raf = requestAnimationFrame(animate)
+    }
+    raf = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf)
+  }, [target, duration])
+  return value
+}
 
 interface ResultsPageProps {
   results: QuizResults
@@ -41,6 +63,7 @@ export default function ResultsPage({
   const { t } = useTranslation()
   const [showWrongAnswers, setShowWrongAnswers] = useState(false)
   const percentage = results.percentage || 0
+  const animatedPercentage = useCountUp(percentage)
 
   // Get wrong answers
   const wrongAnswers = questions
@@ -60,11 +83,15 @@ export default function ResultsPage({
     })
     .filter((item): item is NonNullable<typeof item> => item !== null)
 
-  const getPerformanceText = () => {
-    if (percentage >= 80) return t('results.excellent')
-    if (percentage >= 60) return t('results.good')
-    return t('results.poor')
-  }
+  const performance = (() => {
+    if (percentage >= 80) {
+      return { text: t('results.excellent'), color: 'success.main' as const, mainColor: 'success' as const }
+    }
+    if (percentage >= 60) {
+      return { text: t('results.good'), color: 'warning.main' as const, mainColor: 'warning' as const }
+    }
+    return { text: t('results.poor'), color: 'error.main' as const, mainColor: 'error' as const }
+  })()
 
   const showPerQuestionReview =
     displayMode === 'all' && questions.length > 0 && Object.keys(answers).length > 0
@@ -76,382 +103,291 @@ export default function ResultsPage({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        py: { xs: 2, sm: 3 },
-        px: { xs: 1.5, sm: 2 },
+        bgcolor: 'background.default',
+        py: { xs: 2, sm: 3, md: 4 },
+        px: { xs: 1.5, sm: 2, md: 3 },
         justifyContent: showPerQuestionReview ? 'flex-start' : 'center',
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: { xs: '100%', sm: 500 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {results.timedOut && (
-          <Typography
-            variant="body1"
-            align="center"
-            sx={{
-              mb: 2,
-              px: 2,
-              py: 1,
-              borderRadius: 2,
-              bgcolor: 'warning.main',
-              color: 'warning.contrastText',
-              fontWeight: 600,
-              maxWidth: '100%'
-            }}
-          >
-            {t('results.timedOut')}
-          </Typography>
-        )}
-
-        {/* Title */}
-        <Typography 
-          variant="h3" 
-          component="h1" 
-          align="center" 
-          sx={{ 
-            mb: { xs: 2, sm: 2.5 },
-            fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
-            color: '#fff',
-            fontWeight: 800,
-            textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          }}
-        >
-          {t('results.title')}
-        </Typography>
-      
-        {/* Percentage Display - Large and Centered */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          mb: { xs: 3, sm: 3.5 },
-          width: '100%',
-        }}>
-          <Typography 
-            variant="h1" 
-            component="div" 
-            sx={{ 
-              fontWeight: 900, 
-              color: '#fff',
-              fontSize: { xs: '3.5rem', sm: '5rem', md: '6rem' },
-              lineHeight: 1,
-              mb: { xs: 1, sm: 2 },
-              textShadow: '0 4px 30px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            {percentage}%
-          </Typography>
-          
-          {/* Progress Bar */}
-          <Box sx={{ width: '100%', maxWidth: 500, mb: { xs: 1, sm: 2 } }}>
-            <LinearProgress 
-              variant="determinate" 
-              value={percentage} 
-              sx={{
-                height: { xs: 8, sm: 10 },
-                borderRadius: { xs: 4, sm: 5 },
-                backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: { xs: 4, sm: 5 },
-                  backgroundColor: '#fff',
-                  boxShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
-                }
-              }}
-            />
-          </Box>
-          
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: { xs: '0.9rem', sm: '1.1rem' },
-              textTransform: 'uppercase',
-              letterSpacing: { xs: 1, sm: 2 },
-              textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-            }}
-          >
-            {getPerformanceText()}
-          </Typography>
-        </Box>
-
-        {/* Stats - Text Only */}
+      <Fade in timeout={350}>
         <Box
           sx={{
             width: '100%',
-            mb: { xs: 2.5, sm: 3 },
-            p: { xs: 2, sm: 2.5 },
-            bgcolor: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: { xs: 3, sm: 3 },
-            border: '2px solid rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(15px)',
+            maxWidth: { xs: '100%', sm: 520, md: 560 },
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
-            {/* Correct Answers */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 600,
-                  color: '#fff',
-                  fontSize: { xs: '0.85rem', sm: '1rem' },
-                }}
-              >
-                {t('results.correct')}
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 900,
-                  color: '#4caf50',
-                  fontSize: { xs: '1.25rem', sm: '1.75rem' },
-                  textShadow: '0 2px 10px rgba(76, 175, 80, 0.5)',
-                }}
-              >
-                {results.correct}
-              </Typography>
-            </Box>
-
-            {/* Incorrect Answers */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 600,
-                  color: '#fff',
-                  fontSize: { xs: '0.85rem', sm: '1rem' },
-                }}
-              >
-                {t('results.incorrect')}
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 900,
-                  color: '#f44336',
-                  fontSize: { xs: '1.25rem', sm: '1.75rem' },
-                  textShadow: '0 2px 10px rgba(244, 67, 54, 0.5)',
-                }}
-              >
-                {results.incorrect}
-              </Typography>
-            </Box>
-
-            {/* Total Questions */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 600,
-                  color: '#fff',
-                  fontSize: { xs: '0.85rem', sm: '1rem' },
-                }}
-              >
-                {t('results.total')}
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 900,
-                  color: '#fff',
-                  fontSize: { xs: '1.25rem', sm: '1.75rem' },
-                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-                }}
-              >
-                {totalQuestions}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Action Buttons - Improved Layout */}
-        <Box sx={{ width: '100%', mt: 2 }}>
-          {/* Wrong Answers Section */}
-          {wrongAnswers.length > 0 && (
-            <Box 
-              sx={{ 
-                mb: { xs: 2, sm: 2.5 }, 
-                p: { xs: 1.5, sm: 2 },
-                bgcolor: 'rgba(244, 67, 54, 0.15)',
-                borderRadius: { xs: 2, sm: 3 },
-                border: '2px solid rgba(244, 67, 54, 0.3)',
-                backdropFilter: 'blur(10px)',
+          {results.timedOut && (
+            <Box
+              sx={{
+                mb: 2,
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(253, 214, 99, 0.16)'
+                    : 'rgba(249, 171, 0, 0.10)',
+                color: 'warning.dark',
+                fontWeight: 500,
+                maxWidth: '100%',
+                textAlign: 'center',
+                border: (theme) => `1px solid ${theme.palette.warning.main}55`,
               }}
             >
-              <Typography
-                variant="subtitle2"
+              <Typography variant="body2">{t('results.timedOut')}</Typography>
+            </Box>
+          )}
+
+          {/* Title */}
+          <Typography
+            variant="h3"
+            component="h1"
+            align="center"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+              color: 'text.primary',
+              fontWeight: 500,
+            }}
+          >
+            {t('results.title')}
+          </Typography>
+
+          {/* Percentage Display */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              mb: { xs: 3, sm: 3.5 },
+              width: '100%',
+            }}
+          >
+            <Typography
+              variant="h1"
+              component="div"
+              sx={{
+                fontWeight: 500,
+                color: performance.color,
+                fontSize: { xs: '4rem', sm: '5rem', md: '6rem' },
+                lineHeight: 1,
+                mb: { xs: 1.5, sm: 2 },
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {animatedPercentage}%
+            </Typography>
+
+            {/* Progress Bar */}
+            <Box sx={{ width: '100%', maxWidth: 480, mb: { xs: 1, sm: 1.5 } }}>
+              <LinearProgress
+                variant="determinate"
+                value={animatedPercentage}
+                color={performance.mainColor}
                 sx={{
-                  color: '#fff',
-                  fontWeight: 600,
+                  height: { xs: 8, sm: 10 },
+                  borderRadius: 4,
+                  bgcolor: 'action.hover',
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 4,
+                    transition: 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
+                  },
+                }}
+              />
+            </Box>
+
+            <Typography
+              variant="overline"
+              sx={{
+                color: performance.color,
+                fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                letterSpacing: { xs: 1.5, sm: 2 },
+                lineHeight: 1.2,
+                mt: 0.5,
+              }}
+            >
+              {performance.text}
+            </Typography>
+          </Box>
+
+          {/* Stats card */}
+          <Box
+            sx={{
+              width: '100%',
+              mb: { xs: 2, sm: 2.5 },
+              p: { xs: 1.75, sm: 2.25, md: 2.5 },
+              bgcolor: 'background.paper',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, sm: 1.75 } }}>
+              {[
+                { icon: <CheckCircleOutline />, label: t('results.correct'), value: results.correct, color: 'success.main' },
+                { icon: <CancelOutlined />, label: t('results.incorrect'), value: results.incorrect, color: 'error.main' },
+                { icon: <FormatListBulleted />, label: t('results.total'), value: totalQuestions, color: 'text.primary' },
+              ].map((stat) => (
+                <Box
+                  key={stat.label}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+                    <Box sx={{ color: stat.color, display: 'flex' }}>
+                      {stat.icon}
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        color: 'text.primary',
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                      }}
+                    >
+                      {stat.label}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      color: stat.color,
+                      fontSize: { xs: '1.3rem', sm: '1.5rem', md: '1.75rem' },
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {stat.value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Action Buttons */}
+          <Box sx={{ width: '100%' }}>
+            {wrongAnswers.length > 0 && (
+              <Box
+                sx={{
                   mb: { xs: 1.5, sm: 2 },
-                  textAlign: 'center',
-                  fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: { xs: 0.5, sm: 1 },
+                  p: { xs: 1.5, sm: 2 },
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(242, 139, 130, 0.10)'
+                      : 'rgba(217, 48, 37, 0.06)',
+                  borderRadius: 2,
+                  border: (theme) =>
+                    `1px solid ${theme.palette.mode === 'dark' ? 'rgba(242,139,130,0.30)' : 'rgba(217,48,37,0.20)'}`,
                 }}
               >
-                {t('results.incorrect')}: {wrongAnswers.length}
-              </Typography>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    color: 'error.main',
+                    fontWeight: 600,
+                    mb: { xs: 1.25, sm: 1.5 },
+                    textAlign: 'center',
+                    display: 'block',
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    letterSpacing: 1,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {t('results.incorrect')}: {wrongAnswers.length}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: { xs: 1, sm: 1.25 },
+                    flexDirection: { xs: 'column', sm: 'row' },
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size="medium"
+                    startIcon={<Replay />}
+                    onClick={onRetakeIncorrect}
+                    sx={{
+                      flex: 1,
+                      fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                      py: { xs: 1.25, sm: 1.25 },
+                    }}
+                  >
+                    {t('results.retakeIncorrect')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="medium"
+                    startIcon={<Visibility />}
+                    onClick={() => setShowWrongAnswers(true)}
+                    sx={{
+                      flex: 1,
+                      fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                      py: { xs: 1.25, sm: 1.25 },
+                    }}
+                  >
+                    {t('results.wrongAnswers')}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            <WrongAnswersModal
+              open={showWrongAnswers}
+              onClose={() => setShowWrongAnswers(false)}
+              wrongAnswers={wrongAnswers}
+            />
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.25 }, width: '100%' }}>
+              {nextStartIndex !== null && nextStartIndex !== undefined && (
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="large"
+                  fullWidth
+                  startIcon={<ArrowForward />}
+                  onClick={onNextTest}
+                  sx={{ fontSize: { xs: '0.9rem', sm: '0.95rem' }, py: { xs: 1.25, sm: 1.5 } }}
+                >
+                  {t('results.nextTest')}
+                </Button>
+              )}
+
               <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.25 }, flexDirection: { xs: 'column', sm: 'row' } }}>
                 <Button
                   variant="contained"
                   size="large"
-                  startIcon={<Replay />}
-                  onClick={onRetakeIncorrect}
-                  sx={{
-                    flex: 1,
-                    fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                    py: { xs: 1.25, sm: 1.5 },
-                    background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
-                    color: '#fff',
-                    boxShadow: '0 4px 15px rgba(244, 67, 54, 0.4)',
-                    transition: 'all 0.3s ease',
-                    fontWeight: 700,
-                    borderRadius: 2,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #d32f2f 0%, #c62828 100%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 25px rgba(244, 67, 54, 0.6)',
-                    },
-                  }}
+                  startIcon={<Refresh />}
+                  onClick={onRestart}
+                  sx={{ flex: 1, fontSize: { xs: '0.875rem', sm: '0.9rem' }, py: { xs: 1.25, sm: 1.5 } }}
                 >
-                  {t('results.retakeIncorrect') || `Noto'g'ri javoblarni qayta o'tish`}
+                  {t('results.restart')}
                 </Button>
-                
+
                 <Button
                   variant="outlined"
                   size="large"
-                  startIcon={<Visibility />}
-                  onClick={() => setShowWrongAnswers(true)}
-                  sx={{
-                    flex: 1,
-                    fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                    py: { xs: 1.25, sm: 1.5 },
-                    borderWidth: 2,
-                    borderColor: 'rgba(255, 255, 255, 0.6)',
-                    color: '#fff',
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                    '&:hover': {
-                      borderWidth: 2,
-                      bgcolor: 'rgba(255, 255, 255, 0.2)',
-                      borderColor: '#fff',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
+                  startIcon={<Home />}
+                  onClick={onBackToStart}
+                  sx={{ flex: 1, fontSize: { xs: '0.875rem', sm: '0.9rem' }, py: { xs: 1.25, sm: 1.5 } }}
                 >
-                  {t('results.wrongAnswers')}
+                  {t('results.backToStart')}
                 </Button>
               </Box>
             </Box>
-          )}
-
-          <WrongAnswersModal
-            open={showWrongAnswers}
-            onClose={() => setShowWrongAnswers(false)}
-            wrongAnswers={wrongAnswers}
-          />
-
-          {/* Main Action Buttons */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: { xs: 1, sm: 1.25 }, 
-              width: '100%',
-            }}
-          >
-            {nextStartIndex !== null && nextStartIndex !== undefined && (
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                startIcon={<ArrowForward />}
-                onClick={onNextTest}
-                sx={{
-                  fontSize: { xs: '0.8rem', sm: '1rem' },
-                  py: { xs: 1.5, sm: 2 },
-                  background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
-                  color: '#fff',
-                  boxShadow: '0 4px 15px rgba(76, 175, 80, 0.4)',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #388e3c 0%, #2e7d32 100%)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 25px rgba(76, 175, 80, 0.6)',
-                  },
-                }}
-              >
-                {t('results.nextTest')}
-              </Button>
-            )}
-            
-            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 1.25 }, flexDirection: { xs: 'column', sm: 'row' } }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<Refresh />}
-                onClick={onRestart}
-                sx={{
-                  flex: 1,
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                  py: { xs: 1.5, sm: 1.75 },
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: '#fff',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-                  transition: 'all 0.3s ease',
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 25px rgba(102, 126, 234, 0.6)',
-                  },
-                }}
-              >
-                {t('results.restart')}
-              </Button>
-              
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<Home />}
-                onClick={onBackToStart}
-                sx={{
-                  flex: 1,
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                  py: { xs: 1.5, sm: 1.75 },
-                  borderWidth: 2,
-                  borderColor: 'rgba(255, 255, 255, 0.6)',
-                  color: '#fff',
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                    borderColor: '#fff',
-                    boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)',
-                  },
-                }}
-              >
-                {t('results.backToStart')}
-              </Button>
-            </Box>
           </Box>
         </Box>
-      </Box>
+      </Fade>
 
       {showPerQuestionReview && (
-        <Box sx={{ width: '100%', maxWidth: 'lg', px: { xs: 0, sm: 1 } }}>
+        <Box sx={{ width: '100%', maxWidth: { xs: '100%', md: 'lg' }, mt: { xs: 2, sm: 3 }, px: { xs: 0, sm: 1 } }}>
           <TestResultsReview
             questions={questions}
             answers={answers}

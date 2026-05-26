@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert, useTheme, Select, MenuItem, FormControl, InputLabel, Chip } from '@mui/material'
+import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert, useTheme, Select, MenuItem, FormControl, InputLabel, Chip, Grow } from '@mui/material'
+import { CheckCircle, Cancel } from '@mui/icons-material'
 import { InlineMath, BlockMath } from 'react-katex'
 import { useTranslation } from 'react-i18next'
 import type { Question, Answer } from '../types'
@@ -436,41 +437,41 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
             <Box
               key={shuffledIndex}
               sx={{
-                p: { xs: 1, sm: 1.5, md: 2 },
-                border: { xs: 1.5, sm: 2, md: 3 },
-                borderColor: isAnswered 
+                p: { xs: 1.25, sm: 1.5, md: 1.75 },
+                border: isSelected || (isAnswered && color !== 'default') ? '2px solid' : '1.5px solid',
+                borderColor: isAnswered
                   ? (color === 'success' ? 'success.main' : color === 'error' ? 'error.main' : 'divider')
                   : (isSelected ? 'primary.main' : 'divider'),
-                borderRadius: { xs: 2, sm: 3 },
-                bgcolor: isAnswered 
-                  ? (color === 'success' 
-                      ? (theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'success.light')
-                      : color === 'error' 
-                        ? (theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'error.light')
+                borderRadius: 2,
+                bgcolor: isAnswered
+                  ? (color === 'success'
+                      ? (theme.palette.mode === 'dark' ? 'rgba(129, 201, 149, 0.16)' : 'rgba(24, 128, 56, 0.08)')
+                      : color === 'error'
+                        ? (theme.palette.mode === 'dark' ? 'rgba(242, 139, 130, 0.16)' : 'rgba(217, 48, 37, 0.08)')
                         : 'transparent')
-                  : (isSelected ? 'action.selected' : 'transparent'),
+                  : (isSelected
+                      ? (theme.palette.mode === 'dark' ? 'rgba(138, 180, 248, 0.14)' : 'rgba(26, 115, 232, 0.08)')
+                      : 'transparent'),
+                boxShadow: isSelected && !isAnswered
+                  ? (theme.palette.mode === 'dark'
+                      ? '0 0 0 2px rgba(138,180,248,0.12)'
+                      : '0 1px 2px rgba(26,115,232,0.12)')
+                  : 'none',
                 cursor: isAnswered ? 'default' : (question.isSequence ? 'default' : 'pointer'),
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'transform 0.12s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease',
                 position: 'relative',
-                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
-                '&::before': isSelected && !isAnswered && !question.isSequence ? {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-                  zIndex: 0,
-                } : {},
+                userSelect: 'none',
                 '&:hover': isAnswered || question.isSequence ? {} : {
                   borderColor: 'primary.main',
-                  bgcolor: 'action.hover',
-                  transform: { xs: 'none', sm: 'translateX(8px)' },
-                  boxShadow: { xs: 'none', sm: '0 4px 12px rgba(102, 126, 234, 0.2)' },
+                  bgcolor: (theme) => isSelected
+                    ? (theme.palette.mode === 'dark' ? 'rgba(138,180,248,0.20)' : 'rgba(26,115,232,0.12)')
+                    : theme.palette.action.hover,
+                },
+                '&:active': isAnswered || question.isSequence ? {} : {
+                  transform: 'scale(0.985)'
                 }
               }}
               onClick={() => !isAnswered && !question.isSequence && onAnswerSelect(originalIndex)}
@@ -601,6 +602,26 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
                 }
                 sx={{ m: 0, width: '100%', cursor: isAnswered ? 'default' : 'pointer', pointerEvents: 'none' }}
               />
+              )}
+              {isAnswered && !question.isSequence && !question.isMatching && (color === 'success' || color === 'error') && (
+                <Grow in timeout={300}>
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      ml: 'auto',
+                      pl: 1,
+                      flexShrink: 0,
+                      color: color === 'success' ? 'success.main' : 'error.main'
+                    }}
+                  >
+                    {color === 'success'
+                      ? <CheckCircle sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                      : <Cancel sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                    }
+                  </Box>
+                </Grow>
               )}
             </Box>
           )

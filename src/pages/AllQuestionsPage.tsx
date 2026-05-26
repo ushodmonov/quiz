@@ -12,10 +12,11 @@ import {
   AccordionSummary,
   AccordionDetails,
   IconButton,
-  Pagination,
   Slide,
   AppBar,
-  Toolbar
+  Toolbar,
+  Fade,
+  CircularProgress
 } from '@mui/material'
 import { Search, ExpandMore, ArrowBack } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
@@ -29,15 +30,16 @@ interface AllQuestionsPageProps {
   onBack: () => void
 }
 
-const QUESTIONS_PER_PAGE = 20
+const QUESTIONS_PER_BATCH = 20
 
 export default function AllQuestionsPage({ questions: propsQuestions, onBack }: AllQuestionsPageProps) {
   const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedQuestion, setExpandedQuestion] = useState<number | false>(false)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [loadedCount, setLoadedCount] = useState(QUESTIONS_PER_BATCH)
   const [showStickySearch, setShowStickySearch] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
   
   // Load questions from localStorage if propsQuestions is empty (for new tab scenario)
   const [questions] = useState<Question[]>(() => {
@@ -79,23 +81,32 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
       })
   }, [questions, searchQuery])
 
-  // Pagination - always show pagination if there are filtered results
-  const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / QUESTIONS_PER_PAGE))
-  const startIndex = (currentPage - 1) * QUESTIONS_PER_PAGE
-  const endIndex = startIndex + QUESTIONS_PER_PAGE
-  const paginatedQuestions = filteredQuestions.slice(startIndex, endIndex)
+  // Infinite scroll: take the first `loadedCount` filtered questions
+  const visibleQuestions = filteredQuestions.slice(0, loadedCount)
+  const hasMore = loadedCount < filteredQuestions.length
 
-  // Reset to page 1 when search query changes
+  // Reset infinite scroll when filter changes
   useEffect(() => {
-    setCurrentPage(1)
+    setLoadedCount(QUESTIONS_PER_BATCH)
   }, [searchQuery])
 
-  // Reset page if current page is out of bounds
+  // IntersectionObserver — load next batch when the sentinel becomes visible
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages)
-    }
-  }, [currentPage, totalPages])
+    const sentinel = sentinelRef.current
+    if (!sentinel || !hasMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setLoadedCount((prev) => Math.min(prev + QUESTIONS_PER_BATCH, filteredQuestions.length))
+        }
+      },
+      { rootMargin: '400px 0px' }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, filteredQuestions.length])
 
   // Handle scroll to show/hide sticky search
   useEffect(() => {
@@ -120,37 +131,36 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
       <Slide direction="down" in={showStickySearch} mountOnEnter unmountOnExit>
         <AppBar
           position="fixed"
+          elevation={0}
           sx={{
             top: 64,
-            bgcolor: (theme) => theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.98)'
-              : 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: (theme) => theme.palette.mode === 'dark'
-              ? '0 2px 8px rgba(0, 0, 0, 0.3)'
-              : '0 2px 8px rgba(0, 0, 0, 0.1)',
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '0 2px 6px rgba(0,0,0,0.4)'
+                : '0 1px 3px rgba(60,64,67,0.08)',
             zIndex: 1100,
           }}
         >
-          <Toolbar sx={{ justifyContent: 'center', py: 1 }}>
+          <Toolbar sx={{ justifyContent: 'center', py: 1, minHeight: { xs: 52, sm: 56 } }}>
             <Container maxWidth="lg" sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', flex: 1 }}>
+                <Chip
+                  label={`${t('questions.total')}: ${questions.length}`}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  sx={{ fontWeight: 500 }}
+                />
                 {searchQuery && (
-                  <Chip 
+                  <Chip
                     label={`${t('questions.found')}: ${filteredQuestions.length}`}
                     color="secondary"
                     variant="filled"
                     size="small"
-                    sx={{ fontWeight: 600 }}
-                  />
-                )}
-                {totalPages > 1 && (
-                  <Chip 
-                    label={`${t('questions.page')} ${currentPage} / ${totalPages}`}
-                    color="info"
-                    variant="outlined"
-                    size="small"
-                    sx={{ fontWeight: 600 }}
+                    sx={{ fontWeight: 500 }}
                   />
                 )}
               </Box>
@@ -166,9 +176,9 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                     </InputAdornment>
                   ),
                 }}
-                sx={{ 
-                  minWidth: { xs: 200, sm: 300 },
-                  maxWidth: { xs: 300, sm: 400 },
+                sx={{
+                  minWidth: { xs: 180, sm: 280 },
+                  maxWidth: { xs: 260, sm: 380 },
                 }}
               />
             </Container>
@@ -179,22 +189,14 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
       <Box
         sx={{
           minHeight: 'calc(100vh - 64px)',
-          background: (theme) => theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          bgcolor: 'background.default',
           py: { xs: 2, sm: 3 },
         }}
       >
         <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
           <Card
             ref={headerRef}
-            sx={{
-              background: (theme) => theme.palette.mode === 'dark'
-                ? 'rgba(30, 30, 30, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              mb: { xs: 2, sm: 3 }
-            }}
+            sx={{ mb: { xs: 2, sm: 3 } }}
           >
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               {/* Header Section */}
@@ -248,17 +250,12 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                   >
                     <ArrowBack />
                   </IconButton>
-                  <Typography 
-                    variant="h4" 
-                    sx={{ 
+                  <Typography
+                    variant="h4"
+                    sx={{
                       fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                      fontWeight: 700,
-                      background: (theme) => theme.palette.mode === 'dark'
-                        ? 'linear-gradient(135deg, #90caf9 0%, #f48fb1 100%)'
-                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
+                      fontWeight: 500,
+                      color: 'primary.main',
                       flex: 1,
                     }}
                   >
@@ -269,33 +266,24 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                 {/* Stats and Search Row */}
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' } }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <Chip 
+                    <Chip
                       label={`${t('questions.total')}: ${questions.length}`}
                       color="primary"
-                      variant="filled"
+                      variant="outlined"
                       size="small"
-                      sx={{ fontWeight: 600 }}
+                      sx={{ fontWeight: 500 }}
                     />
                     {searchQuery && (
-                      <Chip 
+                      <Chip
                         label={`${t('questions.found')}: ${filteredQuestions.length}`}
                         color="secondary"
                         variant="filled"
                         size="small"
-                        sx={{ fontWeight: 600 }}
-                      />
-                    )}
-                    {totalPages > 1 && (
-                      <Chip 
-                        label={`${t('questions.page')} ${currentPage} / ${totalPages}`}
-                        color="info"
-                        variant="outlined"
-                        size="small"
-                        sx={{ fontWeight: 600 }}
+                        sx={{ fontWeight: 500 }}
                       />
                     )}
                   </Box>
-                  
+
                   <TextField
                     fullWidth={false}
                     placeholder={t('questions.searchPlaceholder')}
@@ -309,9 +297,10 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ 
+                    sx={{
                       minWidth: { xs: '100%', sm: 250 },
                       maxWidth: { xs: '100%', sm: 400 },
+                      ml: { xs: 0, sm: 'auto' },
                     }}
                   />
                 </Box>
@@ -320,14 +309,7 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
           </Card>
 
         {filteredQuestions.length === 0 ? (
-          <Card
-            sx={{
-              background: (theme) => theme.palette.mode === 'dark'
-                ? 'rgba(30, 30, 30, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
+          <Card>
             <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
               <Typography variant="h6" color="text.secondary">
                 {t('questions.noResults')}
@@ -336,57 +318,49 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
           </Card>
         ) : (
           <>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
-              {paginatedQuestions.map(({ question, originalIndex }, index) => {
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.25 }, mb: { xs: 2, sm: 3 } }}>
+              {visibleQuestions.map(({ question, originalIndex }, index) => {
                 const questionNumber = originalIndex + 1
-                const displayIndex = startIndex + index + 1
-                
+                const displayIndex = index + 1
+
                 return (
+                  <Fade in timeout={250} key={`${originalIndex}-${searchQuery}`}>
                   <Accordion
-                    key={`${originalIndex}-${searchQuery}`}
                     expanded={expandedQuestion === originalIndex}
                     onChange={handleAccordionChange(originalIndex)}
+                    elevation={0}
+                    disableGutters
                     sx={{
-                      background: (theme) => theme.palette.mode === 'dark'
-                        ? 'rgba(30, 30, 30, 0.95)'
-                        : 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(10px)',
-                      boxShadow: (theme) => theme.palette.mode === 'dark'
-                        ? '0 2px 8px rgba(0, 0, 0, 0.3)'
-                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      bgcolor: 'background.paper',
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
                       borderRadius: 2,
-                      mb: 1,
-                      '&:before': {
-                        display: 'none',
+                      overflow: 'hidden',
+                      '&:before': { display: 'none' },
+                      '&.Mui-expanded': {
+                        borderColor: 'primary.main',
                       },
-                      '&:hover': {
-                        boxShadow: (theme) => theme.palette.mode === 'dark'
-                          ? '0 4px 12px rgba(0, 0, 0, 0.4)'
-                          : '0 4px 12px rgba(0, 0, 0, 0.15)',
-                      },
-                      transition: 'box-shadow 0.2s ease',
+                      transition: 'border-color 0.2s ease',
                     }}
                   >
                     <AccordionSummary
-                      expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}
+                      expandIcon={<ExpandMore sx={{ color: 'text.secondary' }} />}
                       sx={{
-                        px: { xs: 2, sm: 3 },
-                        py: { xs: 1.5, sm: 2 },
-                        '&:hover': {
-                          bgcolor: 'action.hover',
-                        },
+                        px: { xs: 1.5, sm: 2.5 },
+                        py: { xs: 0.5, sm: 1 },
+                        '&:hover': { bgcolor: 'action.hover' },
                         transition: 'background-color 0.2s ease',
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', pr: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 2 }, width: '100%', pr: 1 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
                           <Chip
                             label={`#${questionNumber}`}
                             color="primary"
+                            variant="outlined"
                             size="small"
-                            sx={{ 
-                              minWidth: { xs: 45, sm: 55 },
-                              fontWeight: 700,
+                            sx={{
+                              minWidth: { xs: 42, sm: 52 },
+                              fontWeight: 500,
                               fontSize: { xs: '0.75rem', sm: '0.875rem' },
                             }}
                           />
@@ -488,53 +462,34 @@ export default function AllQuestionsPage({ questions: propsQuestions, onBack }: 
                       </Box>
                     </AccordionDetails>
                   </Accordion>
+                  </Fade>
                 )
               })}
             </Box>
-            
-            {filteredQuestions.length > 0 && (
-              <Card
+
+            {/* Infinity scroll sentinel + loading indicator */}
+            {hasMore && (
+              <Box
+                ref={sentinelRef}
                 sx={{
-                  background: (theme) => theme.palette.mode === 'dark'
-                    ? 'rgba(30, 30, 30, 0.95)'
-                    : 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: (theme) => theme.palette.mode === 'dark'
-                    ? '0 2px 8px rgba(0, 0, 0, 0.3)'
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  mt: 2,
-                }}
-              >
-                <CardContent sx={{ 
-                  p: { xs: 2, sm: 3 }, 
-                  display: 'flex', 
+                  display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  flexDirection: 'column',
-                  gap: 2,
-                }}>
-                  {totalPages > 1 && (
-                    <Pagination
-                      count={totalPages}
-                      page={currentPage}
-                      onChange={(_, page) => setCurrentPage(page)}
-                      color="primary"
-                      size="large"
-                      showFirstButton
-                      showLastButton
-                      sx={{
-                        '& .MuiPaginationItem-root': {
-                          fontSize: { xs: '0.875rem', sm: '1rem' },
-                        },
-                      }}
-                    />
-                  )}
-                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-                    {t('questions.showing')} {startIndex + 1} - {Math.min(endIndex, filteredQuestions.length)} {t('questions.of')} {filteredQuestions.length}
-                    {searchQuery && ` (${t('questions.total')}: ${questions.length})`}
-                  </Typography>
-                </CardContent>
-              </Card>
+                  py: 3,
+                  minHeight: 80,
+                }}
+              >
+                <CircularProgress size={28} thickness={4} />
+              </Box>
+            )}
+
+            {!hasMore && filteredQuestions.length > 0 && (
+              <Box sx={{ py: { xs: 2, sm: 3 }, textAlign: 'center' }}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('questions.showing')} {visibleQuestions.length} {t('questions.of')} {filteredQuestions.length}
+                  {searchQuery && ` (${t('questions.total')}: ${questions.length})`}
+                </Typography>
+              </Box>
             )}
           </>
         )}

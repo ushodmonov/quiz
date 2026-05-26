@@ -40,8 +40,8 @@ export const useTelegramWebApp = () => {
     const maxAttempts = 30
 
     const setupTelegramState = () => {
-      // Initialize Telegram Web App
-      initTelegramWebApp()
+      // Initialize Telegram Web App (returns its own resize-listener cleanup)
+      const disposeInit = initTelegramWebApp()
 
       // Get user info
       const telegramUser = getTelegramUser()
@@ -50,13 +50,12 @@ export const useTelegramWebApp = () => {
 
       // Get color scheme
       const tg = getTelegramWebApp()
-      if (!tg) return
+      if (!tg) return disposeInit
 
       const initialScheme = tg.colorScheme
       setColorScheme(initialScheme)
       colorSchemeRef.current = initialScheme
 
-      // Listen for theme changes using visibility change and focus events
       const checkTheme = () => {
         const currentScheme = tg.colorScheme
         if (currentScheme !== colorSchemeRef.current) {
@@ -65,21 +64,12 @@ export const useTelegramWebApp = () => {
         }
       }
 
-      // Check theme when page becomes visible
       const handleVisibilityChange = () => {
-        if (!document.hidden) {
-          checkTheme()
-        }
+        if (!document.hidden) checkTheme()
       }
+      const handleFocus = () => checkTheme()
 
-      // Check theme when window gets focus
-      const handleFocus = () => {
-        checkTheme()
-      }
-
-      // Check periodically (as fallback)
       themeInterval = setInterval(checkTheme, 2000)
-
       document.addEventListener('visibilitychange', handleVisibilityChange)
       window.addEventListener('focus', handleFocus)
 
@@ -87,6 +77,7 @@ export const useTelegramWebApp = () => {
         if (themeInterval) clearInterval(themeInterval)
         document.removeEventListener('visibilitychange', handleVisibilityChange)
         window.removeEventListener('focus', handleFocus)
+        disposeInit()
       }
     }
 

@@ -6,8 +6,11 @@ import {
   Typography,
   Button,
   Chip,
-  Alert
+  Alert,
+  Fade,
+  Grow
 } from '@mui/material'
+import { keyframes } from '@mui/system'
 import type { Theme } from '@mui/material/styles'
 import { AccessTime, ArrowBack, ArrowForward } from '@mui/icons-material'
 import SingleModeQuestionNav, { type SingleQuestionNavStatus } from '../components/SingleModeQuestionNav'
@@ -30,25 +33,27 @@ function getQuestionNumber(quizData: QuizData, questionIndex: number, question: 
   return quizData.startIndex + questionIndex + 1
 }
 
+const pulseRing = keyframes`
+  0%   { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.45); }
+  70%  { box-shadow: 0 0 0 10px rgba(217, 48, 37, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(217, 48, 37, 0); }
+`
+
 const TEST_PANEL_PADDING = { p: { xs: 2, sm: 3 } }
 
 function testPageGradient(theme: Theme) {
-  return theme.palette.mode === 'dark'
-    ? 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
-    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  return theme.palette.background.default
 }
 
-function testPanelBackground(theme: Theme, opacity = 0.95) {
-  return theme.palette.mode === 'dark'
-    ? `rgba(30, 30, 30, ${opacity})`
-    : `rgba(255, 255, 255, ${opacity})`
+function testPanelBackground(theme: Theme) {
+  return theme.palette.background.paper
 }
 
 const testPanelSx = {
   borderRadius: { xs: 0, sm: 2 },
-  boxShadow: { xs: 'none', sm: 2 },
-  bgcolor: (theme: Theme) => testPanelBackground(theme),
-  backdropFilter: 'blur(10px)'
+  boxShadow: 'none',
+  border: { xs: 'none', sm: (theme: Theme) => `1px solid ${theme.palette.divider}` },
+  bgcolor: (theme: Theme) => testPanelBackground(theme)
 }
 
 function TestPageHeader({
@@ -89,13 +94,16 @@ function TestPageHeader({
           <Chip
             icon={<AccessTime sx={{ fontSize: '1rem !important' }} />}
             label={timerDisplay}
-            color={timedOut ? 'error' : timerUrgent ? 'warning' : 'default'}
+            color={timedOut ? 'error' : timerUrgent ? 'error' : 'default'}
             variant={timedOut || timerUrgent ? 'filled' : 'outlined'}
             sx={{
               fontWeight: 700,
               fontFamily: 'monospace',
               fontSize: { xs: '0.95rem', sm: '1.05rem' },
-              '& .MuiChip-label': { px: 1 }
+              '& .MuiChip-label': { px: 1 },
+              ...(timerUrgent && !timedOut
+                ? { animation: `${pulseRing} 1.4s ease-out infinite` }
+                : {})
             }}
           />
         )}
@@ -105,11 +113,11 @@ function TestPageHeader({
           variant="determinate"
           value={progressValue}
           sx={{
-            height: { xs: 8, sm: 12 },
-            borderRadius: { xs: 1, sm: 2 },
+            height: { xs: 8, sm: 10 },
+            borderRadius: 4,
             bgcolor: 'action.hover',
             '& .MuiLinearProgress-bar': {
-              background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+              transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
             }
           }}
         />
@@ -613,11 +621,6 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
                   size="large"
                   onClick={() => gradeAndFinishAllMode()}
                   disabled={!allAnswered || timedOut}
-                  sx={{
-                    background: allAnswered
-                      ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-                      : undefined
-                  }}
                 >
                   {t('test.allMode.finishTest')}
                 </Button>
@@ -641,20 +644,24 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
               }}
             >
               <Box sx={{ ...TEST_PANEL_PADDING, p: { xs: 2, sm: 3, md: 4 } }}>
-                <QuestionDisplay
-                  question={currentQuestion}
-                  selectedAnswers={selectedAnswers}
-                  isAnswered={isAnswered}
-                  isCorrect={isCorrect}
-                  onAnswerSelect={handleAnswerSelect}
-                  onSequenceSelect={handleSequenceSelect}
-                  onMatchingSelect={handleMatchingSelect}
-                  questionNumber={getQuestionNumber(
-                    quizData,
-                    quizData.currentQuestionIndex,
-                    currentQuestion
-                  )}
-                />
+                <Fade in key={quizData.currentQuestionIndex} timeout={280}>
+                  <Box>
+                    <QuestionDisplay
+                      question={currentQuestion}
+                      selectedAnswers={selectedAnswers}
+                      isAnswered={isAnswered}
+                      isCorrect={isCorrect}
+                      onAnswerSelect={handleAnswerSelect}
+                      onSequenceSelect={handleSequenceSelect}
+                      onMatchingSelect={handleMatchingSelect}
+                      questionNumber={getQuestionNumber(
+                        quizData,
+                        quizData.currentQuestionIndex,
+                        currentQuestion
+                      )}
+                    />
+                  </Box>
+                </Fade>
 
                 {!timedOut && (
                   <Box
@@ -710,53 +717,48 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
                   }}
                 >
                   {!isAnswered && !timedOut && (
-                    <Button
-                      variant="contained"
-                      size="large"
-                      onClick={handleSubmitSingle}
-                      disabled={!canSubmitSingle}
-                      fullWidth
-                      sx={{
-                        maxWidth: { xs: '100%', sm: 280 },
-                        background: canSubmitSingle
-                          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                          : undefined
-                      }}
-                    >
-                      {t('test.checkAnswer')}
-                    </Button>
+                    <Grow in timeout={250}>
+                      <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleSubmitSingle}
+                        disabled={!canSubmitSingle}
+                        fullWidth
+                        sx={{ maxWidth: { xs: '100%', sm: 280 } }}
+                      >
+                        {t('test.checkAnswer')}
+                      </Button>
+                    </Grow>
                   )}
 
                   {canFinishSingle && !timedOut && (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      size="large"
-                      onClick={handleFinishSingle}
-                      fullWidth
-                      sx={{
-                        maxWidth: { xs: '100%', sm: 280 },
-                        background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-                      }}
-                    >
-                      {t('test.viewResults')}
-                    </Button>
+                    <Grow in timeout={250}>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="large"
+                        onClick={handleFinishSingle}
+                        fullWidth
+                        sx={{ maxWidth: { xs: '100%', sm: 280 } }}
+                      >
+                        {t('test.viewResults')}
+                      </Button>
+                    </Grow>
                   )}
 
                   {isAnswered && !canFinishSingle && !timedOut && (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      size="large"
-                      onClick={handleNextSingle}
-                      fullWidth
-                      sx={{
-                        maxWidth: { xs: '100%', sm: 280 },
-                        background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-                      }}
-                    >
-                      {t('test.nextQuestion')}
-                    </Button>
+                    <Grow in timeout={250}>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="large"
+                        onClick={handleNextSingle}
+                        fullWidth
+                        sx={{ maxWidth: { xs: '100%', sm: 280 } }}
+                      >
+                        {t('test.nextQuestion')}
+                      </Button>
+                    </Grow>
                   )}
                 </Box>
               </Box>
@@ -766,9 +768,20 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
               sx={{
                 flexShrink: 0,
                 mt: { xs: 0, sm: 3 },
+                position: { xs: 'sticky', sm: 'static' },
+                bottom: { xs: 0, sm: 'auto' },
+                zIndex: { xs: 2, sm: 'auto' },
                 borderRadius: { xs: 0, sm: 2 },
-                bgcolor: (theme: Theme) => testPanelBackground(theme, 0.98),
-                backdropFilter: 'blur(12px)',
+                bgcolor: (theme: Theme) => testPanelBackground(theme),
+                borderTop: { xs: (theme: Theme) => `1px solid ${theme.palette.divider}`, sm: 'none' },
+                border: { xs: 'none', sm: (theme: Theme) => `1px solid ${theme.palette.divider}` },
+                boxShadow: {
+                  xs: (theme: Theme) =>
+                    theme.palette.mode === 'dark'
+                      ? '0 -4px 12px rgba(0,0,0,0.5)'
+                      : '0 -2px 8px rgba(60,64,67,0.08)',
+                  sm: 'none'
+                },
                 pointerEvents: timedOut ? 'none' : 'auto',
                 pb: 'max(10px, env(safe-area-inset-bottom, 0px))'
               }}
