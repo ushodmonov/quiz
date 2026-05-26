@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ThemeProvider, CssBaseline, Box, Container, Card, CardContent, Typography, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import StartPage from './pages/StartPage'
@@ -104,7 +104,7 @@ function App() {
 
   const browserDevMode = isBrowserDevModeEnabled()
 
-  const handleBackToStart = () => {
+  const handleBackToStart = useCallback(() => {
     if (currentPage === 'test' || currentPage === 'results') {
       if (window.confirm('Testni tark etmoqchimisiz? Barcha progress yo\'qoladi.')) {
         clearProgress()
@@ -115,7 +115,7 @@ function App() {
       setQuizData(null)
       setCurrentPage('start')
     }
-  }
+  }, [currentPage])
 
   // Sync theme with Telegram if running in Telegram
   // This effect runs when Telegram colorScheme changes
@@ -148,24 +148,26 @@ function App() {
   }, [telegram.isTelegram, themeMode, telegram])
 
   // Handle Telegram back button
+  // Destructure stable references to avoid re-running on every render
+  const { isTelegram, showBackButton, hideBackButton, haptic } = telegram
   useEffect(() => {
-    if (!telegram.isTelegram) return
+    if (!isTelegram) return
 
     let cleanup: (() => void) | undefined
 
     if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users') {
-      cleanup = telegram.showBackButton(() => {
-        telegram.haptic.impact('light')
+      cleanup = showBackButton(() => {
+        haptic.impact('light')
         handleBackToStart()
       })
     } else {
-      telegram.hideBackButton()
+      hideBackButton()
     }
 
     return () => {
       if (cleanup) cleanup()
     }
-  }, [currentPage, telegram, handleBackToStart])
+  }, [currentPage, isTelegram, showBackButton, hideBackButton, haptic, handleBackToStart])
 
   useEffect(() => {
     if (hasProgress() && currentPage === 'start') {

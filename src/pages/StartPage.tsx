@@ -265,7 +265,19 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
     // Filter by is_show (default: true, only hide if explicitly false)
     // Also filter sub-catalogs
-    filtered = filtered.map(test => {
+    filtered = filtered.filter(test => {
+      // Hide main test if is_show is false
+      if (test.is_show === false) {
+        return false
+      }
+      // Hide main test if it has sub-catalogs but all are hidden
+      // Use original sub-catalogs (before any filtering) to check visibility
+      const subCatalogs = getSubCatalogs(test)
+      if (subCatalogs.length > 0) {
+        return subCatalogs.some(subTest => subTest.is_show !== false)
+      }
+      return true
+    }).map(test => {
       const subCatalogs = getSubCatalogs(test)
       if (subCatalogs.length > 0) {
         const filteredSubCatalogs = subCatalogs.filter(subTest => subTest.is_show !== false)
@@ -276,17 +288,6 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
         }
       }
       return test
-    }).filter(test => {
-      // Hide main test if is_show is false
-      if (test.is_show === false) {
-        return false
-      }
-      // Hide main test if it has sub-catalogs but all are hidden
-      const subCatalogs = getSubCatalogs(test)
-      if (subCatalogs.length > 0) {
-        return subCatalogs.some(subTest => subTest.is_show !== false)
-      }
-      return true
     })
 
     // Filter by institute
@@ -537,8 +538,8 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       // Store end question index (0-based)
       endQuestionIndex = endNum - 1
       
-      // Calculate max available questions in range
-      const maxAvailable = endNum - startNum
+      // Calculate max available questions in range (inclusive: startNum..endNum)
+      const maxAvailable = endNum - startNum + 1
       
       // Use questionCount for the first test (not the full range)
       const inputCount = parseInt(questionCount) || 0
@@ -1334,7 +1335,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   let maxAvailable: number
                   if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
                     const endNum = parseInt(endQuestion) || allQuestions.length
-                    maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                    maxAvailable = endNum - startNum + 1
                   } else {
                     maxAvailable = allQuestions.length - startNum + 1
                   }
@@ -1361,7 +1362,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                     const startNum = parseInt(startQuestion) || 1
                     if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
                       const endNum = parseInt(endQuestion) || allQuestions.length
-                      return endNum - startNum // Exclusive: end - start (not end - start + 1)
+                      return endNum - startNum + 1
                     }
                     return allQuestions.length - startNum + 1
                   })()
@@ -1372,7 +1373,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                     let maxAvailable: number
                     if (selectionMethod === 'random' && endQuestion && endQuestion.trim() !== '') {
                       const endNum = parseInt(endQuestion) || allQuestions.length
-                      maxAvailable = endNum - startNum // Exclusive: end - start (not end - start + 1)
+                      maxAvailable = endNum - startNum + 1
                       const count = parseInt(questionCount) || 0
                       if (count > 0 && maxAvailable > 0) {
                         const testCount = Math.ceil((endNum - startNum + 1) / count)
