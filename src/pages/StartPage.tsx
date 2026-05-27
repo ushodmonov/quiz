@@ -6,6 +6,7 @@ import {
   Typography,
   TextField,
   Button,
+  IconButton,
   RadioGroup,
   FormControlLabel,
   Radio,
@@ -31,12 +32,14 @@ import {
   Select,
   InputLabel
 } from '@mui/material'
-import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download, DeleteOutline, History, DeleteSweep, PlayCircleOutline, Replay, PauseCircle } from '@mui/icons-material'
+import LinearProgress from '@mui/material/LinearProgress'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, parseXlsxFile, isMultiSelect } from '../utils/fileParser'
 import { selectQuestions } from '../utils/questionUtils'
 import { clearProgress } from '../utils/storage'
 import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
+import { saveCachedTest, loadCachedTest, listCachedTests, deleteCachedTest, clearAllCachedTests, isIndexedDBSupported, type CachedTestMeta } from '../utils/indexedDb'
 import type { QuizData, Question, QuestionDisplayMode } from '../types'
 
 interface StartPageProps {
@@ -68,6 +71,12 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
   const [selectedLanguage, setSelectedLanguage] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
   const [allQuestions, setAllQuestions] = useState<Array<{ text: string; answers: Array<{ text: string; isCorrect: boolean }>; isMultiSelect?: boolean }>>([])
+  const [cachedTests, setCachedTests] = useState<CachedTestMeta[]>([])
+  const [cachedTestsLoaded, setCachedTestsLoaded] = useState(false)
+  const [activeFileId, setActiveFileId] = useState<string | null>(null)
+
+  const savedTabIndex = cachedTests.length > 0 ? 1 : -1
+  const catalogTabIndex = testCatalog.length > 0 ? (cachedTests.length > 0 ? 2 : 1) : -1
 
   const TESTS_PER_PAGE = 10
 
@@ -220,6 +229,17 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       }
     }
     loadCatalog()
+  }, [])
+
+  useEffect(() => {
+    if (!isIndexedDBSupported()) { setCachedTestsLoaded(true); return }
+    listCachedTests()
+      .then(list => {
+        setCachedTests(list)
+        if (list.length > 0) setTabValue(1)
+        setCachedTestsLoaded(true)
+      })
+      .catch(() => setCachedTestsLoaded(true))
   }, [])
 
   // Get unique institutes and courses from catalog
@@ -432,6 +452,16 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
       }
 
       setAllQuestions(allQuestions)
+
+      // Save to IndexedDB cache
+      if (isIndexedDBSupported() && allQuestions.length > 0) {
+        const fid = selectedFiles.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
+        const fname = selectedFiles.map(f => f.name).join(', ')
+        setActiveFileId(fid)
+        saveCachedTest(fid, fname, allQuestions)
+          .then(() => listCachedTests().then(setCachedTests))
+          .catch(() => {})
+      }
     } catch (err: any) {
       setError(t('start.error.noQuestions') + ': ' + (err.message || 'Noma\'lum xatolik'))
     } finally {
@@ -516,8 +546,82 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
     }
   }
 
+  const handleLoadCachedTest = async (meta: CachedTestMeta) => {
+    setError('')
+    setLoading(true)
+    try {
+      const cached = await loadCachedTest(meta.fileId)
+      if (!cached) { setError('Kesh topilmadi'); return }
+      const processed = cached.questions.map(q => ({ ...q, isMultiSelect: isMultiSelect(q) }))
+      setAllQuestions(processed)
+      setFiles([])
+      setSelectedTest(null)
+      setActiveFileId(meta.fileId)
+      setStartQuestion('1')
+      setTabValue(0) // settings formni ko'rsatish uchun file tabga o'tish
+    } catch {
+      setError('Keshdan yuklashda xatolik')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResumeFromCache = async (meta: CachedTestMeta) => {
+    const resume = meta.lastSession?.resumeData
+    if (!resume) return
+    setError('')
+    setLoading(true)
+    try {
+      const cached = await loadCachedTest(meta.fileId)
+      if (!cached) { setError('Kesh topilmadi'); return }
+      clearProgress()
+      onStart({
+        fileId: meta.fileId,
+        fileName: meta.fileName,
+        allQuestions: cached.questions,
+        selectedQuestions: resume.selectedQuestions,
+        startIndex: resume.startIndex,
+        currentQuestionIndex: resume.currentQuestionIndex,
+        answers: resume.answers,
+        score: resume.score,
+        selectionMethod: resume.selectionMethod,
+        displayMode: resume.displayMode,
+        endQuestionIndex: resume.endQuestionIndex,
+      })
+    } catch {
+      setError('Davom etishda xatolik')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteCachedTest = async (fileId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    await deleteCachedTest(fileId).catch(() => {})
+    setCachedTests(prev => {
+      const next = prev.filter(t => t.fileId !== fileId)
+      if (next.length === 0) setTabValue(0)
+      return next
+    })
+    if (activeFileId === fileId) {
+      setActiveFileId(null)
+      setAllQuestions([])
+      setFiles([])
+    }
+  }
+
+  const handleClearAllCached = async () => {
+    if (!window.confirm('Barcha saqlangan testlarni o\'chirasizmi?')) return
+    await clearAllCachedTests().catch(() => {})
+    setCachedTests([])
+    setActiveFileId(null)
+    setAllQuestions([])
+    setFiles([])
+    setTabValue(0)
+  }
+
   const handleStart = () => {
-    if ((files.length === 0 && !selectedTest) || allQuestions.length === 0) {
+    if ((files.length === 0 && !selectedTest && !activeFileId) || allQuestions.length === 0) {
       setError(t('start.error.fileRequired'))
       return
     }
@@ -585,13 +689,14 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
 
     const selected = selectQuestions(allQuestions, startIndex, count, selectionMethod, endQuestionIndex)
     
-    const fileId = files.length > 0
-      ? files.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
-      : `${selectedTest?.id}_${selectedTest?.path}`
+    const fileId = activeFileId
+      ?? (files.length > 0
+        ? files.map(f => `${f.name}_${f.size}_${f.lastModified}`).join('|')
+        : `${selectedTest?.id}_${selectedTest?.path}`)
 
-    const fileName = files.length > 0 
+    const fileName = files.length > 0
       ? files.map(f => f.name).join(', ')
-      : (selectedTest?.name || 'Test')
+      : (selectedTest?.name || cachedTests.find(c => c.fileId === activeFileId)?.fileName || 'Test')
 
     clearProgress()
 
@@ -647,6 +752,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                   setFiles([])
                   setSelectedTest(null)
                   setAllQuestions([])
+                  setActiveFileId(null)
                   setError('')
                   setEndQuestion('')
                   setEndQuestionError('')
@@ -661,9 +767,192 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
                 }}
               >
                 <Tab label={t('start.selectFile')} />
-                <Tab label={t('start.selectFromCatalog')} />
+                {cachedTests.length > 0 && (
+                  <Tab
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <History fontSize="small" sx={{ fontSize: '1rem' }} />
+                        <span>Saqlangan</span>
+                        <Chip
+                          label={cachedTests.length}
+                          size="small"
+                          color="primary"
+                          sx={{ height: 16, fontSize: '0.65rem', minWidth: 20, '& .MuiChip-label': { px: 0.5 } }}
+                        />
+                      </Box>
+                    }
+                  />
+                )}
+                {testCatalog.length > 0 && <Tab label={t('start.selectFromCatalog')} />}
               </Tabs>
             </Box>
+
+            {tabValue === savedTabIndex && savedTabIndex !== -1 && (
+              <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+                {!cachedTestsLoaded ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : cachedTests.length === 0 ? (
+                  <Alert severity="info" icon={<History />}>
+                    Hozircha saqlangan test yo'q. Fayl yuklab, test yechsangiz — avtomatik saqlanadi.
+                  </Alert>
+                ) : (
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {cachedTests.length} ta test saqlangan
+                      </Typography>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteSweep fontSize="small" />}
+                        onClick={handleClearAllCached}
+                        sx={{ fontSize: '0.75rem' }}
+                      >
+                        Hammasini o'chirish
+                      </Button>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {cachedTests.map((meta) => {
+                        const sess = meta.lastSession
+                        const hasResume = !!sess?.resumeData
+                        const hasResult = !!sess?.results
+                        const answered = hasResume
+                          ? (sess!.resumeData!.score.correct + sess!.resumeData!.score.incorrect)
+                          : 0
+                        const total = hasResume ? sess!.resumeData!.selectedQuestions.length : 0
+                        const progressPct = total > 0 ? (answered / total) * 100 : 0
+                        const resultPct = hasResult ? sess!.results!.percentage : 0
+
+                        return (
+                          <Card
+                            key={meta.fileId}
+                            variant="outlined"
+                            sx={{ borderRadius: 2, overflow: 'hidden' }}
+                          >
+                            {/* Status color bar */}
+                            <Box sx={{
+                              height: 3,
+                              bgcolor: hasResult
+                                ? (resultPct >= 70 ? 'success.main' : resultPct >= 50 ? 'warning.main' : 'error.main')
+                                : hasResume ? 'warning.main' : 'primary.light'
+                            }} />
+
+                            <Box sx={{ p: 2 }}>
+                              {/* File name + delete */}
+                              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                                <Typography variant="subtitle2" fontWeight={600} sx={{ flex: 1, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                                  {meta.fileName}
+                                </Typography>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={(e) => handleDeleteCachedTest(meta.fileId, e)}
+                                  sx={{ mt: -0.5, mr: -0.5, flexShrink: 0 }}
+                                >
+                                  <DeleteOutline fontSize="small" />
+                                </IconButton>
+                              </Box>
+
+                              <Typography variant="caption" color="text.secondary">
+                                {meta.questionCount} ta savol
+                              </Typography>
+
+                              {/* Result status */}
+                              {hasResult && (
+                                <Box sx={{
+                                  mt: 1.5,
+                                  px: 1.5, py: 1,
+                                  borderRadius: 1.5,
+                                  bgcolor: resultPct >= 70 ? 'success.50' : resultPct >= 50 ? 'warning.50' : 'error.50',
+                                  border: '1px solid',
+                                  borderColor: resultPct >= 70 ? 'success.200' : resultPct >= 50 ? 'warning.200' : 'error.200',
+                                }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <Typography variant="body2" fontWeight={700} color={resultPct >= 70 ? 'success.dark' : resultPct >= 50 ? 'warning.dark' : 'error.dark'}>
+                                      {resultPct.toFixed(0)}%
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {sess!.results!.correct}/{sess!.results!.total} to'g'ri
+                                    </Typography>
+                                  </Box>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={resultPct}
+                                    color={resultPct >= 70 ? 'success' : resultPct >= 50 ? 'warning' : 'error'}
+                                    sx={{ borderRadius: 1, height: 4, mt: 0.75 }}
+                                  />
+                                </Box>
+                              )}
+
+                              {/* In-progress status */}
+                              {hasResume && !hasResult && (
+                                <Box sx={{
+                                  mt: 1.5,
+                                  px: 1.5, py: 1,
+                                  borderRadius: 1.5,
+                                  bgcolor: 'warning.50',
+                                  border: '1px solid',
+                                  borderColor: 'warning.200',
+                                }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <PauseCircle sx={{ fontSize: '0.9rem', color: 'warning.main' }} />
+                                      <Typography variant="caption" fontWeight={600} color="warning.dark">
+                                        To'xtagan
+                                      </Typography>
+                                    </Box>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {answered}/{total} savol
+                                    </Typography>
+                                  </Box>
+                                  <LinearProgress
+                                    variant="determinate"
+                                    value={progressPct}
+                                    color="warning"
+                                    sx={{ borderRadius: 1, height: 4, mt: 0.75 }}
+                                  />
+                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                    {sess!.resumeData!.score.correct} to'g'ri · {sess!.resumeData!.score.incorrect} noto'g'ri
+                                  </Typography>
+                                </Box>
+                              )}
+
+                              {/* Buttons */}
+                              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                                {hasResume && !hasResult && (
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    startIcon={<PlayCircleOutline />}
+                                    onClick={() => handleResumeFromCache(meta)}
+                                    disabled={loading}
+                                    fullWidth
+                                  >
+                                    Davom etish
+                                  </Button>
+                                )}
+                                <Button
+                                  variant={hasResume && !hasResult ? 'outlined' : 'contained'}
+                                  size="small"
+                                  startIcon={hasResult ? <Replay /> : <PlayArrow />}
+                                  onClick={() => handleLoadCachedTest(meta)}
+                                  disabled={loading}
+                                  fullWidth
+                                >
+                                  {hasResult ? 'Qayta boshlash' : hasResume ? 'Yangidan' : 'Boshlash'}
+                                </Button>
+                              </Box>
+                            </Box>
+                          </Card>
+                        )
+                      })}
+                    </Box>
+                  </>
+                )}
+              </Box>
+            )}
 
             {tabValue === 0 && (
               <Box
@@ -750,7 +1039,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
               </Box>
             )}
 
-            {tabValue === 1 && (
+            {tabValue === catalogTabIndex && catalogTabIndex !== -1 && (
               <Box sx={{ mb: { xs: 2, sm: 3 } }}>
                 {loadingCatalog ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -1188,7 +1477,7 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
             </Alert>
           )}
 
-          {allQuestions.length > 0 && (
+          {allQuestions.length > 0 && tabValue !== savedTabIndex && (
             <>
               <Box sx={{ mb: { xs: 1.5, sm: 2 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }, color: 'text.secondary', fontWeight: 500 }}>

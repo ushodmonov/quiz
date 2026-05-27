@@ -12,6 +12,7 @@ import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
 import { loadProgress, hasProgress, clearProgress, loadTheme, saveTheme, loadLanguage, saveLanguage, saveAllQuestions, loadAllQuestions, loadAccessJwt, saveAccessJwt, clearAccessJwt, isBrowserDevModeEnabled } from './utils/storage'
+import { saveTestSession, isIndexedDBSupported } from './utils/indexedDb'
 import { selectQuestions } from './utils/questionUtils'
 import { createAppTheme, gmailColors } from './theme/theme'
 import { useTelegramWebApp } from './hooks/useTelegramWebApp'
@@ -107,6 +108,33 @@ function App() {
   const handleBackToStart = useCallback(() => {
     if (currentPage === 'test' || currentPage === 'results') {
       if (window.confirm('Testni tark etmoqchimisiz? Barcha progress yo\'qoladi.')) {
+        // Save current session to IndexedDB before clearing
+        if (quizData && isIndexedDBSupported()) {
+          saveTestSession(quizData.fileId, {
+            lastQuestionIndex: quizData.currentQuestionIndex,
+            score: quizData.score,
+            results: quizData.results
+              ? {
+                  correct: quizData.results.correct,
+                  incorrect: quizData.results.incorrect,
+                  total: quizData.results.total,
+                  percentage: quizData.results.percentage,
+                }
+              : undefined,
+            savedAt: Date.now(),
+            // Only save resumeData if test is still in progress (not completed)
+            resumeData: !quizData.results ? {
+              selectedQuestions: quizData.selectedQuestions,
+              startIndex: quizData.startIndex,
+              currentQuestionIndex: quizData.currentQuestionIndex,
+              answers: quizData.answers,
+              score: quizData.score,
+              selectionMethod: quizData.selectionMethod,
+              displayMode: quizData.displayMode,
+              endQuestionIndex: quizData.endQuestionIndex,
+            } : undefined,
+          }).catch(() => {})
+        }
         clearProgress()
         setQuizData(null)
         setCurrentPage('start')
@@ -115,7 +143,7 @@ function App() {
       setQuizData(null)
       setCurrentPage('start')
     }
-  }, [currentPage])
+  }, [currentPage, quizData])
 
   // Sync theme with Telegram if running in Telegram
   // This effect runs when Telegram colorScheme changes
@@ -236,6 +264,21 @@ function App() {
   const handleTestComplete = (results: QuizResults, patch?: Partial<QuizData>) => {
     if (quizData) {
       telegram.haptic.notification('success')
+
+      // Save completed session to IndexedDB
+      if (isIndexedDBSupported()) {
+        saveTestSession(quizData.fileId, {
+          lastQuestionIndex: quizData.currentQuestionIndex,
+          score: quizData.score,
+          results: {
+            correct: results.correct,
+            incorrect: results.incorrect,
+            total: results.total,
+            percentage: results.percentage,
+          },
+          savedAt: Date.now(),
+        }).catch(() => {})
+      }
       
       // If this is a retake and there's an original position to continue from
       if (quizData.isRetake && quizData.originalNextStartIndex !== null && quizData.originalNextStartIndex !== undefined) {
