@@ -60,15 +60,20 @@ export async function processReferralAndRewards(
   const referrerId = parseReferrerId(startParam)
   if (referrerId && referrerId !== user.id) {
     try {
-      const { created } = await createReferralIfAbsent({
-        inviteeTelegramUserId: user.id,
-        inviteeName: user.name,
-        referrerTelegramUserId: referrerId,
-      })
-      if (created) {
-        const records = await getJwtTokenRecords(user.id)
-        const hasBase = records.some((r) => r.kind !== BONUS_KIND && r.expiresAtMs > now)
-        if (!hasBase) {
+      // FAQAT mutlaqo yangi foydalanuvchi referral bo'la oladi.
+      // Avval token olgan (admin token yoki oldingi trial = tizimdan foydalangan)
+      // bo'lsa — referral ishlamaydi: na sanaladi, na trial beriladi, na chaqirgan
+      // odamga bonus o'tadi. Bu mavjud userlarni "chaqirib" bonus yig'ishni to'xtatadi.
+      const existingRecords = await getJwtTokenRecords(user.id)
+      const hasUsedSystem = existingRecords.some((r) => r.kind !== BONUS_KIND)
+
+      if (!hasUsedSystem) {
+        const { created } = await createReferralIfAbsent({
+          inviteeTelegramUserId: user.id,
+          inviteeName: user.name,
+          referrerTelegramUserId: referrerId,
+        })
+        if (created) {
           const token = await generateJwtToken(user.id, REFERRAL_TRIAL_SECONDS, JWT_SECRET_KEY, user.name)
           await saveJwtTokenToFirestore({
             token,

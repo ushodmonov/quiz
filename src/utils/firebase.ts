@@ -233,6 +233,11 @@ interface CreateReferralInput {
 export const createReferralIfAbsent = async (
   input: CreateReferralInput
 ): Promise<{ created: boolean }> => {
+  // O'zini-o'zi chaqirish mumkin emas (o'z havolasini o'zi ochgan holat).
+  if (input.inviteeTelegramUserId === input.referrerTelegramUserId) {
+    return { created: false }
+  }
+
   const db = getDb()
   const existingQuery = query(
     collection(db, FIRESTORE_REFERRALS_COLLECTION),
