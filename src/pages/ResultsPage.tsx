@@ -3,12 +3,19 @@ import {
   Typography,
   Box,
   Button,
-  Fade
+  Fade,
+  Snackbar,
+  Alert,
+  CircularProgress
 } from '@mui/material'
-import { Refresh, ArrowForward, Home, Replay, Visibility } from '@mui/icons-material'
+import { Refresh, ArrowForward, Home, Replay, Visibility, Share } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import WrongAnswersModal from '../components/WrongAnswersModal'
 import TestResultsReview from '../components/TestResultsReview'
+import Confetti from '../components/Confetti'
+import { generateResultCard, shareResultCard } from '../utils/shareCard'
+import { getEffectiveStreak } from '../utils/userStats'
+import { CONTACT_INFO } from '../constants/contact'
 import type { QuizResults, Question, QuestionDisplayMode } from '../types'
 
 function useCountUp(target: number, duration = 900) {
@@ -175,6 +182,7 @@ interface ResultsPageProps {
   answers?: Record<number, { selected: number[]; correct: boolean }>
   displayMode?: QuestionDisplayMode
   startIndex?: number
+  testName?: string
   onRestart: () => void
   onNextTest: () => void
   onRetakeIncorrect: () => void
@@ -189,6 +197,7 @@ export default function ResultsPage({
   answers = {},
   displayMode = 'single',
   startIndex = 0,
+  testName = '',
   onRestart,
   onNextTest,
   onRetakeIncorrect,
@@ -196,8 +205,42 @@ export default function ResultsPage({
 }: ResultsPageProps) {
   const { t } = useTranslation()
   const [showWrongAnswers, setShowWrongAnswers] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [snack, setSnack] = useState<string | null>(null)
   const percentage = results.percentage || 0
   const animatedPct = useCountUp(percentage)
+  const celebrate = percentage >= 80
+
+  const handleShare = async () => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      const blob = await generateResultCard({
+        percentage,
+        correct: results.correct,
+        total: totalQuestions,
+        testName,
+        streak: getEffectiveStreak(),
+        botHandle: CONTACT_INFO.telegramBot.name,
+        labels: {
+          result: t('results.shareCard.result', 'Natija'),
+          correct: t('results.shareCard.correct', "to'g'ri"),
+          streakDays: t('results.shareCard.streakDays', 'kun streak'),
+          cta: t('results.shareCard.cta', 'Sen ham yech →'),
+        },
+      })
+      const shareText = t('results.shareCard.text', { percentage, defaultValue: `Men testda ${percentage}% oldim! 🎯` })
+      const outcome = await shareResultCard(blob, shareText, CONTACT_INFO.telegramBot.url)
+      if (outcome === 'downloaded') {
+        setSnack(t('results.shareCard.downloaded', "Rasm yuklab olindi — Telegram'ga yuborishingiz mumkin"))
+      }
+    } catch (e) {
+      console.warn('Ulashish xatosi:', e)
+      setSnack(t('results.shareCard.error', 'Ulashib bo\'lmadi'))
+    } finally {
+      setSharing(false)
+    }
+  }
 
   const wrongAnswers = questions
     .map((question, index) => {
@@ -238,6 +281,7 @@ export default function ResultsPage({
         justifyContent: showPerQuestionReview ? 'flex-start' : 'center',
       }}
     >
+      {celebrate && <Confetti />}
       <Fade in timeout={400}>
         <Box
           sx={{
@@ -339,6 +383,19 @@ export default function ResultsPage({
 
           {/* Action buttons */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, width: '100%' }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth
+              startIcon={sharing ? <CircularProgress size={18} color="inherit" /> : <Share />}
+              onClick={handleShare}
+              disabled={sharing}
+              sx={{ borderRadius: 2.5, py: 1.4, fontWeight: 700, fontSize: '0.95rem' }}
+            >
+              {t('results.share', 'Natijani ulashish')}
+            </Button>
+
             {nextStartIndex !== null && nextStartIndex !== undefined && (
               <Button
                 variant="contained"
@@ -388,6 +445,17 @@ export default function ResultsPage({
           />
         </Box>
       )}
+
+      <Snackbar
+        open={!!snack}
+        autoHideDuration={4000}
+        onClose={() => setSnack(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="info" variant="filled" onClose={() => setSnack(null)} sx={{ width: '100%' }}>
+          {snack}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

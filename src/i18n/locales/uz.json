@@ -173,7 +173,17 @@
     "perQuestionReview": "Har bir savol bo'yicha natija",
     "statusCorrect": "To'g'ri",
     "statusIncorrect": "Noto'g'ri",
-    "noAnswerGiven": "Javob berilmagan"
+    "noAnswerGiven": "Javob berilmagan",
+    "share": "Natijani ulashish",
+    "shareCard": {
+      "result": "Natija",
+      "correct": "to'g'ri",
+      "streakDays": "kun streak",
+      "cta": "Sen ham yech →",
+      "text": "Men testda {{percentage}}% oldim! 🎯",
+      "downloaded": "Rasm yuklab olindi — Telegram'ga yuborishingiz mumkin",
+      "error": "Ulashib bo'lmadi"
+    }
   },
   "resume": {
     "title": "Oldingi test mavjud",
@@ -344,5 +354,70 @@
       "expiresAt": "Muddati tugash vaqti",
       "actions": "Amallar"
     }
+  },
+  "stats": {
+    "title": "Statistika",
+    "drawerDescription": "Natijalar, streak, takrorlash",
+    "empty": "Hozircha ma'lumot yo'q. Birinchi testni yechib ko'ring!",
+    "startFirst": "Test boshlash",
+    "clear": "Tozalash",
+    "confirmClear": "Barcha statistikani tozalashni xohlaysizmi?",
+    "totalTests": "Yechilgan test",
+    "totalQuestions": "Jami savol",
+    "avgScore": "O'rtacha natija",
+    "bySubject": "Fanlar bo'yicha",
+    "testsShort": "test",
+    "correctShort": "to'g'ri",
+    "history": "Oxirgi natijalar",
+    "streak": {
+      "days": "kun ketma-ket",
+      "best": "eng uzun",
+      "total": "Jami faol kun"
+    },
+    "srs": {
+      "title": "Xatolar ustida ishlash",
+      "desc": "Xato qilgan savollaringiz takrorlash uchun to'planadi.",
+      "due": "Bugun",
+      "total": "Jami",
+      "review": "Takrorlash",
+      "reviewAll": "Hammasini takrorlash",
+      "quizName": "Xatolar ustida ishlash",
+      "clear": "SRS tozalash",
+      "confirmClear": "SRS savollarini tozalaysizmi?"
+    },
+    "bookmarks": {
+      "title": "Belgilangan savollar",
+      "desc": "Test paytida yulduzcha bilan belgilagan savollaringiz.",
+      "start": "Yechish",
+      "quizName": "Belgilangan savollar",
+      "clear": "Belgilarni tozalash",
+      "confirmClear": "Belgilarni tozalaysizmi?"
+    },
+    "heatmap": {
+      "title": "Faollik kalendari",
+      "activeDays": "faol kun",
+      "questions": "savol",
+      "less": "kam",
+      "more": "ko'p",
+      "mon": "Du",
+      "wed": "Cho",
+      "fri": "Ju"
+    }
+  },
+  "bookmark": {
+    "add": "Belgilab qo'yish",
+    "remove": "Belgini olib tashlash"
+  },
+  "referral": {
+    "title": "Do'st chaqir — bonus oling",
+    "desc": "Do'stingiz {{hours}} soat bepul ishlatadi. Har bir chaqirgan do'stingiz uchun sizga +3 kun qo'shiladi.",
+    "share": "Ulashish",
+    "copy": "Nusxalash",
+    "copied": "Havola nusxalandi",
+    "shareText": "Men bu botda imtihonga tayyorlanyapman — sen ham qo'shil! {{hours}} soat bepul 🎓",
+    "invited": "chaqirilgan",
+    "bonusDays": "kun bonus",
+    "leaderboard": "Eng faol chaqiruvchilar",
+    "you": "siz"
   }
 }

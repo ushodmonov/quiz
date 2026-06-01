@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert, useTheme, Select, MenuItem, FormControl, InputLabel, Chip, Grow } from '@mui/material'
-import { CheckCircle, Cancel } from '@mui/icons-material'
+import { Box, FormControlLabel, Radio, Checkbox, Typography, Alert, useTheme, Select, MenuItem, FormControl, InputLabel, Chip, Grow, IconButton, Tooltip } from '@mui/material'
+import { CheckCircle, Cancel, BookmarkBorder, Bookmark } from '@mui/icons-material'
 import { InlineMath, BlockMath } from 'react-katex'
 import { useTranslation } from 'react-i18next'
 import type { Question, Answer } from '../types'
@@ -15,13 +15,17 @@ interface QuestionDisplayProps {
   onMatchingSelect?: (leftIndex: number, rightIndex: number) => void
   questionNumber?: number
   showAlert?: boolean
+  /** Bookmark (yulduzcha) tugmasini ko'rsatish. */
+  bookmarkable?: boolean
+  isBookmarked?: boolean
+  onToggleBookmark?: () => void
 }
 
 interface ShuffledAnswer extends Answer {
   originalIndex: number
 }
 
-function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onAnswerSelect, onSequenceSelect, onMatchingSelect, questionNumber, showAlert = true }: QuestionDisplayProps) {
+function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onAnswerSelect, onSequenceSelect, onMatchingSelect, questionNumber, showAlert = true, bookmarkable = false, isBookmarked = false, onToggleBookmark }: QuestionDisplayProps) {
   const { t } = useTranslation()
   const theme = useTheme()
 
@@ -243,6 +247,20 @@ function QuestionDisplay({ question, selectedAnswers, isAnswered, isCorrect, onA
               color: 'white',
             }}
           />
+        )}
+        {bookmarkable && onToggleBookmark && (
+          <Tooltip title={isBookmarked ? t('bookmark.remove', 'Belgini olib tashlash') : t('bookmark.add', 'Belgilab qo\'yish')}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleBookmark()
+              }}
+              sx={{ ml: 'auto', color: isBookmarked ? 'warning.main' : 'text.secondary' }}
+            >
+              {isBookmarked ? <Bookmark fontSize="small" /> : <BookmarkBorder fontSize="small" />}
+            </IconButton>
+          </Tooltip>
         )}
       </Box>
       <Typography 

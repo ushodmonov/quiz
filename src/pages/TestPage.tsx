@@ -17,6 +17,7 @@ import SingleModeQuestionNav, { type SingleQuestionNavStatus } from '../componen
 import { useTranslation } from 'react-i18next'
 import { calculateScore } from '../utils/questionUtils'
 import { saveProgress } from '../utils/storage'
+import { questionKey, isBookmarked as isQuestionBookmarked, toggleBookmark } from '../utils/userStats'
 import { formatTimerDisplay, getRemainingSeconds } from '../utils/quizTimer'
 import { canSubmitQuestionSelection, hasQuestionDraftSelection } from '../utils/questionSubmit'
 import QuestionDisplay from '../components/QuestionDisplay'
@@ -142,6 +143,22 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
   const [timedOut, setTimedOut] = useState(false)
   const expiryHandledRef = useRef(false)
+  // Bookmark holatini yangilash uchun versiya hisoblagichi
+  const [, setBookmarkVersion] = useState(0)
+
+  const bookmarkKeyFor = useCallback(
+    (question: Question) => question.sourceKey ?? questionKey(quizData.fileId, question),
+    [quizData.fileId]
+  )
+
+  const handleToggleBookmark = useCallback(
+    (question: Question) => {
+      const key = bookmarkKeyFor(question)
+      toggleBookmark(key, quizData.fileId, quizData.fileName, question)
+      setBookmarkVersion((v) => v + 1)
+    },
+    [bookmarkKeyFor, quizData.fileId, quizData.fileName]
+  )
 
   const hasTimer = quizData.timerEndsAt != null
   const totalQuestions = quizData.selectedQuestions.length
@@ -594,6 +611,9 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
                         handleMatchingSelectAll(index, leftIndex, rightIndex)
                       }
                       questionNumber={getQuestionNumber(quizData, index, question)}
+                      bookmarkable
+                      isBookmarked={isQuestionBookmarked(bookmarkKeyFor(question))}
+                      onToggleBookmark={() => handleToggleBookmark(question)}
                     />
                   </Box>
                 </Box>
@@ -659,6 +679,9 @@ export default function TestPage({ quizData, onComplete, onUpdateData }: TestPag
                         quizData.currentQuestionIndex,
                         currentQuestion
                       )}
+                      bookmarkable
+                      isBookmarked={isQuestionBookmarked(bookmarkKeyFor(currentQuestion))}
+                      onToggleBookmark={() => handleToggleBookmark(currentQuestion)}
                     />
                   </Box>
                 </Fade>

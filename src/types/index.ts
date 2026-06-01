@@ -16,6 +16,8 @@ export interface Question {
   isMatching?: boolean // For matching questions
   originalIndex?: number
   difficulty?: 1 | 2 | 3 // Qiyinlik darajasi: 1=oson, 2=o'rta, 3=qiyin
+  /** Manba testdagi barqaror kalit (SRS/bookmark testlarida ishlatiladi). */
+  sourceKey?: string
 }
 
 /** `single` — har bir savol alohida ekranda; `all` — barcha savollar bir ekranda. */
@@ -84,6 +86,8 @@ export interface QuizData {
   timerEndsAt?: number
   displayMode?: QuestionDisplayMode
   pendingAnswers?: Record<number, number[]>
+  /** Maxsus testlar: `srs` — takrorlash, `bookmark` — belgilangan savollar. */
+  quizKind?: 'normal' | 'srs' | 'bookmark'
 }
 
 export type ThemeMode = 'light' | 'dark'

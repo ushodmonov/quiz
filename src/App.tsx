@@ -8,6 +8,7 @@ import AllQuestionsPage from './pages/AllQuestionsPage'
 import TestFormatsPage from './pages/TestFormatsPage'
 import AdminTokenPage from './pages/AdminTokenPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import StatsPage from './pages/StatsPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
@@ -19,13 +20,15 @@ import { useTelegramWebApp } from './hooks/useTelegramWebApp'
 import { ADMIN_CONTACTS, CONTACT_INFO, isAdminTelegramUser, JWT_SECRET_KEY } from './constants/contact'
 import { getJwtTokensByTelegramUserId } from './utils/firebase'
 import { verifyJwtToken } from './utils/jwt'
+import { processReferralAndRewards } from './utils/accessControl'
+import { recordTestResult, recordActivity, recordDailyActivity, addWrongAnswersToSrs, recordSrsReview } from './utils/userStats'
 import './i18n/config'
 import type { QuizData, QuizResults, ThemeMode, Language, Question } from './types'
 
 function App() {
   const { i18n } = useTranslation()
   const telegram = useTelegramWebApp()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users' | 'stats'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
@@ -63,6 +66,17 @@ function App() {
         setHasValidAccessToken(false)
         setAccessCheckLoading(false)
         return
+      }
+
+      // Referral mukofotlari: chaqirilgan do'stga 6 soat trial, chaqirgan odamga +3 kun/chaqirish.
+      // Token mintlab localStorage'ga saqlaydi — pastdagi tekshiruv ularni topadi. Offline'da jim o'tadi.
+      try {
+        await processReferralAndRewards(
+          { id: telegramUserId, name: telegram.userInfo?.firstName || telegram.userInfo?.username },
+          telegram.userInfo?.startParam
+        )
+      } catch (referralError) {
+        console.warn('Referral processing skipped:', referralError)
       }
 
       try {
@@ -179,7 +193,7 @@ function App() {
 
     let cleanup: (() => void) | undefined
 
-    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users') {
+    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users' || currentPage === 'stats') {
       cleanup = showBackButton(() => {
         haptic.impact('light')
         handleBackToStart()
@@ -314,7 +328,39 @@ function App() {
       }
       
       // Normal completion - show results (patch: all-mode grading yozilgan javoblar)
-      setQuizData({ ...quizData, ...patch, results })
+      const finalData: QuizData = { ...quizData, ...patch, results }
+
+      // —— Statistika / streak / SRS qaydlari ——
+      try {
+        recordActivity() // streak — barcha test turlari uchun
+        recordDailyActivity(results.total) // kunlik faollik (heatmap)
+        if (finalData.quizKind === 'srs') {
+          // Takrorlash testi: har bir savol bo'yicha Leitner qutilarini yangilaymiz
+          finalData.selectedQuestions.forEach((q, i) => {
+            if (q.sourceKey) recordSrsReview(q.sourceKey, !!finalData.answers[i]?.correct)
+          })
+        } else {
+          // Oddiy yoki bookmark testi: statistikaga yozamiz va xatolarni SRS'ga qo'shamiz
+          recordTestResult({
+            fileId: finalData.fileId,
+            fileName: finalData.fileName,
+            correct: results.correct,
+            incorrect: results.incorrect,
+            total: results.total,
+            percentage: results.percentage,
+          })
+          addWrongAnswersToSrs(
+            finalData.fileId,
+            finalData.fileName,
+            finalData.selectedQuestions,
+            finalData.answers
+          )
+        }
+      } catch (e) {
+        console.warn('Statistika qayd etilmadi:', e)
+      }
+
+      setQuizData(finalData)
       setCurrentPage('results')
     }
   }
@@ -442,6 +488,41 @@ function App() {
 
   const handleViewAdminUsers = () => {
     setCurrentPage('admin-users')
+  }
+
+  const handleViewStats = () => {
+    telegram.haptic.impact('light')
+    setCurrentPage('stats')
+  }
+
+  const handleBackFromStats = () => {
+    setCurrentPage('start')
+  }
+
+  // SRS takrorlash / bookmark testlarini ishga tushirish (savollar ro'yxati tayyor)
+  const handleStartCustomQuiz = (
+    questions: Question[],
+    fileName: string,
+    kind: 'srs' | 'bookmark'
+  ) => {
+    if (questions.length === 0) return
+    telegram.haptic.impact('medium')
+    clearProgress()
+    const fileId = kind === 'srs' ? 'srs_review' : 'bookmark_quiz'
+    setQuizData({
+      fileId,
+      fileName,
+      allQuestions: questions,
+      selectedQuestions: questions,
+      startIndex: 0,
+      currentQuestionIndex: 0,
+      selectionMethod: 'sequential',
+      answers: {},
+      score: { correct: 0, incorrect: 0 },
+      displayMode: 'single',
+      quizKind: kind,
+    })
+    setCurrentPage('test')
   }
 
   const handleThemeToggle = () => {
@@ -593,6 +674,7 @@ function App() {
           onLanguageChange={handleLanguageChange}
           onTitleClick={handleBackToStart}
           onViewFormats={currentPage === 'start' ? handleViewFormats : undefined}
+          onViewStats={currentPage === 'start' ? handleViewStats : undefined}
           onViewAdminToken={isAdmin ? handleViewAdminToken : undefined}
           onViewAdminUsers={isAdmin ? handleViewAdminUsers : undefined}
         />
@@ -610,9 +692,18 @@ function App() {
             onNew={handleNewQuiz}
           />
           {currentPage === 'start' && (
-            <StartPage 
-              onStart={handleStartQuiz} 
+            <StartPage
+              onStart={handleStartQuiz}
               onViewAllQuestions={handleViewAllQuestions}
+              onViewStats={handleViewStats}
+            />
+          )}
+          {currentPage === 'stats' && (
+            <StatsPage
+              onBack={handleBackFromStats}
+              onStartCustomQuiz={handleStartCustomQuiz}
+              telegramUserId={telegram.userInfo?.id}
+              telegramUserName={telegram.userInfo?.firstName || telegram.userInfo?.username}
             />
           )}
           {currentPage === 'formats' && (
@@ -651,6 +742,7 @@ function App() {
               answers={quizData.answers}
               displayMode={quizData.displayMode}
               startIndex={quizData.startIndex}
+              testName={quizData.fileName}
               onRestart={handleRestart}
               onNextTest={handleNextTest}
               onRetakeIncorrect={handleRetakeIncorrect}

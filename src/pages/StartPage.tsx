@@ -32,7 +32,7 @@ import {
   Select,
   InputLabel
 } from '@mui/material'
-import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download, DeleteOutline, History, DeleteSweep, PlayCircleOutline, Replay, PauseCircle } from '@mui/icons-material'
+import { CloudUpload, Description, Search, ExpandMore, Folder, FolderOpen, PlayArrow, FilterList, Download, DeleteOutline, History, DeleteSweep, PlayCircleOutline, Replay, PauseCircle, Insights, LocalFireDepartment } from '@mui/icons-material'
 import LinearProgress from '@mui/material/LinearProgress'
 import { useTranslation } from 'react-i18next'
 import { parseTxtFile, parseDocxFile, parseXlsxFile, isMultiSelect } from '../utils/fileParser'
@@ -40,15 +40,19 @@ import { selectQuestions } from '../utils/questionUtils'
 import { clearProgress } from '../utils/storage'
 import { loadTestCatalog, loadTestQuestions, type TestCatalogItem } from '../utils/testCatalog'
 import { saveCachedTest, loadCachedTest, listCachedTests, deleteCachedTest, clearAllCachedTests, isIndexedDBSupported, type CachedTestMeta } from '../utils/indexedDb'
+import { getEffectiveStreak, getSrsCounts } from '../utils/userStats'
 import type { QuizData, Question, QuestionDisplayMode } from '../types'
 
 interface StartPageProps {
   onStart: (data: QuizData) => void
   onViewAllQuestions?: (questions: Question[]) => void
+  onViewStats?: () => void
 }
 
-export default function StartPage({ onStart, onViewAllQuestions }: StartPageProps) {
+export default function StartPage({ onStart, onViewAllQuestions, onViewStats }: StartPageProps) {
   const { t } = useTranslation()
+  const streakDays = useMemo(() => getEffectiveStreak(), [])
+  const dueCount = useMemo(() => getSrsCounts().due, [])
   const [tabValue, setTabValue] = useState(0)
   const [files, setFiles] = useState<File[]>([])
   const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(null)
@@ -744,6 +748,34 @@ export default function StartPage({ onStart, onViewAllQuestions }: StartPageProp
             >
               {t('start.title')}
             </Typography>
+            {onViewStats && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 2, sm: 3 } }}>
+                <Button
+                  variant="outlined"
+                  onClick={onViewStats}
+                  startIcon={<Insights />}
+                  sx={{ textTransform: 'none', borderRadius: 5 }}
+                >
+                  {t('stats.title', 'Statistika')}
+                  {streakDays > 0 && (
+                    <Chip
+                      icon={<LocalFireDepartment sx={{ fontSize: '0.9rem !important', color: '#ff6d00 !important' }} />}
+                      label={streakDays}
+                      size="small"
+                      sx={{ ml: 1, height: 20, fontWeight: 700, '& .MuiChip-label': { px: 0.5 } }}
+                    />
+                  )}
+                  {dueCount > 0 && (
+                    <Chip
+                      label={dueCount}
+                      color="warning"
+                      size="small"
+                      sx={{ ml: 0.5, height: 20, fontWeight: 700, '& .MuiChip-label': { px: 0.75 } }}
+                    />
+                  )}
+                </Button>
+              </Box>
+            )}
             <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
               <Tabs
                 value={tabValue}

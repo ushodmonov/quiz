@@ -5,6 +5,7 @@ interface TelegramWebApp {
   initData: string
   initDataUnsafe: {
     query_id?: string
+    start_param?: string
     user?: {
       id: number
       first_name: string
@@ -82,6 +83,11 @@ interface TelegramWebApp {
   ready: () => void
   expand: () => void
   close: () => void
+  isVersionAtLeast?: (version: string) => boolean
+  shareToStory?: (mediaUrl: string, params?: {
+    text?: string
+    widget_link?: { url: string; name?: string }
+  }) => void
   sendData: (data: string) => void
   openLink: (url: string, options?: { try_instant_view?: boolean }) => void
   openTelegramLink: (url: string) => void
@@ -124,6 +130,7 @@ export interface TelegramUserInfo {
   authDate?: number
   hash?: string
   initData?: string
+  startParam?: string
 }
 
 declare global {
@@ -242,7 +249,8 @@ export const getTelegramUserInfo = (): TelegramUserInfo | null => {
     queryId: unsafeData?.query_id,
     authDate: unsafeData?.auth_date,
     hash: unsafeData?.hash,
-    initData: tg?.initData
+    initData: tg?.initData,
+    startParam: unsafeData?.start_param
   }
 }
 
@@ -318,6 +326,50 @@ export const hideTelegramBackButton = (): void => {
     tg.BackButton.hide()
   } catch (error) {
     console.warn('[Telegram.WebApp] Error hiding BackButton:', error)
+  }
+}
+
+/**
+ * Telegram Story'ga ulashish qo'llab-quvvatlanadimi (7.8+).
+ */
+export const canShareToStory = (): boolean => {
+  const tg = getTelegramWebApp()
+  if (!tg || typeof tg.shareToStory !== 'function') return false
+  if (typeof tg.isVersionAtLeast === 'function') {
+    return tg.isVersionAtLeast('7.8')
+  }
+  return true
+}
+
+/**
+ * Story'ga rasm ulashish. `mediaUrl` ommaviy (http) URL bo'lishi kerak —
+ * Telegram data:/blob: URL'larni qabul qilmasligi mumkin.
+ */
+export const shareToStory = (mediaUrl: string, text?: string, linkUrl?: string): boolean => {
+  const tg = getTelegramWebApp()
+  if (!tg || typeof tg.shareToStory !== 'function') return false
+  try {
+    tg.shareToStory(mediaUrl, {
+      text,
+      widget_link: linkUrl ? { url: linkUrl, name: 'Test yechish' } : undefined,
+    })
+    return true
+  } catch (error) {
+    console.warn('[Telegram.WebApp] shareToStory failed:', error)
+    return false
+  }
+}
+
+/**
+ * Telegram chatga havola/matn ulashish (bot deep-link orqali).
+ */
+export const openShareLink = (url: string, text: string): void => {
+  const tg = getTelegramWebApp()
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+  if (tg && typeof tg.openTelegramLink === 'function') {
+    tg.openTelegramLink(shareUrl)
+  } else {
+    window.open(shareUrl, '_blank')
   }
 }
 

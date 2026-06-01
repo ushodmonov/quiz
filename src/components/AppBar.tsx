@@ -25,7 +25,8 @@ import {
   Close,
   GetApp,
   AdminPanelSettings,
-  Group
+  Group,
+  Insights
 } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
@@ -40,11 +41,12 @@ interface AppBarProps {
   onLanguageChange: (lang: Language) => void
   onTitleClick?: () => void
   onViewFormats?: () => void
+  onViewStats?: () => void
   onViewAdminToken?: () => void
   onViewAdminUsers?: () => void
 }
 
-export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewAdminToken, onViewAdminUsers }: AppBarProps) {
+export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewStats, onViewAdminToken, onViewAdminUsers }: AppBarProps) {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -323,6 +325,12 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
           <Divider sx={{ my: 1 }} />
 
           <Typography sx={sectionLabelSx}>{t('drawer.more') || "Boshqalar"}</Typography>
+          {onViewStats && renderNavItem(
+            <Insights sx={{ fontSize: 22 }} />,
+            t('stats.title') || 'Statistika',
+            onViewStats,
+            t('stats.drawerDescription') || 'Natijalar, streak, takrorlash',
+          )}
           {renderNavItem(
             <HelpOutline sx={{ fontSize: 22 }} />,
             t('footer.contact'),
