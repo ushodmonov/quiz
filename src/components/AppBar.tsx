@@ -26,7 +26,8 @@ import {
   GetApp,
   AdminPanelSettings,
   Group,
-  Insights
+  Insights,
+  Leaderboard
 } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
@@ -44,9 +45,10 @@ interface AppBarProps {
   onViewStats?: () => void
   onViewAdminToken?: () => void
   onViewAdminUsers?: () => void
+  onViewAdminReferrals?: () => void
 }
 
-export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewStats, onViewAdminToken, onViewAdminUsers }: AppBarProps) {
+export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewStats, onViewAdminToken, onViewAdminUsers, onViewAdminReferrals }: AppBarProps) {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -354,6 +356,12 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
             t('drawer.adminJwtUsers'),
             onViewAdminUsers,
             t('drawer.adminJwtUsersDescription'),
+          )}
+          {onViewAdminReferrals && renderNavItem(
+            <Leaderboard sx={{ fontSize: 22 }} />,
+            t('drawer.adminReferrals', 'Referral statistikasi'),
+            onViewAdminReferrals,
+            t('drawer.adminReferralsDescription', 'Kim eng ko\'p do\'st chaqirgan'),
           )}
           {canInstall && (
             <>

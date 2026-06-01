@@ -19,7 +19,9 @@
     "adminAddUser": "User qo'shish",
     "adminAddUserDescription": "Yangi user uchun token yaratish",
     "adminJwtUsers": "Tizim foydalanuvchilar",
-    "adminJwtUsersDescription": "Token olgan userlar ro'yxati"
+    "adminJwtUsersDescription": "Token olgan userlar ro'yxati",
+    "adminReferrals": "Referral statistikasi",
+    "adminReferralsDescription": "Kim eng ko'p do'st chaqirgan"
   },
   "start": {
     "title": "Testni boshlash",
@@ -419,5 +421,17 @@
     "bonusDays": "kun bonus",
     "leaderboard": "Eng faol chaqiruvchilar",
     "you": "siz"
+  },
+  "adminReferrals": {
+    "title": "Referral statistikasi",
+    "refresh": "Yangilash",
+    "empty": "Hozircha referral yo'q",
+    "errorLoad": "Ma'lumotni yuklab bo'lmadi",
+    "searchPlaceholder": "Ism yoki ID bo'yicha qidirish...",
+    "noSearchResults": "Topilmadi",
+    "referrers": "chaqiruvchi",
+    "referrals": "chaqirilgan",
+    "invitees": "Chaqirilganlar",
+    "daysShort": "k"
   }
 }

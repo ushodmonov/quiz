@@ -297,3 +297,38 @@ export const getReferralLeaderboard = async (maxItems = 20): Promise<ReferralLea
     .sort((a, b) => b.count - a.count)
     .slice(0, maxItems)
 }
+
+export interface ReferralRecord {
+  inviteeTelegramUserId: number
+  inviteeName: string
+  referrerTelegramUserId: number
+  referrerName: string
+  createdAt: Date | null
+}
+
+/** Barcha referral yozuvlari (admin paneli uchun). */
+export const getAllReferrals = async (max = 2000): Promise<ReferralRecord[]> => {
+  const db = getDb()
+  const q = query(
+    collection(db, FIRESTORE_REFERRALS_COLLECTION),
+    orderBy('createdAt', 'desc'),
+    limit(max)
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs
+    .map((doc) => {
+      const data = doc.data()
+      const inviteeId = Number(data.inviteeTelegramUserId)
+      const referrerId = Number(data.referrerTelegramUserId)
+      return {
+        inviteeTelegramUserId: inviteeId,
+        inviteeName:
+          typeof data.inviteeName === 'string' && data.inviteeName ? data.inviteeName : `ID: ${inviteeId}`,
+        referrerTelegramUserId: referrerId,
+        referrerName:
+          typeof data.referrerName === 'string' && data.referrerName ? data.referrerName : `ID: ${referrerId}`,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
+      }
+    })
+    .filter((r) => Number.isFinite(r.referrerTelegramUserId) && Number.isFinite(r.inviteeTelegramUserId))
+}

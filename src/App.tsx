@@ -8,6 +8,7 @@ import AllQuestionsPage from './pages/AllQuestionsPage'
 import TestFormatsPage from './pages/TestFormatsPage'
 import AdminTokenPage from './pages/AdminTokenPage'
 import AdminUsersPage from './pages/AdminUsersPage'
+import AdminReferralsPage from './pages/AdminReferralsPage'
 import StatsPage from './pages/StatsPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
@@ -28,7 +29,7 @@ import type { QuizData, QuizResults, ThemeMode, Language, Question } from './typ
 function App() {
   const { i18n } = useTranslation()
   const telegram = useTelegramWebApp()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users' | 'stats'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users' | 'admin-referrals' | 'stats'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
@@ -193,7 +194,7 @@ function App() {
 
     let cleanup: (() => void) | undefined
 
-    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users' || currentPage === 'stats') {
+    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users' || currentPage === 'admin-referrals' || currentPage === 'stats') {
       cleanup = showBackButton(() => {
         haptic.impact('light')
         handleBackToStart()
@@ -490,6 +491,10 @@ function App() {
     setCurrentPage('admin-users')
   }
 
+  const handleViewAdminReferrals = () => {
+    setCurrentPage('admin-referrals')
+  }
+
   const handleViewStats = () => {
     telegram.haptic.impact('light')
     setCurrentPage('stats')
@@ -677,6 +682,7 @@ function App() {
           onViewStats={currentPage === 'start' ? handleViewStats : undefined}
           onViewAdminToken={isAdmin ? handleViewAdminToken : undefined}
           onViewAdminUsers={isAdmin ? handleViewAdminUsers : undefined}
+          onViewAdminReferrals={isAdmin ? handleViewAdminReferrals : undefined}
         />
         <Box
           sx={{
@@ -722,6 +728,9 @@ function App() {
           )}
           {currentPage === 'admin-users' && isAdmin && (
             <AdminUsersPage onBack={handleBackToStart} />
+          )}
+          {currentPage === 'admin-referrals' && isAdmin && (
+            <AdminReferralsPage onBack={handleBackToStart} />
           )}
           {currentPage === 'questions' && (
             <AllQuestionsPage questions={allQuestions} onBack={handleBackFromQuestions} />

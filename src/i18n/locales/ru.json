@@ -19,7 +19,9 @@
     "adminAddUser": "Добавить пользователя",
     "adminAddUserDescription": "Создать токен для нового пользователя",
     "adminJwtUsers": "JWT Пользователи",
-    "adminJwtUsersDescription": "Список пользователей с токенами"
+    "adminJwtUsersDescription": "Список пользователей с токенами",
+    "adminReferrals": "Статистика рефералов",
+    "adminReferralsDescription": "Кто привёл больше друзей"
   },
   "start": {
     "title": "Начать тест",
@@ -419,5 +421,17 @@
     "bonusDays": "дней бонус",
     "leaderboard": "Самые активные",
     "you": "вы"
+  },
+  "adminReferrals": {
+    "title": "Статистика рефералов",
+    "refresh": "Обновить",
+    "empty": "Пока нет рефералов",
+    "errorLoad": "Не удалось загрузить данные",
+    "searchPlaceholder": "Поиск по имени или ID...",
+    "noSearchResults": "Не найдено",
+    "referrers": "пригласивших",
+    "referrals": "приглашено",
+    "invitees": "Приглашённые",
+    "daysShort": "д"
   }
 }
