@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getFirestore, collection, addDoc, serverTimestamp, getDocs, limit, orderBy, query, where, writeBatch } from 'firebase/firestore'
-import { FIREBASE_CONFIG, FIRESTORE_JWT_TOKENS_COLLECTION, FIRESTORE_REFERRALS_COLLECTION } from '../constants/contact'
+import { FIREBASE_CONFIG, FIRESTORE_JWT_TOKENS_COLLECTION, FIRESTORE_REFERRALS_COLLECTION, isAdminTelegramUser } from '../constants/contact'
 
 const isFirebaseConfigured = (): boolean => {
   return Boolean(
@@ -235,6 +235,15 @@ export const createReferralIfAbsent = async (
 ): Promise<{ created: boolean }> => {
   // O'zini-o'zi chaqirish mumkin emas (o'z havolasini o'zi ochgan holat).
   if (input.inviteeTelegramUserId === input.referrerTelegramUserId) {
+    return { created: false }
+  }
+
+  // Adminlar referral qila olmaydi — faqat oddiy userlar chaqira oladi.
+  // (Admin invitee ham bo'la olmaydi.)
+  if (
+    isAdminTelegramUser(input.referrerTelegramUserId) ||
+    isAdminTelegramUser(input.inviteeTelegramUserId)
+  ) {
     return { created: false }
   }
 

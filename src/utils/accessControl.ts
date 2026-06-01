@@ -11,6 +11,7 @@ import {
   REFERRAL_TRIAL_SECONDS,
   REFERRAL_BONUS_SECONDS,
   TELEGRAM_BOT_USERNAME,
+  isAdminTelegramUser,
 } from '../constants/contact'
 
 /** `ref_<id>` start_param'dan chaqiruvchi (referrer) ID'sini ajratadi. */
@@ -57,8 +58,9 @@ export async function processReferralAndRewards(
   let trialGranted = false
 
   // 1) Invitee tomoni — ref havola orqali kelganmi?
+  // Chaqiruvchi admin bo'lsa referral ishlamaydi — faqat oddiy userlar chaqira oladi.
   const referrerId = parseReferrerId(startParam)
-  if (referrerId && referrerId !== user.id) {
+  if (referrerId && referrerId !== user.id && !isAdminTelegramUser(referrerId)) {
     try {
       // FAQAT mutlaqo yangi foydalanuvchi referral bo'la oladi.
       // Avval token olgan (admin token yoki oldingi trial = tizimdan foydalangan)
