@@ -62,6 +62,6 @@ export const FIRESTORE_REFERRALS_COLLECTION = 'referrals'
 /** Chaqirilgan do'stga beriladigan bepul sinov muddati. */
 export const REFERRAL_TRIAL_SECONDS = 6 * 60 * 60 // 6 soat
 /** Har bir muvaffaqiyatli chaqirish uchun chaqirgan odamga qo'shiladigan vaqt. */
-export const REFERRAL_BONUS_SECONDS = 3 * 24 * 60 * 60 // 3 kun
+export const REFERRAL_BONUS_SECONDS = 1 * 24 * 60 * 60 // 1 kun
 /** startapp deep-link uchun bot username (@ siz). */
 export const TELEGRAM_BOT_USERNAME = CONTACT_INFO.telegramBot.name.replace(/^@/, '')

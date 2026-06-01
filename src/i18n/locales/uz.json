@@ -412,7 +412,7 @@
   },
   "referral": {
     "title": "Do'st chaqir — bonus oling",
-    "desc": "Do'stingiz {{hours}} soat bepul ishlatadi. Har bir chaqirgan do'stingiz uchun sizga +3 kun qo'shiladi.",
+    "desc": "Do'stingiz {{hours}} soat bepul ishlatadi. Har bir chaqirgan do'stingiz uchun sizga +{{days}} kun qo'shiladi.",
     "share": "Ulashish",
     "copy": "Nusxalash",
     "copied": "Havola nusxalandi",

@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next'
 import { buildReferralLink } from '../utils/accessControl'
 import { countReferralsByReferrer, getReferralLeaderboard, type ReferralLeaderboardItem } from '../utils/firebase'
 import { openShareLink } from '../utils/telegramWebApp'
-import { REFERRAL_TRIAL_SECONDS } from '../constants/contact'
+import { REFERRAL_TRIAL_SECONDS, REFERRAL_BONUS_SECONDS } from '../constants/contact'
 import {
   loadStats,
   loadStreak,
@@ -111,6 +111,7 @@ export default function StatsPage({ onBack, onStartCustomQuiz, telegramUserId }:
   }, [telegramUserId])
 
   const trialHours = Math.round(REFERRAL_TRIAL_SECONDS / 3600)
+  const bonusDays = Math.round(REFERRAL_BONUS_SECONDS / 86400)
 
   const handleCopyLink = async () => {
     if (!referralLink) return
@@ -237,7 +238,8 @@ export default function StatsPage({ onBack, onStartCustomQuiz, telegramUserId }:
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                 {t('referral.desc', {
                   hours: trialHours,
-                  defaultValue: `Do'stingiz ${trialHours} soat bepul ishlatadi. Har bir chaqirgan do'stingiz uchun sizga +3 kun qo'shiladi.`,
+                  days: bonusDays,
+                  defaultValue: `Do'stingiz ${trialHours} soat bepul ishlatadi. Har bir chaqirgan do'stingiz uchun sizga +${bonusDays} kun qo'shiladi.`,
                 })}
               </Typography>
 
@@ -278,7 +280,7 @@ export default function StatsPage({ onBack, onStartCustomQuiz, telegramUserId }:
                   {referralCount > 0 && (
                     <Chip
                       icon={<EmojiEvents sx={{ fontSize: '1rem !important' }} />}
-                      label={`+${referralCount * 3} ${t('referral.bonusDays', 'kun bonus')}`}
+                      label={`+${referralCount * bonusDays} ${t('referral.bonusDays', 'kun bonus')}`}
                       color="success"
                       size="small"
                     />
