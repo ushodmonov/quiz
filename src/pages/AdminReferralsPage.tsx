@@ -60,7 +60,8 @@ export default function AdminReferralsPage({ onBack }: AdminReferralsPageProps) 
       setRecords(list)
     } catch (e) {
       console.error('Load referrals error:', e)
-      setError(t('adminReferrals.errorLoad', 'Ma\'lumotni yuklab bo\'lmadi'))
+      const detail = e instanceof Error ? e.message : String(e)
+      setError(`${t('adminReferrals.errorLoad', 'Ma\'lumotni yuklab bo\'lmadi')}: ${detail}`)
     } finally {
       setIsLoading(false)
     }
