@@ -330,6 +330,7 @@
       "24hours": "24 часа",
       "3days": "3 дня",
       "1week": "1 неделя",
+      "2weeks": "2 недели",
       "1month": "1 месяц"
     }
   },
@@ -347,6 +348,8 @@
     "cancel": "Отмена",
     "refresh": "Обновить",
     "noSearchResults": "По запросу ничего не найдено",
+    "filterByAdmin": "Фильтр по админу",
+    "allAdmins": "Все админы",
     "columns": {
       "telegramUserId": "Telegram User ID",
       "name": "Name",

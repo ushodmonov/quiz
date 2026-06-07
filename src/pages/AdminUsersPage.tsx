@@ -24,7 +24,11 @@ import {
   DialogActions,
   Stack,
   useMediaQuery,
-  useTheme
+  useTheme,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
 import { DeleteOutline, Search, ArrowBack, Refresh } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
@@ -54,6 +58,7 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null)
   const [confirmUser, setConfirmUser] = useState<JwtTokenUserItem | null>(null)
+  const [selectedAdmin, setSelectedAdmin] = useState<string>('')
 
   const loadUsers = async () => {
     try {
@@ -82,13 +87,16 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
     setPage(0)
   }
 
+  const adminOptions = [...new Set(users.map((u) => u.createdBy).filter((v) => v && v !== '-'))].sort()
+
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.trim().toLowerCase()
-    if (!query) return true
-    return (
+    const matchesSearch = !query || (
       user.telegramUserId.toString().includes(query) ||
       user.name.toLowerCase().includes(query)
     )
+    const matchesAdmin = !selectedAdmin || user.createdBy === selectedAdmin
+    return matchesSearch && matchesAdmin
   })
 
   const paginatedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -161,23 +169,38 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
           </Alert>
         ) : (
           <Box>
-            <TextField
-              fullWidth
-              placeholder={t('adminUsers.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setPage(0)
-              }}
-              sx={{ mb: 1.5, bgcolor: 'background.paper', borderRadius: 1 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                )
-              }}
-            />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
+              <TextField
+                fullWidth
+                placeholder={t('adminUsers.searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(0)
+                }}
+                sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <FormControl sx={{ minWidth: { xs: '100%', sm: 220 }, bgcolor: 'background.paper', borderRadius: 1 }}>
+                <InputLabel>{t('adminUsers.filterByAdmin')}</InputLabel>
+                <Select
+                  value={selectedAdmin}
+                  label={t('adminUsers.filterByAdmin')}
+                  onChange={(e) => { setSelectedAdmin(e.target.value); setPage(0) }}
+                >
+                  <MenuItem value="">{t('adminUsers.allAdmins')}</MenuItem>
+                  {adminOptions.map((admin) => (
+                    <MenuItem key={admin} value={admin}>{admin}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
             {filteredUsers.length === 0 ? (
               <Alert severity="info" sx={{ mb: 1.5 }}>
                 {t('adminUsers.noSearchResults')}
@@ -210,6 +233,9 @@ export default function AdminUsersPage({ onBack }: AdminUsersPageProps) {
                       <TableCell>{user.telegramUserId}</TableCell>
                       <TableCell>
                         <Box sx={{ fontWeight: 500 }}>{user.name || '-'}</Box>
+                        <Box sx={{ display: { xs: 'block', sm: 'none' }, fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>
+                          {user.createdBy || '-'}
+                        </Box>
                         <Box sx={{ display: { xs: 'block', md: 'none' }, fontSize: '0.7rem', color: 'text.secondary', mt: 0.25 }}>
                           {formatDateTime(user.expiresAt, i18n.language, t('adminUsers.unknownTime'))}
                         </Box>

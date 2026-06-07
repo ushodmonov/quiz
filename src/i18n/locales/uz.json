@@ -330,6 +330,7 @@
       "24hours": "24 soat",
       "3days": "3 kun",
       "1week": "1 hafta",
+      "2weeks": "2 hafta",
       "1month": "1 oy"
     }
   },
@@ -347,6 +348,8 @@
     "cancel": "Bekor qilish",
     "refresh": "Yangilash",
     "noSearchResults": "Hech narsa topilmadi",
+    "filterByAdmin": "Admin bo'yicha filter",
+    "allAdmins": "Barcha adminlar",
     "columns": {
       "telegramUserId": "Telegram User ID",
       "name": "Name",

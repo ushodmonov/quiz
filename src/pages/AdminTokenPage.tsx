@@ -27,6 +27,7 @@ const EXPIRY_OPTIONS = [
   { key: '24hours', seconds: 24 * 60 * 60 },
   { key: '3days', seconds: 3 * 24 * 60 * 60 },
   { key: '1week', seconds: 7 * 24 * 60 * 60 },
+  { key: '2weeks', seconds: 14 * 24 * 60 * 60 },
   { key: '1month', seconds: 30 * 24 * 60 * 60 }
 ]
 
