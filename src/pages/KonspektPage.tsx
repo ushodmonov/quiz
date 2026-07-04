@@ -30,7 +30,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore, ContentCopy, AutoAwesome } from '@mui/icons-material'
+import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore, ContentCopy, AutoAwesome, Download } from '@mui/icons-material'
 import { toJpeg } from 'html-to-image'
 import { useTranslation } from 'react-i18next'
 
@@ -316,6 +316,10 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   }
   const bgInputRef = useRef<HTMLInputElement>(null)
   const [exporting, setExporting] = useState(false)
+  // Tayyor PDF — Telegram/mobil'da Web Share yangi bosish (gesture) talab qiladi,
+  // shuning uchun render tugagach faylni saqlab qo'yamiz va "Saqlash" tugmasi ko'rsatamiz.
+  const pendingPdf = useRef<{ file: File; url: string; name: string } | null>(null)
+  const [pdfReady, setPdfReady] = useState<{ name: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
   const [fontReady, setFontReady] = useState(false)
@@ -594,7 +598,45 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     return urls
   }
 
+  // Tayyor PDF faylni yetkazadi. Foydalanuvchi bosishi (gesture) ostida chaqirilsa —
+  // Telegram/mobil'da Web Share (native ulashish/saqlash) ishlaydi.
+  // 'needGesture' — Web Share yangi bosish talab qilyapti (render uzoq bo'lgani uchun).
+  const deliverPdf = async (): Promise<'shared' | 'downloaded' | 'needGesture'> => {
+    const item = pendingPdf.current
+    if (!item) return 'needGesture'
+    const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
+    // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
+    if (nav.share && (!nav.canShare || nav.canShare({ files: [item.file] }))) {
+      try {
+        await nav.share({ files: [item.file], title: item.name })
+        return 'shared'
+      } catch (shareErr) {
+        const name = (shareErr as DOMException)?.name
+        if (name === 'AbortError') return 'shared' // foydalanuvchi bekor qildi — bu ham "tayyor"
+        // Gesture yo'qolgan bo'lsa — keyingi bosishga qoldiramiz
+        if (name === 'NotAllowedError') return 'needGesture'
+        // boshqa xato — yuklab olishga o'tamiz
+      }
+    }
+    // 2) Aks holda — brauzerda yuklab olish (desktop yo'li)
+    const a = document.createElement('a')
+    a.href = item.url
+    a.download = item.name
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    return 'downloaded'
+  }
+
+  // "Saqlash" tugmasi — yangi bosish ostida faylni yetkazadi (Web Share gesture bilan).
+  const handleSavePdf = async () => {
+    const res = await deliverPdf()
+    if (res !== 'needGesture') setPdfReady(null)
+  }
+
   const handlePrint = async () => {
+    setPdfReady(null)
     if (pageRefs.current.filter(Boolean).length === 0) return
     setExporting(true)
     setExportStatus({ done: 0, total: pageRefs.current.filter(Boolean).length, phase: 'render' })
@@ -624,34 +666,19 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       const fileName = `${safeName}.pdf`
       const file = new File([blob], fileName, { type: 'application/pdf' })
 
-      // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
-      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
-      const canShareFile = !nav.canShare || nav.canShare({ files: [file] })
-      if (nav.share && canShareFile) {
-        try {
-          await nav.share({ files: [file], title: baseName })
-          return
-        } catch (shareErr) {
-          // foydalanuvchi bekor qilsa — to'xtaymiz; boshqa xatoда yuklab olishga o'tamiz
-          if ((shareErr as DOMException)?.name === 'AbortError') return
-        }
-      }
+      // Eski faylni tozalab, yangisini eslab qolamiz.
+      if (pendingPdf.current) URL.revokeObjectURL(pendingPdf.current.url)
+      pendingPdf.current = { file, url: URL.createObjectURL(blob), name: fileName }
 
-      // 2) Aks holda — blob'ni yuklab olish
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = fileName
-      a.rel = 'noopener'
-      a.target = '_blank'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      // Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi — yangi oynada ochib beramiz.
-      if (!('download' in HTMLAnchorElement.prototype)) {
-        window.open(blobUrl, '_blank')
+      // Faylni yetkazishga urinamiz. Web Share yangi bosish (gesture) talab qilsa —
+      // render uzoq davom etgani sabab bu urinish o'tmaydi; shunda "Saqlash" tugmasini ko'rsatamiz.
+      const res = await deliverPdf()
+      if (res === 'needGesture') {
+        setPdfReady({ name: fileName })
+        setCopiedMsg(t('konspekt.pdfReadyHint', 'PDF tayyor — "Saqlash" tugmasini bosing'))
+      } else {
+        setPdfReady(null)
       }
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000)
     } catch (e) {
       console.error('PDF eksport xatosi:', e)
       setImportError(t('konspekt.pdfError', "PDF yasashda xatolik yuz berdi. Qaytadan urinib ko'ring."))
@@ -1216,13 +1243,16 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
             )}
             <Button
               variant="contained"
-              startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <PictureAsPdf />}
-              onClick={handlePrint}
+              color={pdfReady ? 'success' : 'primary'}
+              startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : pdfReady ? <Download /> : <PictureAsPdf />}
+              onClick={pdfReady ? handleSavePdf : handlePrint}
               disabled={exporting}
               sx={{ flexShrink: 0, px: { xs: 1.25, sm: 2 } }}
             >
               {exporting
                 ? t('konspekt.preparing', 'Tayyorlanmoqda...')
+                : pdfReady
+                ? t('konspekt.savePdf', 'Saqlash')
                 : (
                   <>
                     <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{t('konspekt.downloadPdf', 'PDF yuklab olish')}</Box>
