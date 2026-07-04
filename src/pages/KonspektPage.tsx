@@ -78,21 +78,39 @@ const FONTS: { label: string; family: string; query: string; scale: number; grou
   { label: 'Delius', family: 'Delius', query: 'Delius', scale: 0.95, group: 'print' },
 ]
 
-const DEFAULT_TEXT = `@title: Vatan muqaddas
+const DEFAULT_TEXT = `@title: Konspekt yuritish
 
 # Reja:
-1. Vatan tushunchasi
-2. Vatan nima uchun muqaddas?
+1. Konspekt nima?
+2. Konspektning foydasi
 
-* Vatan tushunchasi
-- Inson tug'ilib o'sgan yurt.
-- Ota-bobolar yashagan zamin.
+* Konspekt nima?
+- Dars yoki kitobning qisqa, tizimli yozuvi.
+- Asosiy fikrlar o'z so'zlaringizda yoziladi.
 
-* Nima uchun muqaddas?
-- Ona kabi aziz va tabarruk.
-> "Vatan ostonadan boshlanadi."
+* Konspektning foydasi
+- Materialni tez takrorlash imkonini beradi.
+- Bilim xotirada uzoq saqlanadi.
+> "Yozilgan narsa esda qoladi."
 
-= Xulosa: Vatan bitta, muqaddas! ♥`
+= Xulosa: Yaxshi konspekt — bilim kaliti! ♥`
+
+// AI (ChatGPT va h.k.)ga berish uchun tayyor prompt — shu format asosida konspekt yozdiradi.
+const PROMPT_TEXT = `Menga quyidagi MAVZU bo'yicha konspekt tayyorla.
+Faqat quyidagi belgilash (markup) formatida yoz — boshqa hech qanday izoh yoki matn qo'shma:
+
+@title: sahifa sarlavhasi (bitta bo'ladi)
+# qizil sarlavha (masalan "Reja:")
+* yulduzchali bo'lim sarlavhasi
+- bullet qatori (tire bilan, asosiy fikr)
+> yashil iqtibos (qo'shtirnoq ichida)
+= xulosa qatori (oxirida ♥ qo'yishing mumkin)
+Bo'sh satr — bo'limlar orasidagi bo'shliq.
+
+Qoidalar: qisqa, aniq va tushunarli yoz; har bir bo'lim uchun * sarlavha va 2-4 ta - bullet ishlat;
+kamida bitta > iqtibos va oxirida = xulosa qo'sh.
+
+MAVZU: `
 
 type LineKind = 'title' | 'heading' | 'star' | 'bullet' | 'quote' | 'summary' | 'gap' | 'text'
 
@@ -194,6 +212,37 @@ function htmlToMarkup(html: string): string {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
+/** ArrayBuffer → base64 (katta fayllar uchun bo'lakma-bo'lak). */
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  let binary = ''
+  const bytes = new Uint8Array(buf)
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)))
+  }
+  return btoa(binary)
+}
+
+/**
+ * Tanlangan shrift uchun @font-face CSS'ni base64 bilan tayyorlaydi.
+ * html-to-image'ga fontEmbedCSS sifatida beriladi — shunda u cross-origin
+ * stylesheet'larni o'qimaydi (SecurityError bo'lmaydi) va shrift eksportga to'g'ri kiradi.
+ */
+async function buildFontEmbedCSS(query: string): Promise<string> {
+  const cssUrl = `https://fonts.googleapis.com/css2?family=${query}&display=swap`
+  let css = await (await fetch(cssUrl)).text()
+  const urls = Array.from(new Set([...css.matchAll(/url\((https:[^)]+)\)/g)].map((m) => m[1])))
+  for (const u of urls) {
+    try {
+      const buf = await (await fetch(u)).arrayBuffer()
+      const b64 = arrayBufferToBase64(buf)
+      const mime = u.includes('.woff2') ? 'font/woff2' : u.includes('.woff') ? 'font/woff' : 'font/ttf'
+      css = css.split(u).join(`data:${mime};base64,${b64}`)
+    } catch { /* bitta fayl yuklanmasa, o'tkazib yuboramiz */ }
+  }
+  return css
+}
+
 /** Deterministik "tasodifiy" son [0,1) — matn + kalitdan (har renderда bir xil). */
 function seededRand(s: string): number {
   let h = 2166136261
@@ -232,6 +281,13 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [leftMm, setLeftMm] = useState(1.4)
   const [bookMode, setBookMode] = useState(false)
   const [realistic, setRealistic] = useState(true) // tabiiy qo'lyozma + foto realizm
+  const [paper, setPaper] = useState<'grid' | 'lined'>('grid') // qog'oz turi: 'grid' — katakli daftar (A5), 'lined' — A4 oddiy (chiziqsiz)
+  const [lineSpacingMm, setLineSpacingMm] = useState(8.5) // A4'da qatorlar orasidagi masofa
+  // A4 (referat) qirralari — foydalanuvchi qo'lda kiritadi (sm). Standart: chap 3, o'ng 1.5, yuqori/past 2.
+  const [a4LeftMm, setA4LeftMm] = useState(30)
+  const [a4RightMm, setA4RightMm] = useState(15)
+  const [a4TopMm, setA4TopMm] = useState(20)
+  const [a4BottomMm, setA4BottomMm] = useState(20)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [curPage, setCurPage] = useState(0)
   const [confirmApplyAll, setConfirmApplyAll] = useState(false)
@@ -262,6 +318,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [importError, setImportError] = useState('')
   const [fontReady, setFontReady] = useState(false)
   const pageRefs = useRef<HTMLDivElement[]>([])
+  const fontCssCache = useRef<Record<string, string>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewBoxRef = useRef<HTMLDivElement>(null)
   const [previewScale, setPreviewScale] = useState(0.72)
@@ -284,25 +341,33 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   }, [])
 
   // Tanlangan shrift tayyor bo'lguncha kutamiz (eksport to'g'ri chiqishi uchun).
+  // MUHIM: shrift yuklanmasa ham (Telegram'da tarmoq bloklansa) 2.5s dan keyin
+  // baribir tayyor deb belgilaymiz — PDF tugmasi hech qachon o'chiq qolib ketmasin.
   useEffect(() => {
     setFontReady(false)
+    let done = false
+    const finish = () => { if (!done) { done = true; setFontReady(true) } }
     const fonts = (document as any).fonts
     if (fonts?.load) {
       Promise.all([
         fonts.load(`600 20px "${font.family}"`),
         fonts.load(`700 20px "${font.family}"`),
-      ])
-        .then(() => setFontReady(true))
-        .catch(() => setFontReady(true))
+      ]).then(finish).catch(finish)
     } else {
-      setFontReady(true)
+      finish()
     }
+    const timer = setTimeout(finish, 2500) // fallback
+    return () => clearTimeout(timer)
   }, [font.family])
+
+  // Qog'oz o'lchami: 'grid' → A5 katakli daftar (145×210), 'lined' → A4 chiziqli (210×297)
+  const paperWmm = paper === 'lined' ? 210 : 145
+  const paperHmm = paper === 'lined' ? 297 : 210
 
   // Orqa fon (stol rasmi) bo'lsa, sahifa atrofida bo'shliq qoladi — eksport shu "sahna".
   const sceneMargin = bgImage ? 28 : 0 // mm — qiyshaytirilganda burchaklar kesilmasligi uchun
-  const exportWmm = 145 + sceneMargin * 2
-  const exportHmm = 210 + sceneMargin * 2
+  const exportWmm = paperWmm + sceneMargin * 2
+  const exportHmm = paperHmm + sceneMargin * 2
 
   // Preview'ni konteyner O'LCHAMIGA (kenglik + balandlik) qarab masshtablaymiz —
   // shunda bet hech qachon ekrandan chiqib kesilmaydi (mobile/tablet/desktop).
@@ -333,10 +398,17 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
 
   // —— Hisoblangan o'lchamlar (mm) ——
   const cell = cellMm
-  const redLineLeft = 3 * cell // 11.25mm
-  const contentLeft = redLineLeft + leftMm // qizil chiziqdan matngacha bo'shliq (foydalanuvchi boshqaradi)
-  const contentRight = rightMm // o'ng bo'shliq (mm) — foydalanuvchi boshqaradi
-  const lineHeight = 2 * cell // yozuv qatori = 2 katak
+  const isA4 = paper === 'lined' // 'lined' = A4 oddiy (chiziqsiz, qizil chiziqsiz) referat varaq
+  const redLineLeft = 3 * cell // 11.25mm (faqat A5)
+  // Kontent qirralari — A4'da foydalanuvchi kiritgan margin, A5'da qizil chiziq + slayder.
+  const contentLeft = isA4 ? a4LeftMm : redLineLeft + leftMm
+  const contentRight = isA4 ? a4RightMm : rightMm
+  // Yozuv qatori balandligi: A5'da 2 katak, A4'da foydalanuvchi tanlagan qator oralig'i.
+  const writingLineMm = isA4 ? lineSpacingMm : 2 * cell
+  const gapMm = writingLineMm / 2 // bo'sh satr uchun
+  const topOffsetMm = isA4 ? a4TopMm : 2 * cell // yuqoridan bo'shliq
+  const bottomReserveMm = isA4 ? a4BottomMm : 8 // pastdan bo'shliq
+  const lineHeight = writingLineMm
 
   const fontFamily = `'${font.family}', cursive`
   // Har bir shriftning x-balandligi turlicha — effektiv o'lcham koeffitsient bilan moslanadi.
@@ -345,21 +417,20 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // —— Ko'p sahifali bo'lish (pagination) ——
   // Matn bir A5 betga sig'masa, avtomatik yangi betlarga bo'linadi.
   const pages = useMemo(() => {
-    const topMm = 2 * cell
-    const bottomReserveMm = 8 // pastda ≥8mm bo'sh joy qoladi (kesilmaydi)
-    const usableMm = 210 - topMm - bottomReserveMm
+    const topMm = topOffsetMm
+    const usableMm = paperHmm - topMm - bottomReserveMm
     // Sarlavha bloki (faqat 1-betda) taxminiy balandligi
-    const titleBlockMm = title ? fontMm * 1.98 + 1.6 + cell : 0
+    const titleBlockMm = title ? fontMm * 1.98 + 1.6 + gapMm : 0
 
     // Kontent kengligi (mm) va bitta qatorga sig'adigan taxminiy belgi soni —
     // uzun matn bir necha vizual qatorga o'ralishini hisobga olamiz.
-    const contentWidthMm = 145 - contentLeft - contentRight
+    const contentWidthMm = paperWmm - contentLeft - contentRight
     const avgCharMm = fontMm * 0.34 // Caveat o'rtacha belgi kengligi
     const charsPerLine = Math.max(8, Math.floor(contentWidthMm / avgCharMm))
     const lineMm = (l: ParsedLine) => {
-      if (l.kind === 'gap') return cell
+      if (l.kind === 'gap') return gapMm
       const rows = Math.max(1, Math.ceil((l.text.length || 1) / charsPerLine))
-      return rows * 2 * cell
+      return rows * writingLineMm
     }
 
     const result: ParsedLine[][] = []
@@ -379,23 +450,27 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     }
     if (current.length > 0 || result.length === 0) result.push(current)
     return result
-  }, [lines, cell, fontMm, title])
+  }, [lines, cell, fontMm, title, paperHmm, paperWmm, contentLeft, contentRight, writingLineMm, gapMm, topOffsetMm, bottomReserveMm])
 
   const pageStyle: React.CSSProperties = {
-    width: '145mm',
-    height: '210mm',
+    width: `${paperWmm}mm`,
+    height: `${paperHmm}mm`,
     background: COLORS.bg,
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
-    // Katak (grid): ikki linear-gradient
-    backgroundImage: `linear-gradient(${COLORS.grid} 0.18mm, transparent 0.18mm), linear-gradient(90deg, ${COLORS.grid} 0.18mm, transparent 0.18mm)`,
-    backgroundSize: `${cell}mm ${cell}mm`,
+    // A4 (lined) — chiziqsiz oddiy oq qog'oz; A5 (grid) — katak chiziqlari.
+    ...(paper === 'grid'
+      ? {
+          backgroundImage: `linear-gradient(${COLORS.grid} 0.18mm, transparent 0.18mm), linear-gradient(90deg, ${COLORS.grid} 0.18mm, transparent 0.18mm)`,
+          backgroundSize: `${cell}mm ${cell}mm`,
+        }
+      : {}),
   }
 
   const contentStyle: React.CSSProperties = {
     position: 'absolute',
-    top: `${2 * cell}mm`, // yuqoridan 2 katak
+    top: `${topOffsetMm}mm`, // yuqoridan bo'shliq
     left: `${contentLeft}mm`,
     right: `${contentRight}mm`,
   }
@@ -468,14 +543,31 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Barcha betlarni (yoki orqa fonli sahnalarni) 4× sifatli PNG data-url ga o'giradi.
   const renderAllPages = async (): Promise<string[]> => {
     const els = pageRefs.current.filter(Boolean)
+    // Tanlangan shriftni base64 bilan tayyorlaymiz (bir marta, keshlanadi).
+    // Bu html-to-image'ning cross-origin CSS o'qib SecurityError berishini oldini oladi.
+    let fontEmbedCSS = fontCssCache.current[font.family]
+    if (fontEmbedCSS === undefined) {
+      try {
+        fontEmbedCSS = await buildFontEmbedCSS(font.query)
+      } catch {
+        fontEmbedCSS = ''
+      }
+      fontCssCache.current[font.family] = fontEmbedCSS
+    }
+    const opts = {
+      pixelRatio: 4,
+      cacheBust: true,
+      backgroundColor: bgImage ? undefined : COLORS.bg,
+      // fontEmbedCSS bo'lsa — o'shani ishlatamiz (stylesheet skanerlanmaydi).
+      // bo'lmasa — skipFonts bilan cross-origin CSS o'qishdan qochamiz.
+      ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
+    }
     const urls: string[] = []
     for (let i = 0; i < els.length; i++) {
       setExportStatus({ done: i, total: els.length, phase: 'render' })
       // Brauzerga UI'ni yangilashga imkon beramiz (loading ko'rinsin)
       await new Promise((r) => requestAnimationFrame(() => r(null)))
-      urls.push(
-        await toPng(els[i], { pixelRatio: 4, cacheBust: true, backgroundColor: bgImage ? undefined : COLORS.bg })
-      )
+      urls.push(await toPng(els[i], opts))
     }
     return urls
   }
@@ -485,6 +577,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     setExporting(true)
     setExportStatus({ done: 0, total: pageRefs.current.filter(Boolean).length, phase: 'render' })
     try {
+      // Shrift hali tayyor bo'lmasa, biroz kutamiz (lekin cheksiz emas).
+      if (!fontReady) {
+        try {
+          await Promise.race([
+            (document as any).fonts?.ready,
+            new Promise((r) => setTimeout(r, 1500)),
+          ])
+        } catch { /* e'tibor bermaymiz */ }
+      }
       // Betlarni rasmga o'giramiz, so'ng haqiqiy PDF fayl yasaymiz (jsPDF).
       const urls = await renderAllPages()
       setExportStatus({ done: urls.length, total: urls.length, phase: 'pdf' })
@@ -501,13 +602,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       const file = new File([blob], fileName, { type: 'application/pdf' })
 
       // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
-      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean }
-      if (nav.canShare && nav.canShare({ files: [file] })) {
+      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
+      const canShareFile = !nav.canShare || nav.canShare({ files: [file] })
+      if (nav.share && canShareFile) {
         try {
           await nav.share({ files: [file], title: baseName })
           return
         } catch (shareErr) {
-          // foydalanuvchi bekor qilsa yoki xato bo'lsa — yuklab olishga o'tamiz
+          // foydalanuvchi bekor qilsa — to'xtaymiz; boshqa xatoда yuklab olishga o'tamiz
           if ((shareErr as DOMException)?.name === 'AbortError') return
         }
       }
@@ -544,7 +646,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       : baseLineStyle
     switch (line.kind) {
       case 'gap':
-        return <div key={i} style={{ height: `${cell}mm` }} />
+        return <div key={i} style={{ height: `${gapMm}mm` }} />
       case 'heading':
         return (
           <div key={i} style={bls}>
@@ -600,15 +702,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   pageRefs.current = []
 
   const buildPage = (pageLines: ParsedLine[], idx: number, registerRef = true) => {
-    // Kitob ko'rinishi: qizil chiziq betma-bet almashadi.
+    // Kitob ko'rinishi: qizil chiziq betma-bet almashadi (faqat A5). A4'da qizil chiziq yo'q.
     // 1-bet (idx 0) → o'ng, 2-bet → chap, 3-bet → o'ng ...
-    const redOnRight = bookMode && idx % 2 === 0
+    const redOnRight = !isA4 && bookMode && idx % 2 === 0
     const redLineStyle: React.CSSProperties = redOnRight
       ? { position: 'absolute', top: 0, bottom: 0, right: `${redLineLeft}mm`, width: '0.6mm', background: COLORS.redBorder }
       : { position: 'absolute', top: 0, bottom: 0, left: `${redLineLeft}mm`, width: '0.6mm', background: COLORS.redBorder }
     // Qizil chiziq o'ngda bo'lsa, kontent chapga suriladi (chegaralar teskari)
     const pageContentStyle: React.CSSProperties = redOnRight
-      ? { position: 'absolute', top: `${2 * cell}mm`, left: `${contentRight}mm`, right: `${contentLeft}mm` }
+      ? { position: 'absolute', top: `${topOffsetMm}mm`, left: `${contentRight}mm`, right: `${contentLeft}mm` }
       : { ...contentStyle }
     const adj = getAdj(idx) // shu bet uchun alohida sozlama
     // Sahna ildizi (eksport uchun ref shu yerda) — o'lcham + kesish.
@@ -661,9 +763,9 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       />
     )}
     <div style={pageWithShadow}>
-      {/* Qizil chegara chizig'i (kitob rejimida tomon almashadi) */}
-      <div style={redLineStyle} />
-      {/* Kontent (hech narsa qizil chiziqdan o'tmaydi) */}
+      {/* Qizil chegara chizig'i — faqat A5 (A4 referatда qizil chiziq bo'lmaydi) */}
+      {!isA4 && <div style={redLineStyle} />}
+      {/* Kontent */}
       <div style={pageContentStyle}>
         {idx === 0 && title && (
           <div style={{ marginBottom: `${cell}mm`, textAlign: 'center' }}>
@@ -932,32 +1034,81 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
                   </Typography>
                   <Slider value={fontMm} min={5} max={7} step={0.1} onChange={(_, v) => setFontMm(v as number)} size="small" />
                 </Box>
-                <Box>
-                  <Typography component="label" sx={labelSx}>
-                    {t('konspekt.leftMargin', "Chap bo'shliq")}: {leftMm}mm
-                  </Typography>
-                  <Slider value={leftMm} min={0.5} max={20} step={0.5} onChange={(_, v) => setLeftMm(v as number)} size="small" />
-                </Box>
-                <Box>
-                  <Typography component="label" sx={labelSx}>
-                    {t('konspekt.rightMargin', "O'ng bo'shliq")}: {rightMm}mm
-                  </Typography>
-                  <Slider value={rightMm} min={0.5} max={20} step={0.5} onChange={(_, v) => setRightMm(v as number)} size="small" />
-                </Box>
+                {!isA4 && (
+                  <>
+                    <Box>
+                      <Typography component="label" sx={labelSx}>
+                        {t('konspekt.leftMargin', "Chap bo'shliq")}: {leftMm}mm
+                      </Typography>
+                      <Slider value={leftMm} min={0.5} max={20} step={0.5} onChange={(_, v) => setLeftMm(v as number)} size="small" />
+                    </Box>
+                    <Box>
+                      <Typography component="label" sx={labelSx}>
+                        {t('konspekt.rightMargin', "O'ng bo'shliq")}: {rightMm}mm
+                      </Typography>
+                      <Slider value={rightMm} min={0.5} max={20} step={0.5} onChange={(_, v) => setRightMm(v as number)} size="small" />
+                    </Box>
+                  </>
+                )}
+                {isA4 && (
+                  <Box>
+                    <Typography component="label" sx={labelSx}>
+                      {t('konspekt.lineSpacing', 'Qatorlar oralig\'i')}: {lineSpacingMm}mm
+                    </Typography>
+                    <Slider value={lineSpacingMm} min={5} max={16} step={0.5} onChange={(_, v) => setLineSpacingMm(v as number)} size="small" />
+                  </Box>
+                )}
               </Box>
+
+              {/* A4 (referat) qirralari — qo'lda kiritiladi (sm) */}
+              {isA4 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography sx={labelSx}>{t('konspekt.a4Margins', "Qirralar (sm)")}</Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
+                    {([
+                      ['a4Left', "Chap", a4LeftMm, setA4LeftMm],
+                      ['a4Right', "O'ng", a4RightMm, setA4RightMm],
+                      ['a4Top', "Yuqori", a4TopMm, setA4TopMm],
+                      ['a4Bottom', "Past", a4BottomMm, setA4BottomMm],
+                    ] as const).map(([key, def, valMm, setter]) => (
+                      <TextField
+                        key={key}
+                        label={t(`konspekt.${key}`, def)}
+                        type="number"
+                        size="small"
+                        value={+(valMm / 10).toFixed(2)}
+                        onChange={(e) => {
+                          const cm = parseFloat(e.target.value)
+                          if (!isNaN(cm) && cm >= 0 && cm <= 10) setter(cm * 10)
+                        }}
+                        inputProps={{ step: 0.5, min: 0, max: 10 }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
 
               <Divider sx={{ my: 1.5 }} />
 
               {/* Tugma-tanlovlar */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2.5 } }}>
                 <Box>
-                  <Typography component="label" sx={labelSx}>{t('konspekt.cellSize', "Katak")}</Typography>
-                  <ToggleButtonGroup size="small" exclusive value={cellMm} onChange={(_, v) => v && setCellMm(v)}>
-                    <ToggleButton value={3.75}>3.75</ToggleButton>
-                    <ToggleButton value={4}>4.0</ToggleButton>
-                    <ToggleButton value={5}>5.0</ToggleButton>
+                  <Typography component="label" sx={labelSx}>{t('konspekt.format', 'Format')}</Typography>
+                  <ToggleButtonGroup size="small" exclusive value={paper} onChange={(_, v) => v && setPaper(v)}>
+                    <ToggleButton value="grid">{t('konspekt.formatGrid', "Katakli (A5)")}</ToggleButton>
+                    <ToggleButton value="lined">{t('konspekt.formatA4', 'A4')}</ToggleButton>
                   </ToggleButtonGroup>
                 </Box>
+                {!isA4 && (
+                  <Box>
+                    <Typography component="label" sx={labelSx}>{t('konspekt.cellSize', "Katak")}</Typography>
+                    <ToggleButtonGroup size="small" exclusive value={cellMm} onChange={(_, v) => v && setCellMm(v)}>
+                      <ToggleButton value={3.75}>3.75</ToggleButton>
+                      <ToggleButton value={4}>4.0</ToggleButton>
+                      <ToggleButton value={5}>5.0</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                )}
                 <Box>
                   <Typography component="label" sx={labelSx}>{t('konspekt.ink', 'Siyoh')}</Typography>
                   <ToggleButtonGroup size="small" exclusive value={ink} onChange={(_, v) => v && setInk(v)}>
@@ -965,13 +1116,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
                     <ToggleButton value="black">{t('konspekt.black', 'Qora')}</ToggleButton>
                   </ToggleButtonGroup>
                 </Box>
-                <Box>
-                  <Typography component="label" sx={labelSx}>{t('konspekt.book', "Kitob ko'rinishi")}</Typography>
-                  <ToggleButtonGroup size="small" exclusive value={bookMode} onChange={(_, v) => v !== null && setBookMode(v)}>
-                    <ToggleButton value={false}>{t('konspekt.off', "O'chiq")}</ToggleButton>
-                    <ToggleButton value={true}>{t('konspekt.on', 'Yoniq')}</ToggleButton>
-                  </ToggleButtonGroup>
-                </Box>
+                {!isA4 && (
+                  <Box>
+                    <Typography component="label" sx={labelSx}>{t('konspekt.book', "Kitob ko'rinishi")}</Typography>
+                    <ToggleButtonGroup size="small" exclusive value={bookMode} onChange={(_, v) => v !== null && setBookMode(v)}>
+                      <ToggleButton value={false}>{t('konspekt.off', "O'chiq")}</ToggleButton>
+                      <ToggleButton value={true}>{t('konspekt.on', 'Yoniq')}</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                )}
                 <Box>
                   <Typography component="label" sx={labelSx}>{t('konspekt.realistic', "Tabiiylik (realizm)")}</Typography>
                   <ToggleButtonGroup size="small" exclusive value={realistic} onChange={(_, v) => v !== null && setRealistic(v)}>
@@ -1022,7 +1175,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
               variant="contained"
               startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <PictureAsPdf />}
               onClick={handlePrint}
-              disabled={exporting || !fontReady}
+              disabled={exporting}
               sx={{ flexShrink: 0, px: { xs: 1.25, sm: 2 } }}
             >
               {exporting
