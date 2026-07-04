@@ -31,7 +31,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore, ContentCopy, AutoAwesome } from '@mui/icons-material'
-import { toPng } from 'html-to-image'
+import { toJpeg } from 'html-to-image'
 import { useTranslation } from 'react-i18next'
 
 /**
@@ -574,9 +574,11 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       fontCssCache.current[font.family] = fontEmbedCSS
     }
     const opts = {
-      pixelRatio: 4,
+      pixelRatio: 3,
+      quality: 0.94,
       cacheBust: true,
-      backgroundColor: bgImage ? undefined : COLORS.bg,
+      // JPEG shaffoflikni qo'llamaydi — fon doim oq bo'lsin (qora fon chiqmasligi uchun).
+      backgroundColor: COLORS.bg,
       // fontEmbedCSS bo'lsa — o'shani ishlatamiz (stylesheet skanerlanmaydi).
       // bo'lmasa — skipFonts bilan cross-origin CSS o'qishdan qochamiz.
       ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
@@ -586,13 +588,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       setExportStatus({ done: i, total: els.length, phase: 'render' })
       // Brauzerga UI'ni yangilashga imkon beramiz (loading ko'rinsin)
       await new Promise((r) => requestAnimationFrame(() => r(null)))
-      urls.push(await toPng(els[i], opts))
+      // JPEG — ko'p betli konspekt uchun fayl ancha kichik va tez yuklanadi.
+      urls.push(await toJpeg(els[i], opts))
     }
     return urls
   }
 
   const handlePrint = async () => {
-    if (pageRefs.current.length === 0) return
+    if (pageRefs.current.filter(Boolean).length === 0) return
     setExporting(true)
     setExportStatus({ done: 0, total: pageRefs.current.filter(Boolean).length, phase: 'render' })
     try {
@@ -611,13 +614,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       await new Promise((r) => requestAnimationFrame(() => r(null)))
       const { jsPDF } = await import('jspdf')
       const orientation = exportWmm >= exportHmm ? 'landscape' : 'portrait'
-      const pdf = new jsPDF({ unit: 'mm', format: [exportWmm, exportHmm], orientation })
+      const pdf = new jsPDF({ unit: 'mm', format: [exportWmm, exportHmm], orientation, compress: true })
       urls.forEach((u, i) => {
         if (i > 0) pdf.addPage([exportWmm, exportHmm], orientation)
-        pdf.addImage(u, 'PNG', 0, 0, exportWmm, exportHmm, undefined, 'FAST')
+        pdf.addImage(u, 'JPEG', 0, 0, exportWmm, exportHmm, undefined, 'FAST')
       })
       const blob = pdf.output('blob')
-      const fileName = `${baseName}.pdf`
+      const safeName = (baseName || 'konspekt').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'konspekt'
+      const fileName = `${safeName}.pdf`
       const file = new File([blob], fileName, { type: 'application/pdf' })
 
       // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
@@ -639,10 +643,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       a.href = blobUrl
       a.download = fileName
       a.rel = 'noopener'
+      a.target = '_blank'
       document.body.appendChild(a)
       a.click()
       a.remove()
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
+      // Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi — yangi oynada ochib beramiz.
+      if (!('download' in HTMLAnchorElement.prototype)) {
+        window.open(blobUrl, '_blank')
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000)
     } catch (e) {
       console.error('PDF eksport xatosi:', e)
       setImportError(t('konspekt.pdfError', "PDF yasashda xatolik yuz berdi. Qaytadan urinib ko'ring."))
@@ -717,9 +726,6 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     }
   }
 
-  // Har render'da ref ro'yxatini tozalaymiz
-  pageRefs.current = []
-
   const buildPage = (pageLines: ParsedLine[], idx: number, registerRef = true) => {
     // Kitob ko'rinishi: qizil chiziq betma-bet almashadi (faqat A5). A4'da qizil chiziq yo'q.
     // 1-bet (idx 0) → o'ng, 2-bet → chap, 3-bet → o'ng ...
@@ -762,7 +768,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     return (
     <div
       key={idx}
-      ref={(el) => { if (el && registerRef) pageRefs.current[idx] = el }}
+      ref={(el) => { if (!registerRef) return; if (el) pageRefs.current[idx] = el; else delete pageRefs.current[idx] }}
       style={sceneStyle}
     >
     <div style={sceneInnerStyle}>
