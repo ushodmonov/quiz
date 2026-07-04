@@ -318,7 +318,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [exporting, setExporting] = useState(false)
   // Tayyor PDF — Telegram/mobil'da Web Share yangi bosish (gesture) talab qiladi,
   // shuning uchun render tugagach faylni saqlab qo'yamiz va "Saqlash" tugmasi ko'rsatamiz.
-  const pendingPdf = useRef<{ file: File; url: string; name: string } | null>(null)
+  const pendingPdf = useRef<{ file: File; url: string; dataUrl: string; name: string } | null>(null)
   const [pdfReady, setPdfReady] = useState<{ name: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
@@ -605,8 +605,10 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     const item = pendingPdf.current
     if (!item) return 'needGesture'
     const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
-    // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
-    if (nav.share && (!nav.canShare || nav.canShare({ files: [item.file] }))) {
+    // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan).
+    //    canShare ba'zi Telegram (iOS) versiyalarida noto'g'ri false qaytaradi —
+    //    shuning uchun share bor bo'lsa baribir urinib ko'ramiz.
+    if (nav.share) {
       try {
         await nav.share({ files: [item.file], title: item.name })
         return 'shared'
@@ -615,12 +617,12 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         if (name === 'AbortError') return 'shared' // foydalanuvchi bekor qildi — bu ham "tayyor"
         // Gesture yo'qolgan bo'lsa — keyingi bosishga qoldiramiz
         if (name === 'NotAllowedError') return 'needGesture'
-        // boshqa xato — yuklab olishga o'tamiz
+        // boshqa xato (fayl qo'llab-quvvatlanmasa) — yuklab olishga o'tamiz
       }
     }
-    // 2) Aks holda — brauzerda yuklab olish (desktop yo'li)
+    // 2) Aks holda — yuklab olish. Telegram WebView blob: ni bloklaydi, data: ishlaydi.
     const a = document.createElement('a')
-    a.href = item.url
+    a.href = item.dataUrl
     a.download = item.name
     a.rel = 'noopener'
     document.body.appendChild(a)
@@ -668,7 +670,9 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
 
       // Eski faylni tozalab, yangisini eslab qolamiz.
       if (pendingPdf.current) URL.revokeObjectURL(pendingPdf.current.url)
-      pendingPdf.current = { file, url: URL.createObjectURL(blob), name: fileName }
+      // data: URL — Telegram WebView blob: yuklashni ko'pincha bloklaydi, data: esa ishlaydi.
+      const dataUrl = pdf.output('datauristring')
+      pendingPdf.current = { file, url: URL.createObjectURL(blob), dataUrl, name: fileName }
 
       // Faylni yetkazishga urinamiz. Web Share yangi bosish (gesture) talab qilsa —
       // render uzoq davom etgani sabab bu urinish o'tmaydi; shunda "Saqlash" tugmasini ko'rsatamiz.
