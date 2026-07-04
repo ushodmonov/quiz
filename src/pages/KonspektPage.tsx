@@ -24,6 +24,10 @@ import {
   AppBar,
   Toolbar,
   Collapse,
+  Backdrop,
+  LinearProgress,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore } from '@mui/icons-material'
 import { toPng } from 'html-to-image'
@@ -190,6 +194,20 @@ function htmlToMarkup(html: string): string {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
+/** Deterministik "tasodifiy" son [0,1) — matn + kalitdan (har renderда bir xil). */
+function seededRand(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return (h >>> 0) / 4294967295
+}
+
+// Foto donadorlik (grain) — SVG feTurbulence data-URI (offline, eksportda ham chiqadi)
+const GRAIN_URI =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
+
 /** Matndagi ♥ / ♡ belgilarini qizil rangda ko'rsatadi. */
 function renderWithHearts(text: string) {
   const parts = text.split(/([♥♡❤])/)
@@ -213,18 +231,23 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [rightMm, setRightMm] = useState(5)
   const [leftMm, setLeftMm] = useState(1.4)
   const [bookMode, setBookMode] = useState(false)
+  const [realistic, setRealistic] = useState(true) // tabiiy qo'lyozma + foto realizm
   const [previewOpen, setPreviewOpen] = useState(false)
   const [curPage, setCurPage] = useState(0)
   const [confirmApplyAll, setConfirmApplyAll] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(true)
+  const [exportStatus, setExportStatus] = useState<{ done: number; total: number; phase: string } | null>(null)
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
+  const muiTheme = useTheme()
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
   const touchStartX = useRef<number | null>(null)
   const [fontIdx, setFontIdx] = useState(0)
   const [bgImage, setBgImage] = useState<string | null>(null)
   // Har bet uchun alohida sozlama: tilt=bet qiyshiqligi, zoom/x/y/bgRot=orqa fon
-  type PageAdjust = { tilt: number; zoom: number; x: number; y: number; bgRot: number; pageZoom: number }
-  const DEFAULT_ADJUST: PageAdjust = { tilt: 0, zoom: 1, x: 0, y: 0, bgRot: 0, pageZoom: 1 }
+  type PageAdjust = { tilt: number; zoom: number; x: number; y: number; bgRot: number; pageZoom: number; bright: number; contrast: number; saturate: number }
+  const DEFAULT_ADJUST: PageAdjust = { tilt: 0, zoom: 1, x: 0, y: 0, bgRot: 0, pageZoom: 1, bright: 100, contrast: 100, saturate: 100 }
   const [pageAdjust, setPageAdjust] = useState<Record<number, PageAdjust>>({})
-  const getAdj = (idx: number): PageAdjust => pageAdjust[idx] || DEFAULT_ADJUST
+  const getAdj = (idx: number): PageAdjust => ({ ...DEFAULT_ADJUST, ...pageAdjust[idx] })
   const setAdj = (idx: number, patch: Partial<PageAdjust>) =>
     setPageAdjust((prev) => ({ ...prev, [idx]: { ...(prev[idx] || DEFAULT_ADJUST), ...patch } }))
   // Joriy bet sozlamalarini barcha betlarga qo'llaydi
@@ -446,9 +469,12 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const renderAllPages = async (): Promise<string[]> => {
     const els = pageRefs.current.filter(Boolean)
     const urls: string[] = []
-    for (const el of els) {
+    for (let i = 0; i < els.length; i++) {
+      setExportStatus({ done: i, total: els.length, phase: 'render' })
+      // Brauzerga UI'ni yangilashga imkon beramiz (loading ko'rinsin)
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
       urls.push(
-        await toPng(el, { pixelRatio: 4, cacheBust: true, backgroundColor: bgImage ? undefined : COLORS.bg })
+        await toPng(els[i], { pixelRatio: 4, cacheBust: true, backgroundColor: bgImage ? undefined : COLORS.bg })
       )
     }
     return urls
@@ -457,43 +483,71 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const handlePrint = async () => {
     if (pageRefs.current.length === 0) return
     setExporting(true)
+    setExportStatus({ done: 0, total: pageRefs.current.filter(Boolean).length, phase: 'render' })
     try {
-      // PDF ni ham aynan shu PNG(lar)dan yasaymiz — rasm va PDF bir xil chiqadi.
+      // Betlarni rasmga o'giramiz, so'ng haqiqiy PDF fayl yasaymiz (jsPDF).
       const urls = await renderAllPages()
-      const win = window.open('', '_blank', 'width=600,height=800')
-      if (!win) return
-      const imgs = urls
-        .map((u) => `<img class="pg" src="${u}">`)
-        .join('')
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
-        <title>${baseName}</title>
-        <style>
-          @page { size: ${exportWmm}mm ${exportHmm}mm; margin: 0; }
-          html, body { margin: 0; padding: 0; }
-          img.pg { display: block; width: ${exportWmm}mm; height: ${exportHmm}mm; page-break-after: always; }
-          img.pg:last-child { page-break-after: auto; }
-          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        </style></head><body>${imgs}
-        <script>
-          var imgs = document.images, loaded = 0;
-          function done(){ if(++loaded >= imgs.length){ window.focus(); setTimeout(function(){ window.print(); }, 100); } }
-          for (var i=0;i<imgs.length;i++){ imgs[i].complete ? done() : imgs[i].onload = done; }
-        <\/script></body></html>`)
-      win.document.close()
+      setExportStatus({ done: urls.length, total: urls.length, phase: 'pdf' })
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
+      const { jsPDF } = await import('jspdf')
+      const orientation = exportWmm >= exportHmm ? 'landscape' : 'portrait'
+      const pdf = new jsPDF({ unit: 'mm', format: [exportWmm, exportHmm], orientation })
+      urls.forEach((u, i) => {
+        if (i > 0) pdf.addPage([exportWmm, exportHmm], orientation)
+        pdf.addImage(u, 'PNG', 0, 0, exportWmm, exportHmm, undefined, 'FAST')
+      })
+      const blob = pdf.output('blob')
+      const fileName = `${baseName}.pdf`
+      const file = new File([blob], fileName, { type: 'application/pdf' })
+
+      // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan)
+      const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean }
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await nav.share({ files: [file], title: baseName })
+          return
+        } catch (shareErr) {
+          // foydalanuvchi bekor qilsa yoki xato bo'lsa — yuklab olishga o'tamiz
+          if ((shareErr as DOMException)?.name === 'AbortError') return
+        }
+      }
+
+      // 2) Aks holda — blob'ni yuklab olish
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = fileName
+      a.rel = 'noopener'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
     } catch (e) {
       console.error('PDF eksport xatosi:', e)
+      setImportError(t('konspekt.pdfError', "PDF yasashda xatolik yuz berdi. Qaytadan urinib ko'ring."))
     } finally {
       setExporting(false)
+      setExportStatus(null)
     }
   }
 
   const renderLine = (line: ParsedLine, i: number) => {
+    // Tabiiy qo'lyozma tebranishi (realizm) — deterministik, har renderда bir xil
+    const bls: React.CSSProperties = realistic
+      ? {
+          ...baseLineStyle,
+          fontSize: `${effFontMm * (1 + (seededRand(line.text + '|s' + i) - 0.5) * 0.07)}mm`,
+          marginLeft: `${(seededRand(line.text + '|x' + i) - 0.5) * 1.6}mm`,
+          transform: `rotate(${(seededRand(line.text + '|r' + i) - 0.5) * 1.2}deg) translateY(${(seededRand(line.text + '|y' + i) - 0.5) * 0.7}mm)`,
+          transformOrigin: 'left bottom',
+        }
+      : baseLineStyle
     switch (line.kind) {
       case 'gap':
         return <div key={i} style={{ height: `${cell}mm` }} />
       case 'heading':
         return (
-          <div key={i} style={baseLineStyle}>
+          <div key={i} style={bls}>
             <span style={{ color: COLORS.heading, textDecoration: 'underline', fontWeight: 700 }}>
               {line.text}
             </span>
@@ -501,7 +555,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         )
       case 'star':
         return (
-          <div key={i} style={baseLineStyle}>
+          <div key={i} style={bls}>
             <span style={{ color: COLORS.star, marginRight: '1.5mm' }}>★</span>
             <span style={{ color: COLORS.heading, textDecoration: 'underline', fontWeight: 700 }}>
               {line.text}
@@ -510,14 +564,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         )
       case 'bullet':
         return (
-          <div key={i} style={{ ...baseLineStyle, paddingLeft: `${1.3 * cell}mm` }}>
+          <div key={i} style={{ ...bls, paddingLeft: `${1.3 * cell}mm` }}>
             <span style={{ marginRight: '1.5mm' }}>—</span>
             <span>{renderWithHearts(line.text)}</span>
           </div>
         )
       case 'quote':
         return (
-          <div key={i} style={{ ...baseLineStyle, color: COLORS.quote, fontStyle: 'italic' }}>
+          <div key={i} style={{ ...bls, color: COLORS.quote, fontStyle: 'italic' }}>
             {line.text}
           </div>
         )
@@ -527,7 +581,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         const label = colonIdx >= 0 ? line.text.slice(0, colonIdx + 1) : ''
         const rest = colonIdx >= 0 ? line.text.slice(colonIdx + 1) : line.text
         return (
-          <div key={i} style={baseLineStyle}>
+          <div key={i} style={bls}>
             {label && <span style={{ color: COLORS.heading, fontWeight: 700, marginRight: '1mm' }}>{label}</span>}
             <span>{renderWithHearts(rest)}</span>
           </div>
@@ -535,7 +589,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       }
       default:
         return (
-          <div key={i} style={baseLineStyle}>
+          <div key={i} style={bls}>
             {renderWithHearts(line.text)}
           </div>
         )
@@ -556,18 +610,24 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     const pageContentStyle: React.CSSProperties = redOnRight
       ? { position: 'absolute', top: `${2 * cell}mm`, left: `${contentRight}mm`, right: `${contentLeft}mm` }
       : { ...contentStyle }
-    // Sahna: orqa fon (stol rasmi) + ustida turgan daftar sahifasi.
+    const adj = getAdj(idx) // shu bet uchun alohida sozlama
+    // Sahna ildizi (eksport uchun ref shu yerda) — o'lcham + kesish.
     const sceneStyle: React.CSSProperties = {
       width: `${exportWmm}mm`,
       height: `${exportHmm}mm`,
       position: 'relative',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       overflow: 'hidden',
       boxSizing: 'border-box',
     }
-    const adj = getAdj(idx) // shu bet uchun alohida sozlama
+    // Ichki qatlam: yorug'lik/kontrast/rang butun sahnaga (bet + fon) qo'llanadi — foto filtridek.
+    const sceneInnerStyle: React.CSSProperties = {
+      position: 'absolute',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      filter: `brightness(${adj.bright}%) contrast(${adj.contrast}%) saturate(${adj.saturate}%)`,
+    }
     const pageWithShadow: React.CSSProperties = bgImage
       ? {
           ...pageStyle,
@@ -584,6 +644,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       ref={(el) => { if (el && registerRef) pageRefs.current[idx] = el }}
       style={sceneStyle}
     >
+    <div style={sceneInnerStyle}>
     {bgImage && (
       <img
         src={bgImage}
@@ -631,6 +692,24 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         {pageLines.map(renderLine)}
       </div>
     </div>
+    {/* Foto realizm: donadorlik (grain) + chekka qorayishi (vinetka) */}
+    {realistic && (
+      <>
+        <div
+          style={{
+            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            backgroundImage: GRAIN_URI, backgroundSize: '140px 140px', opacity: 0.05,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
+            background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.16) 100%)',
+          }}
+        />
+      </>
+    )}
+    </div>
     </div>
     )
   }
@@ -640,6 +719,68 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Joriy bet (carousel) — chegaraga bog'langan
   const curIdx = Math.min(curPage, Math.max(0, pages.length - 1))
   const cur = getAdj(curIdx)
+
+  // Joriy bet sozlamalari (inline panel va mobil dialogda qayta ishlatiladi)
+  const pageSettingsContent = (
+    <>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
+          columnGap: 2,
+          rowGap: 1,
+          alignItems: 'end',
+        }}
+      >
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.pageZoom', 'Bet kattaligi')}: {cur.pageZoom.toFixed(2)}×</Typography>
+          <Slider value={cur.pageZoom} min={0.5} max={2} step={0.02} size="small" onChange={(_, v) => setAdj(curIdx, { pageZoom: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.pageTilt', 'Qiyshiqlik')}: {cur.tilt}°</Typography>
+          <Slider value={cur.tilt} min={-12} max={12} step={0.5} size="small" onChange={(_, v) => setAdj(curIdx, { tilt: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.bgZoom', 'Yaqinlashtirish')}: {cur.zoom.toFixed(2)}×</Typography>
+          <Slider value={cur.zoom} min={1} max={4} step={0.05} size="small" onChange={(_, v) => setAdj(curIdx, { zoom: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.bgPosX', 'Gorizontal')}: {cur.x}%</Typography>
+          <Slider value={cur.x} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { x: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.bgPosY', 'Vertikal')}: {cur.y}%</Typography>
+          <Slider value={cur.y} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { y: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.bgRotate', 'Fon burish')}: {cur.bgRot}°</Typography>
+          <Slider value={cur.bgRot} min={-180} max={180} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { bgRot: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.bright', "Yorug'lik")}: {cur.bright}%</Typography>
+          <Slider value={cur.bright} min={30} max={200} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { bright: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.contrast', 'Kontrast')}: {cur.contrast}%</Typography>
+          <Slider value={cur.contrast} min={30} max={200} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { contrast: v as number })} />
+        </Box>
+        <Box>
+          <Typography sx={labelSx}>{t('konspekt.saturate', 'Rang to\'yinganligi')}: {cur.saturate}%</Typography>
+          <Slider value={cur.saturate} min={0} max={200} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { saturate: v as number })} />
+        </Box>
+      </Box>
+      <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
+        <Button size="small" color="inherit" startIcon={<RestartAlt />} onClick={() => setAdj(curIdx, DEFAULT_ADJUST)}>
+          {t('konspekt.bgReset', "Shu betni asliga qaytarish")}
+        </Button>
+        {pages.length > 1 && (
+          <Button size="small" startIcon={<Layers />} onClick={() => setConfirmApplyAll(true)}>
+            {t('konspekt.applyAll', "Barcha betlarga qo'llash")}
+          </Button>
+        )}
+      </Stack>
+    </>
+  )
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 1.5, sm: 3 }, px: { xs: 1.5, sm: 3 } }}>
@@ -831,6 +972,13 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
                     <ToggleButton value={true}>{t('konspekt.on', 'Yoniq')}</ToggleButton>
                   </ToggleButtonGroup>
                 </Box>
+                <Box>
+                  <Typography component="label" sx={labelSx}>{t('konspekt.realistic', "Tabiiylik (realizm)")}</Typography>
+                  <ToggleButtonGroup size="small" exclusive value={realistic} onChange={(_, v) => v !== null && setRealistic(v)}>
+                    <ToggleButton value={false}>{t('konspekt.off', "O'chiq")}</ToggleButton>
+                    <ToggleButton value={true}>{t('konspekt.on', 'Yoniq')}</ToggleButton>
+                  </ToggleButtonGroup>
+                </Box>
               </Box>
             </CardContent>
           </Card>
@@ -864,6 +1012,12 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
             <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '0.95rem', sm: '1rem' }, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t('konspekt.preview', "Ko'rinish")} · {pages.length} {t('konspekt.pages', 'bet')}
             </Typography>
+            {/* Mobilda sozlamalar — alohida tugma → dialog */}
+            {bgImage && isMobile && (
+              <IconButton onClick={() => setSettingsDialogOpen(true)} sx={{ flexShrink: 0 }}>
+                <Tune />
+              </IconButton>
+            )}
             <Button
               variant="contained"
               startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <PictureAsPdf />}
@@ -883,8 +1037,8 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
           </Toolbar>
         </AppBar>
 
-        {/* Joriy bet uchun sozlamalar (faqat orqa fon bo'lsa) */}
-        {bgImage && (
+        {/* Joriy bet sozlamalari — INLINE (faqat tablet/desktop, orqa fon bo'lsa) */}
+        {bgImage && !isMobile && (
           <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
             <Box
               onClick={() => setControlsOpen((o) => !o)}
@@ -896,52 +1050,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
               </Typography>
               {controlsOpen ? <ExpandLess sx={{ color: 'text.secondary' }} /> : <ExpandMore sx={{ color: 'text.secondary' }} />}
             </Box>
-            <Collapse in={controlsOpen}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
-                columnGap: 2,
-                rowGap: 0.5,
-                alignItems: 'end',
-              }}
-            >
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.pageZoom', 'Bet kattaligi')}: {cur.pageZoom.toFixed(2)}×</Typography>
-                <Slider value={cur.pageZoom} min={0.5} max={2} step={0.02} size="small" onChange={(_, v) => setAdj(curIdx, { pageZoom: v as number })} />
-              </Box>
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.pageTilt', 'Qiyshiqlik')}: {cur.tilt}°</Typography>
-                <Slider value={cur.tilt} min={-12} max={12} step={0.5} size="small" onChange={(_, v) => setAdj(curIdx, { tilt: v as number })} />
-              </Box>
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.bgZoom', 'Yaqinlashtirish')}: {cur.zoom.toFixed(2)}×</Typography>
-                <Slider value={cur.zoom} min={1} max={4} step={0.05} size="small" onChange={(_, v) => setAdj(curIdx, { zoom: v as number })} />
-              </Box>
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.bgPosX', 'Gorizontal')}: {cur.x}%</Typography>
-                <Slider value={cur.x} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { x: v as number })} />
-              </Box>
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.bgPosY', 'Vertikal')}: {cur.y}%</Typography>
-                <Slider value={cur.y} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { y: v as number })} />
-              </Box>
-              <Box>
-                <Typography sx={labelSx}>{t('konspekt.bgRotate', 'Fon burish')}: {cur.bgRot}°</Typography>
-                <Slider value={cur.bgRot} min={-180} max={180} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { bgRot: v as number })} />
-              </Box>
-            </Box>
-            <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
-              <Button size="small" color="inherit" startIcon={<RestartAlt />} onClick={() => setAdj(curIdx, DEFAULT_ADJUST)}>
-                {t('konspekt.bgReset', "Shu betni asliga qaytarish")}
-              </Button>
-              {pages.length > 1 && (
-                <Button size="small" startIcon={<Layers />} onClick={() => setConfirmApplyAll(true)}>
-                  {t('konspekt.applyAll', "Barcha betlarga qo'llash")}
-                </Button>
-              )}
-            </Stack>
-            </Collapse>
+            <Collapse in={controlsOpen}>{pageSettingsContent}</Collapse>
           </Box>
         )}
 
@@ -977,13 +1086,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
             </IconButton>
           )}
 
-          {/* Faqat joriy bet ko'rsatiladi */}
-          <Box ref={previewBoxRef} sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 1.5, sm: 3 } }}>
+          {/* Faqat joriy bet — qat'iy o'lchamli konteyner, doim aniq o'rtada turadi */}
+          <Box ref={previewBoxRef} sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 1.5, sm: 3 }, overflow: 'hidden' }}>
             <Box
               sx={{
                 width: `calc(${exportWmm}mm * ${previewScale})`,
                 height: `calc(${exportHmm}mm * ${previewScale})`,
                 flexShrink: 0,
+                overflow: 'hidden',
               }}
             >
               <Box sx={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', boxShadow: bgImage ? 0 : 3 }}>
@@ -1020,6 +1130,26 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         </Box>
       </Dialog>
 
+      {/* Mobil sozlamalar dialogi (pastdan chiqadigan panel) */}
+      <Dialog
+        open={settingsDialogOpen && isMobile}
+        onClose={() => setSettingsDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        sx={{ '& .MuiDialog-container': { alignItems: 'flex-end' }, '& .MuiPaper-root': { m: 0, width: '100%', maxWidth: '100%', borderRadius: '16px 16px 0 0' } }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+          <Tune sx={{ fontSize: 20, color: 'text.secondary', mr: 1 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1 }}>
+            {curIdx + 1}-{t('konspekt.pageSettings', 'bet sozlamalari')}
+          </Typography>
+          <IconButton edge="end" onClick={() => setSettingsDialogOpen(false)}>
+            <Close />
+          </IconButton>
+        </Box>
+        <Box sx={{ p: 2 }}>{pageSettingsContent}</Box>
+      </Dialog>
+
       {/* Tasdiqlash: joriy bet sozlamalarini barcha betlarga qo'llash */}
       <Dialog open={confirmApplyAll} onClose={() => setConfirmApplyAll(false)}>
         <DialogTitle>{t('konspekt.applyAllTitle', 'Barcha betlarga qo\'llansinmi?')}</DialogTitle>
@@ -1041,6 +1171,33 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* PDF tayyorlanayotganda — to'liq ekranli loading (foydalanuvchi kutishi uchun) */}
+      <Backdrop
+        open={!!exportStatus}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 10, color: '#fff', backdropFilter: 'blur(2px)', bgcolor: 'rgba(0,0,0,0.72)' }}
+      >
+        <Box sx={{ width: 300, maxWidth: '82vw', textAlign: 'center', px: 3 }}>
+          <CircularProgress color="inherit" size={52} thickness={4} sx={{ mb: 2.5 }} />
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+            {t('konspekt.pdfPreparing', 'PDF tayyorlanmoqda...')}
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.85, mb: 2 }}>
+            {exportStatus?.phase === 'pdf'
+              ? t('konspekt.pdfAssembling', "Fayl yig'ilmoqda, biroz kuting")
+              : t('konspekt.pdfRendering', 'Betlar chizilmoqda') +
+                (exportStatus ? ` — ${Math.min(exportStatus.done + 1, exportStatus.total)} / ${exportStatus.total} ${t('konspekt.pages', 'bet')}` : '')}
+          </Typography>
+          <LinearProgress
+            variant={exportStatus?.phase === 'pdf' ? 'indeterminate' : 'determinate'}
+            value={exportStatus ? (exportStatus.done / Math.max(1, exportStatus.total)) * 100 : 0}
+            sx={{ height: 8, borderRadius: 5, bgcolor: 'rgba(255,255,255,0.25)', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
+          />
+          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, opacity: 0.7 }}>
+            {t('konspekt.pdfWait', "Iltimos, oynani yopmang")}
+          </Typography>
+        </Box>
+      </Backdrop>
     </Container>
   )
 }
