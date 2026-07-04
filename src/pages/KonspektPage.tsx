@@ -23,8 +23,9 @@ import {
   DialogActions,
   AppBar,
   Toolbar,
+  Collapse,
 } from '@mui/material'
-import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers } from '@mui/icons-material'
+import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore } from '@mui/icons-material'
 import { toPng } from 'html-to-image'
 import { useTranslation } from 'react-i18next'
 
@@ -215,6 +216,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [curPage, setCurPage] = useState(0)
   const [confirmApplyAll, setConfirmApplyAll] = useState(false)
+  const [controlsOpen, setControlsOpen] = useState(true)
   const touchStartX = useRef<number | null>(null)
   const [fontIdx, setFontIdx] = useState(0)
   const [bgImage, setBgImage] = useState<string | null>(null)
@@ -279,23 +281,27 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const exportWmm = 145 + sceneMargin * 2
   const exportHmm = 210 + sceneMargin * 2
 
-  // Preview'ni konteyner kengligiga qarab masshtablaymiz (mobile responsive)
+  // Preview'ni konteyner O'LCHAMIGA (kenglik + balandlik) qarab masshtablaymiz —
+  // shunda bet hech qachon ekrandan chiqib kesilmaydi (mobile/tablet/desktop).
   useEffect(() => {
     const el = previewBoxRef.current
     if (!el) return
     const EXPORT_WIDTH_PX = (exportWmm * 96) / 25.4
+    const EXPORT_HEIGHT_PX = (exportHmm * 96) / 25.4
     const update = () => {
       const cs = getComputedStyle(el)
-      const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
-      const avail = el.clientWidth - pad
-      // desktop'da 0.85 gacha, mobile'da kenglikka to'liq sig'adi
-      setPreviewScale(Math.max(0.2, Math.min(0.85, avail / EXPORT_WIDTH_PX)))
+      const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+      const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)
+      const availW = el.clientWidth - padX
+      const availH = el.clientHeight - padY
+      const fit = Math.min(availW / EXPORT_WIDTH_PX, availH / EXPORT_HEIGHT_PX)
+      setPreviewScale(Math.max(0.12, Math.min(0.9, fit)))
     }
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [previewOpen, exportWmm])
+  }, [previewOpen, exportWmm, exportHmm])
 
   // Dialog ochilganda 1-betdan boshlaymiz; bet soni kamaysa chegaraga qaytaramiz.
   useEffect(() => {
@@ -855,7 +861,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
             <IconButton edge="start" onClick={() => setPreviewOpen(false)}>
               <Close />
             </IconButton>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1, fontSize: { xs: '0.95rem', sm: '1rem' }, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {t('konspekt.preview', "Ko'rinish")} · {pages.length} {t('konspekt.pages', 'bet')}
             </Typography>
             <Button
@@ -863,10 +869,16 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
               startIcon={exporting ? <CircularProgress size={18} color="inherit" /> : <PictureAsPdf />}
               onClick={handlePrint}
               disabled={exporting || !fontReady}
+              sx={{ flexShrink: 0, px: { xs: 1.25, sm: 2 } }}
             >
               {exporting
                 ? t('konspekt.preparing', 'Tayyorlanmoqda...')
-                : t('konspekt.downloadPdf', 'PDF yuklab olish')}
+                : (
+                  <>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{t('konspekt.downloadPdf', 'PDF yuklab olish')}</Box>
+                    <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>PDF</Box>
+                  </>
+                )}
             </Button>
           </Toolbar>
         </AppBar>
@@ -874,6 +886,17 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         {/* Joriy bet uchun sozlamalar (faqat orqa fon bo'lsa) */}
         {bgImage && (
           <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <Box
+              onClick={() => setControlsOpen((o) => !o)}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', mb: controlsOpen ? 0.5 : 0 }}
+            >
+              <Tune sx={{ fontSize: 18, color: 'text.secondary' }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, flexGrow: 1 }}>
+                {curIdx + 1}-{t('konspekt.pageSettings', 'bet sozlamalari')}
+              </Typography>
+              {controlsOpen ? <ExpandLess sx={{ color: 'text.secondary' }} /> : <ExpandMore sx={{ color: 'text.secondary' }} />}
+            </Box>
+            <Collapse in={controlsOpen}>
             <Box
               sx={{
                 display: 'grid',
@@ -918,6 +941,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
                 </Button>
               )}
             </Stack>
+            </Collapse>
           </Box>
         )}
 
