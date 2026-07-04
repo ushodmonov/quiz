@@ -26,10 +26,11 @@ import {
   Collapse,
   Backdrop,
   LinearProgress,
+  Snackbar,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore } from '@mui/icons-material'
+import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers, Tune, ExpandLess, ExpandMore, ContentCopy, AutoAwesome } from '@mui/icons-material'
 import { toPng } from 'html-to-image'
 import { useTranslation } from 'react-i18next'
 
@@ -294,6 +295,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [controlsOpen, setControlsOpen] = useState(true)
   const [exportStatus, setExportStatus] = useState<{ done: number; total: number; phase: string } | null>(null)
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
+  const [copiedMsg, setCopiedMsg] = useState('')
   const muiTheme = useTheme()
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'))
   const touchStartX = useRef<number | null>(null)
@@ -536,6 +538,23 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     const reader = new FileReader()
     reader.onload = () => setBgImage(typeof reader.result === 'string' ? reader.result : null)
     reader.readAsDataURL(file)
+  }
+
+  const copyText = async (text: string, msg: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // clipboard API bloklangan bo'lsa — zaxira usul
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      try { document.execCommand('copy') } catch { /* jim */ }
+      ta.remove()
+    }
+    setCopiedMsg(msg)
   }
 
   const baseName = title || 'konspekt'
@@ -947,6 +966,24 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
               <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', lineHeight: 1.6 }}>
                 {t('konspekt.syntax', "@title: sarlavha · * ★sarlavha · # qizil sarlavha · - bullet · > iqtibos · = xulosa · bo'sh satr = bo'shliq")}
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AutoAwesome />}
+                  onClick={() => copyText(PROMPT_TEXT, t('konspekt.promptCopied', 'Prompt nusxalandi — AI\'ga qo\'ying'))}
+                >
+                  {t('konspekt.copyPrompt', 'AI prompt nusxalash')}
+                </Button>
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<ContentCopy />}
+                  onClick={() => copyText(DEFAULT_TEXT, t('konspekt.exampleCopied', 'Namuna nusxalandi'))}
+                >
+                  {t('konspekt.copyExample', 'Namuna nusxalash')}
+                </Button>
+              </Stack>
             </CardContent>
           </Card>
 
@@ -1351,6 +1388,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
           </Typography>
         </Box>
       </Backdrop>
+
+      {/* Nusxalash tasdiqi */}
+      <Snackbar
+        open={!!copiedMsg}
+        autoHideDuration={2500}
+        onClose={() => setCopiedMsg('')}
+        message={copiedMsg}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Container>
   )
 }
