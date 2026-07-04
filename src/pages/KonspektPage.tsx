@@ -17,10 +17,14 @@ import {
   ListSubheader,
   IconButton,
   Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
   AppBar,
   Toolbar,
 } from '@mui/material'
-import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close } from '@mui/icons-material'
+import { ArrowBack, UploadFile, PictureAsPdf, Visibility, Close, Wallpaper, ChevronLeft, ChevronRight, RestartAlt, Layers } from '@mui/icons-material'
 import { toPng } from 'html-to-image'
 import { useTranslation } from 'react-i18next'
 
@@ -209,7 +213,25 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [leftMm, setLeftMm] = useState(1.4)
   const [bookMode, setBookMode] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [curPage, setCurPage] = useState(0)
+  const [confirmApplyAll, setConfirmApplyAll] = useState(false)
+  const touchStartX = useRef<number | null>(null)
   const [fontIdx, setFontIdx] = useState(0)
+  const [bgImage, setBgImage] = useState<string | null>(null)
+  // Har bet uchun alohida sozlama: tilt=bet qiyshiqligi, zoom/x/y/bgRot=orqa fon
+  type PageAdjust = { tilt: number; zoom: number; x: number; y: number; bgRot: number; pageZoom: number }
+  const DEFAULT_ADJUST: PageAdjust = { tilt: 0, zoom: 1, x: 0, y: 0, bgRot: 0, pageZoom: 1 }
+  const [pageAdjust, setPageAdjust] = useState<Record<number, PageAdjust>>({})
+  const getAdj = (idx: number): PageAdjust => pageAdjust[idx] || DEFAULT_ADJUST
+  const setAdj = (idx: number, patch: Partial<PageAdjust>) =>
+    setPageAdjust((prev) => ({ ...prev, [idx]: { ...(prev[idx] || DEFAULT_ADJUST), ...patch } }))
+  // Joriy bet sozlamalarini barcha betlarga qo'llaydi
+  const applyAdjustToAll = (source: PageAdjust, count: number) => {
+    const next: Record<number, PageAdjust> = {}
+    for (let i = 0; i < count; i++) next[i] = { ...source }
+    setPageAdjust(next)
+  }
+  const bgInputRef = useRef<HTMLInputElement>(null)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
@@ -252,22 +274,32 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     }
   }, [font.family])
 
+  // Orqa fon (stol rasmi) bo'lsa, sahifa atrofida bo'shliq qoladi — eksport shu "sahna".
+  const sceneMargin = bgImage ? 28 : 0 // mm — qiyshaytirilganda burchaklar kesilmasligi uchun
+  const exportWmm = 145 + sceneMargin * 2
+  const exportHmm = 210 + sceneMargin * 2
+
   // Preview'ni konteyner kengligiga qarab masshtablaymiz (mobile responsive)
   useEffect(() => {
     const el = previewBoxRef.current
     if (!el) return
-    const A5_WIDTH_PX = (145 * 96) / 25.4 // 145mm ≈ 548px @96dpi
+    const EXPORT_WIDTH_PX = (exportWmm * 96) / 25.4
     const update = () => {
       const cs = getComputedStyle(el)
       const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
       const avail = el.clientWidth - pad
       // desktop'da 0.85 gacha, mobile'da kenglikka to'liq sig'adi
-      setPreviewScale(Math.max(0.2, Math.min(0.85, avail / A5_WIDTH_PX)))
+      setPreviewScale(Math.max(0.2, Math.min(0.85, avail / EXPORT_WIDTH_PX)))
     }
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
+  }, [previewOpen, exportWmm])
+
+  // Dialog ochilganda 1-betdan boshlaymiz; bet soni kamaysa chegaraga qaytaramiz.
+  useEffect(() => {
+    if (previewOpen) setCurPage(0)
   }, [previewOpen])
 
   // —— Hisoblangan o'lchamlar (mm) ——
@@ -384,15 +416,33 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     }
   }
 
+  const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) e.target.value = ''
+    if (!file) return
+    // Faqat rasm fayllari qabul qilinadi (jpg, jpeg, png, heic, heif, webp, gif, bmp ...)
+    const isImage =
+      file.type.startsWith('image/') ||
+      /\.(jpe?g|png|heic|heif|webp|gif|bmp|avif|tiff?)$/i.test(file.name)
+    if (!isImage) {
+      setImportError(t('konspekt.bgOnlyImage', "Orqa fon uchun faqat rasm fayli (jpg, png, heic ...) yuklang."))
+      return
+    }
+    setImportError('')
+    const reader = new FileReader()
+    reader.onload = () => setBgImage(typeof reader.result === 'string' ? reader.result : null)
+    reader.readAsDataURL(file)
+  }
+
   const baseName = title || 'konspekt'
 
-  // Barcha betlarni 4× sifatli PNG data-url ga o'giradi.
+  // Barcha betlarni (yoki orqa fonli sahnalarni) 4× sifatli PNG data-url ga o'giradi.
   const renderAllPages = async (): Promise<string[]> => {
     const els = pageRefs.current.filter(Boolean)
     const urls: string[] = []
     for (const el of els) {
       urls.push(
-        await toPng(el, { pixelRatio: 4, cacheBust: true, backgroundColor: COLORS.bg })
+        await toPng(el, { pixelRatio: 4, cacheBust: true, backgroundColor: bgImage ? undefined : COLORS.bg })
       )
     }
     return urls
@@ -412,9 +462,9 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
         <title>${baseName}</title>
         <style>
-          @page { size: 145mm 210mm; margin: 0; }
+          @page { size: ${exportWmm}mm ${exportHmm}mm; margin: 0; }
           html, body { margin: 0; padding: 0; }
-          img.pg { display: block; width: 145mm; height: 210mm; page-break-after: always; }
+          img.pg { display: block; width: ${exportWmm}mm; height: ${exportHmm}mm; page-break-after: always; }
           img.pg:last-child { page-break-after: auto; }
           * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         </style></head><body>${imgs}
@@ -489,7 +539,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Har render'da ref ro'yxatini tozalaymiz
   pageRefs.current = []
 
-  const buildPage = (pageLines: ParsedLine[], idx: number) => {
+  const buildPage = (pageLines: ParsedLine[], idx: number, registerRef = true) => {
     // Kitob ko'rinishi: qizil chiziq betma-bet almashadi.
     // 1-bet (idx 0) → o'ng, 2-bet → chap, 3-bet → o'ng ...
     const redOnRight = bookMode && idx % 2 === 0
@@ -500,12 +550,50 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     const pageContentStyle: React.CSSProperties = redOnRight
       ? { position: 'absolute', top: `${2 * cell}mm`, left: `${contentRight}mm`, right: `${contentLeft}mm` }
       : { ...contentStyle }
+    // Sahna: orqa fon (stol rasmi) + ustida turgan daftar sahifasi.
+    const sceneStyle: React.CSSProperties = {
+      width: `${exportWmm}mm`,
+      height: `${exportHmm}mm`,
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
+    }
+    const adj = getAdj(idx) // shu bet uchun alohida sozlama
+    const pageWithShadow: React.CSSProperties = bgImage
+      ? {
+          ...pageStyle,
+          position: 'relative',
+          zIndex: 1,
+          boxShadow: '0 6mm 12mm rgba(0,0,0,0.35)',
+          borderRadius: '1mm',
+          transform: `rotate(${adj.tilt}deg) scale(${adj.pageZoom})`,
+        }
+      : pageStyle
     return (
     <div
       key={idx}
-      ref={(el) => { if (el) pageRefs.current[idx] = el }}
-      style={pageStyle}
+      ref={(el) => { if (el && registerRef) pageRefs.current[idx] = el }}
+      style={sceneStyle}
     >
+    {bgImage && (
+      <img
+        src={bgImage}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          transform: `scale(${adj.zoom}) translate(${adj.x}%, ${adj.y}%) rotate(${adj.bgRot}deg)`,
+          transformOrigin: 'center',
+          zIndex: 0,
+        }}
+      />
+    )}
+    <div style={pageWithShadow}>
       {/* Qizil chegara chizig'i (kitob rejimida tomon almashadi) */}
       <div style={redLineStyle} />
       {/* Kontent (hech narsa qizil chiziqdan o'tmaydi) */}
@@ -537,10 +625,15 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         {pageLines.map(renderLine)}
       </div>
     </div>
+    </div>
     )
   }
 
   const labelSx = { fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem', mb: 0.5, display: 'block' } as const
+
+  // Joriy bet (carousel) — chegaraga bog'langan
+  const curIdx = Math.min(curPage, Math.max(0, pages.length - 1))
+  const cur = getAdj(curIdx)
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 1.5, sm: 3 }, px: { xs: 1.5, sm: 3 } }}>
@@ -637,6 +730,45 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
                   </MenuItem>
                 ))}
               </TextField>
+
+              {/* Orqa fon (stol rasmi) */}
+              <input
+                ref={bgInputRef}
+                type="file"
+                accept="image/*,.jpg,.jpeg,.png,.heic,.heif,.webp,.gif,.bmp,.avif,.tif,.tiff"
+                hidden
+                onChange={handleBgUpload}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Wallpaper />}
+                  onClick={() => bgInputRef.current?.click()}
+                >
+                  {bgImage
+                    ? t('konspekt.changeBg', "Orqa fonni almashtirish")
+                    : t('konspekt.addBg', "Orqa fon (stol rasmi)")}
+                </Button>
+                {bgImage && (
+                  <>
+                    <Box
+                      component="img"
+                      src={bgImage}
+                      sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+                    />
+                    <Button size="small" color="inherit" onClick={() => setBgImage(null)}>
+                      {t('konspekt.removeBg', "Olib tashlash")}
+                    </Button>
+                  </>
+                )}
+              </Box>
+
+              {bgImage && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                  {t('konspekt.bgPerPageHint', "Fon yaqinlashtirish, joyi, burish va bet qiyshiqligi — har bet uchun alohida “Natijani ko'rish” oynasida sozlanadi.")}
+                </Typography>
+              )}
 
               {/* Slayderlar */}
               <Box
@@ -739,36 +871,151 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
           </Toolbar>
         </AppBar>
 
+        {/* Joriy bet uchun sozlamalar (faqat orqa fon bo'lsa) */}
+        {bgImage && (
+          <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
+                columnGap: 2,
+                rowGap: 0.5,
+                alignItems: 'end',
+              }}
+            >
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.pageZoom', 'Bet kattaligi')}: {cur.pageZoom.toFixed(2)}×</Typography>
+                <Slider value={cur.pageZoom} min={0.5} max={2} step={0.02} size="small" onChange={(_, v) => setAdj(curIdx, { pageZoom: v as number })} />
+              </Box>
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.pageTilt', 'Qiyshiqlik')}: {cur.tilt}°</Typography>
+                <Slider value={cur.tilt} min={-12} max={12} step={0.5} size="small" onChange={(_, v) => setAdj(curIdx, { tilt: v as number })} />
+              </Box>
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.bgZoom', 'Yaqinlashtirish')}: {cur.zoom.toFixed(2)}×</Typography>
+                <Slider value={cur.zoom} min={1} max={4} step={0.05} size="small" onChange={(_, v) => setAdj(curIdx, { zoom: v as number })} />
+              </Box>
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.bgPosX', 'Gorizontal')}: {cur.x}%</Typography>
+                <Slider value={cur.x} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { x: v as number })} />
+              </Box>
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.bgPosY', 'Vertikal')}: {cur.y}%</Typography>
+                <Slider value={cur.y} min={-50} max={50} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { y: v as number })} />
+              </Box>
+              <Box>
+                <Typography sx={labelSx}>{t('konspekt.bgRotate', 'Fon burish')}: {cur.bgRot}°</Typography>
+                <Slider value={cur.bgRot} min={-180} max={180} step={1} size="small" onChange={(_, v) => setAdj(curIdx, { bgRot: v as number })} />
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap' }}>
+              <Button size="small" color="inherit" startIcon={<RestartAlt />} onClick={() => setAdj(curIdx, DEFAULT_ADJUST)}>
+                {t('konspekt.bgReset', "Shu betni asliga qaytarish")}
+              </Button>
+              {pages.length > 1 && (
+                <Button size="small" startIcon={<Layers />} onClick={() => setConfirmApplyAll(true)}>
+                  {t('konspekt.applyAll', "Barcha betlarga qo'llash")}
+                </Button>
+              )}
+            </Stack>
+          </Box>
+        )}
+
+        {/* Bir bet — tugma/swipe bilan o'tiladi */}
         <Box
-          ref={previewBoxRef}
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-            bgcolor: 'action.hover',
-            p: { xs: 1.5, sm: 3 },
+            position: 'relative',
             flexGrow: 1,
             minHeight: 0,
-            overflowY: 'auto',
-            WebkitOverflowScrolling: 'touch',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'action.hover',
+            overflow: 'hidden',
+          }}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null) return
+            const dx = e.changedTouches[0].clientX - touchStartX.current
+            if (dx > 45 && curIdx > 0) setCurPage(curIdx - 1)
+            else if (dx < -45 && curIdx < pages.length - 1) setCurPage(curIdx + 1)
+            touchStartX.current = null
           }}
         >
-          {pages.map((pageLines, idx) => (
+          {/* Chap tugma */}
+          {pages.length > 1 && (
+            <IconButton
+              onClick={() => setCurPage((p) => Math.max(0, p - 1))}
+              disabled={curIdx === 0}
+              sx={{ position: 'absolute', left: 4, zIndex: 2, bgcolor: 'background.paper', boxShadow: 2, '&:hover': { bgcolor: 'background.paper' } }}
+            >
+              <ChevronLeft />
+            </IconButton>
+          )}
+
+          {/* Faqat joriy bet ko'rsatiladi */}
+          <Box ref={previewBoxRef} sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 1.5, sm: 3 } }}>
             <Box
-              key={idx}
               sx={{
-                width: `calc(145mm * ${previewScale})`,
-                height: `calc(210mm * ${previewScale})`,
+                width: `calc(${exportWmm}mm * ${previewScale})`,
+                height: `calc(${exportHmm}mm * ${previewScale})`,
                 flexShrink: 0,
               }}
             >
-              <Box sx={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', boxShadow: 3 }}>
-                {buildPage(pageLines, idx)}
+              <Box sx={{ transform: `scale(${previewScale})`, transformOrigin: 'top left', boxShadow: bgImage ? 0 : 3 }}>
+                {pages[curIdx] && buildPage(pages[curIdx], curIdx, false)}
               </Box>
             </Box>
+          </Box>
+
+          {/* O'ng tugma */}
+          {pages.length > 1 && (
+            <IconButton
+              onClick={() => setCurPage((p) => Math.min(pages.length - 1, p + 1))}
+              disabled={curIdx === pages.length - 1}
+              sx={{ position: 'absolute', right: 4, zIndex: 2, bgcolor: 'background.paper', boxShadow: 2, '&:hover': { bgcolor: 'background.paper' } }}
+            >
+              <ChevronRight />
+            </IconButton>
+          )}
+
+          {/* Bet indikatori */}
+          <Typography
+            variant="caption"
+            sx={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', bgcolor: 'rgba(0,0,0,0.55)', color: '#fff', px: 1.25, py: 0.25, borderRadius: 10 }}
+          >
+            {curIdx + 1} / {pages.length}
+          </Typography>
+        </Box>
+
+        {/* Eksport uchun barcha betlar (ko'rinmas, off-screen) */}
+        <Box aria-hidden sx={{ position: 'fixed', left: -99999, top: 0, pointerEvents: 'none', opacity: 0 }}>
+          {pages.map((pageLines, idx) => (
+            <div key={idx}>{buildPage(pageLines, idx, true)}</div>
           ))}
         </Box>
+      </Dialog>
+
+      {/* Tasdiqlash: joriy bet sozlamalarini barcha betlarga qo'llash */}
+      <Dialog open={confirmApplyAll} onClose={() => setConfirmApplyAll(false)}>
+        <DialogTitle>{t('konspekt.applyAllTitle', 'Barcha betlarga qo\'llansinmi?')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('konspekt.applyAllText', "Shu betning barcha sozlamalari (bet kattaligi, qiyshiqlik, fon yaqinlashtirish, joyi va burishi) qolgan barcha betlarga bir xil qo'llanadi. Har bir betning avvalgi sozlamalari o'chadi.")}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmApplyAll(false)}>
+            {t('common.cancel', 'Bekor qilish')}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Layers />}
+            onClick={() => { applyAdjustToAll(cur, pages.length); setConfirmApplyAll(false) }}
+          >
+            {t('konspekt.applyAllConfirm', "Ha, barchasiga qo'llash")}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Container>
   )
