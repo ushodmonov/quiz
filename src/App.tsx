@@ -10,6 +10,7 @@ import AdminTokenPage from './pages/AdminTokenPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AdminReferralsPage from './pages/AdminReferralsPage'
 import StatsPage from './pages/StatsPage'
+import KonspektPage from './pages/KonspektPage'
 import ResumeModal from './components/ResumeModal'
 import AppBar from './components/AppBar'
 import InstallPrompt from './components/InstallPrompt'
@@ -29,7 +30,7 @@ import type { QuizData, QuizResults, ThemeMode, Language, Question } from './typ
 function App() {
   const { i18n } = useTranslation()
   const telegram = useTelegramWebApp()
-  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users' | 'admin-referrals' | 'stats'>('start')
+  const [currentPage, setCurrentPage] = useState<'start' | 'test' | 'results' | 'questions' | 'formats' | 'admin-token' | 'admin-users' | 'admin-referrals' | 'stats' | 'konspekt'>('start')
   const [quizData, setQuizData] = useState<QuizData | null>(null)
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [showResumeModal, setShowResumeModal] = useState(false)
@@ -194,7 +195,7 @@ function App() {
 
     let cleanup: (() => void) | undefined
 
-    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users' || currentPage === 'admin-referrals' || currentPage === 'stats') {
+    if (currentPage === 'test' || currentPage === 'results' || currentPage === 'questions' || currentPage === 'formats' || currentPage === 'admin-token' || currentPage === 'admin-users' || currentPage === 'admin-referrals' || currentPage === 'stats' || currentPage === 'konspekt') {
       cleanup = showBackButton(() => {
         haptic.impact('light')
         handleBackToStart()
@@ -504,6 +505,11 @@ function App() {
     setCurrentPage('start')
   }
 
+  const handleViewKonspekt = () => {
+    telegram.haptic.impact('light')
+    setCurrentPage('konspekt')
+  }
+
   // SRS takrorlash / bookmark testlarini ishga tushirish (savollar ro'yxati tayyor)
   const handleStartCustomQuiz = (
     questions: Question[],
@@ -680,6 +686,7 @@ function App() {
           onTitleClick={handleBackToStart}
           onViewFormats={currentPage === 'start' ? handleViewFormats : undefined}
           onViewStats={currentPage === 'start' ? handleViewStats : undefined}
+          onViewKonspekt={currentPage === 'start' ? handleViewKonspekt : undefined}
           onViewAdminToken={isAdmin ? handleViewAdminToken : undefined}
           onViewAdminUsers={isAdmin ? handleViewAdminUsers : undefined}
           onViewAdminReferrals={isAdmin ? handleViewAdminReferrals : undefined}
@@ -714,6 +721,9 @@ function App() {
           )}
           {currentPage === 'formats' && (
             <TestFormatsPage onBack={handleBackFromFormats} />
+          )}
+          {currentPage === 'konspekt' && (
+            <KonspektPage onBack={handleBackFromStats} />
           )}
           {currentPage === 'admin-token' && isAdmin && (
             <AdminTokenPage

@@ -27,7 +27,8 @@ import {
   AdminPanelSettings,
   Group,
   Insights,
-  Leaderboard
+  Leaderboard,
+  EditNote
 } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import ContactModal from './ContactModal'
@@ -43,12 +44,13 @@ interface AppBarProps {
   onTitleClick?: () => void
   onViewFormats?: () => void
   onViewStats?: () => void
+  onViewKonspekt?: () => void
   onViewAdminToken?: () => void
   onViewAdminUsers?: () => void
   onViewAdminReferrals?: () => void
 }
 
-export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewStats, onViewAdminToken, onViewAdminUsers, onViewAdminReferrals }: AppBarProps) {
+export default function AppBar({ themeMode, language, onThemeToggle, onLanguageChange, onTitleClick, onViewFormats, onViewStats, onViewKonspekt, onViewAdminToken, onViewAdminUsers, onViewAdminReferrals }: AppBarProps) {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -332,6 +334,12 @@ export default function AppBar({ themeMode, language, onThemeToggle, onLanguageC
             t('stats.title') || 'Statistika',
             onViewStats,
             t('stats.drawerDescription') || 'Natijalar, streak, takrorlash',
+          )}
+          {onViewKonspekt && renderNavItem(
+            <EditNote sx={{ fontSize: 22 }} />,
+            t('konspekt.title', 'Konspekt generatori'),
+            onViewKonspekt,
+            t('konspekt.drawerDescription', "Katakli daftar uslubida A5 konspekt"),
           )}
           {renderNavItem(
             <HelpOutline sx={{ fontSize: 22 }} />,
