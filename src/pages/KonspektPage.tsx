@@ -628,6 +628,9 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     document.body.appendChild(a)
     a.click()
     a.remove()
+    // 3) Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi —
+    //    PDF'ni yangi oynada ochib beramiz (ko'ruvchidan saqlash mumkin).
+    try { window.open(item.dataUrl, '_blank') } catch { /* e'tibor bermaymiz */ }
     return 'downloaded'
   }
 
@@ -674,13 +677,17 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       const dataUrl = pdf.output('datauristring')
       pendingPdf.current = { file, url: URL.createObjectURL(blob), dataUrl, name: fileName }
 
-      // Faylni yetkazishga urinamiz. Web Share yangi bosish (gesture) talab qilsa —
-      // render uzoq davom etgani sabab bu urinish o'tmaydi; shunda "Saqlash" tugmasini ko'rsatamiz.
-      const res = await deliverPdf()
-      if (res === 'needGesture') {
+      // MUHIM: render bir necha soniya davom etadi, shu sabab dastlabki bosishning
+      // "user activation"i tugaydi. Web Share (ayniqsa iOS Telegram) esa YANGI bosish
+      // talab qiladi. Shuning uchun render tugagach avtomatik yubormaymiz —
+      // yashil "Saqlash" tugmasini ko'rsatamiz. Foydalanuvchi bosganda (yangi gesture)
+      // deliverPdf ishlaydi. navigator.share bo'lmasa (desktop) — darrov yuklab olamiz.
+      const canWebShare = typeof (navigator as Navigator & { share?: unknown }).share === 'function'
+      if (canWebShare) {
         setPdfReady({ name: fileName })
         setCopiedMsg(t('konspekt.pdfReadyHint', 'PDF tayyor — "Saqlash" tugmasini bosing'))
       } else {
+        await deliverPdf()
         setPdfReady(null)
       }
     } catch (e) {
