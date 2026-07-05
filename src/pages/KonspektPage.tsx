@@ -620,7 +620,20 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         // boshqa xato (fayl qo'llab-quvvatlanmasa) — yuklab olishga o'tamiz
       }
     }
-    // 2) Aks holda — yuklab olish. Telegram WebView blob: ni bloklaydi, data: ishlaydi.
+    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+). Android WebView
+    //    <a download> va data: ni bloklaydi, shuning uchun avval Telegram'ning
+    //    o'z mexanizmini sinaymiz (blob: URL — Telegram klienti o'zi yuklab oladi).
+    const tg = (window as unknown as { Telegram?: { WebApp?: {
+      downloadFile?: (p: { url: string; file_name: string }, cb?: (ok: boolean) => void) => void
+      openLink?: (url: string) => void
+    } } }).Telegram?.WebApp
+    if (tg?.downloadFile) {
+      try {
+        tg.downloadFile({ url: item.url, file_name: item.name })
+        return 'downloaded'
+      } catch { /* qo'llab-quvvatlanmasa — pastdagi zaxira usulga o'tamiz */ }
+    }
+    // 3) Aks holda — yuklab olish. Telegram WebView blob: ni bloklaydi, data: ishlaydi.
     const a = document.createElement('a')
     a.href = item.dataUrl
     a.download = item.name
@@ -628,9 +641,12 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     document.body.appendChild(a)
     a.click()
     a.remove()
-    // 3) Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi —
+    // 4) Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi —
     //    PDF'ni yangi oynada ochib beramiz (ko'ruvchidan saqlash mumkin).
-    try { window.open(item.dataUrl, '_blank') } catch { /* e'tibor bermaymiz */ }
+    try {
+      if (tg?.openLink) tg.openLink(item.dataUrl)
+      else window.open(item.dataUrl, '_blank')
+    } catch { /* e'tibor bermaymiz */ }
     return 'downloaded'
   }
 
@@ -682,8 +698,14 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       // talab qiladi. Shuning uchun render tugagach avtomatik yubormaymiz —
       // yashil "Saqlash" tugmasini ko'rsatamiz. Foydalanuvchi bosganda (yangi gesture)
       // deliverPdf ishlaydi. navigator.share bo'lmasa (desktop) — darrov yuklab olamiz.
+      // Android Telegram'da navigator.share ko'pincha yo'q yoki fayl ulashishni
+      // qo'llamaydi — shuning uchun Telegram (yoki touch) bo'lsa ham "Saqlash"
+      // tugmasini ko'rsatamiz. Foydalanuvchi bosganda (yangi gesture) deliverPdf
+      // Web Share / Telegram downloadFile / data: URL zanjirini sinaydi.
       const canWebShare = typeof (navigator as Navigator & { share?: unknown }).share === 'function'
-      if (canWebShare) {
+      const inTelegram = !!(window as unknown as { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp
+      const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window
+      if (canWebShare || inTelegram || isTouch) {
         setPdfReady({ name: fileName })
         setCopiedMsg(t('konspekt.pdfReadyHint', 'PDF tayyor — "Saqlash" tugmasini bosing'))
       } else {
