@@ -613,6 +613,20 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Tayyor PDF faylni yetkazadi. Foydalanuvchi bosishi (gesture) ostida chaqirilsa —
   // Telegram/mobil'da Web Share (native ulashish/saqlash) ishlaydi.
   // 'needGesture' — Web Share yangi bosish talab qilyapti (render uzoq bo'lgani uchun).
+  // PDF'ni vaqtincha HTTPS hostga yuklaydi (litterbox — fayl 1 soatda o'chadi).
+  // Telegram downloadFile faqat HTTPS URL qabul qilgani uchun kerak.
+  const uploadTempFile = async (file: File, log?: (s: string) => void): Promise<string> => {
+    const fd = new FormData()
+    fd.append('reqtype', 'fileupload')
+    fd.append('time', '1h')
+    fd.append('fileToUpload', file, file.name)
+    const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd })
+    const url = (await res.text()).trim()
+    log?.('yuklash javobi: ' + url.slice(0, 120))
+    if (!/^https:\/\//i.test(url)) throw new Error('host xato javobi: ' + url.slice(0, 160))
+    return url
+  }
+
   const deliverPdf = async (diag?: string[]): Promise<'shared' | 'downloaded' | 'needGesture' | 'failed'> => {
     const log = (s: string) => diag?.push(s)
     const item = pendingPdf.current
@@ -625,11 +639,21 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     } } }).Telegram?.WebApp
     // Diagnostika — qurilmada qaysi API'lar borligini yozib qo'yamiz.
     log('navigator.share: ' + typeof nav.share)
-    try { log('canShare(files): ' + (nav.canShare ? nav.canShare({ files: [item.file] }) : 'canShare yo\'q')) } catch (e) { log('canShare xato: ' + ((e as Error)?.message || e)) }
     log('Telegram.WebApp: ' + (tg ? 'bor v' + (tg.version || '?') : 'yo\'q'))
     log('downloadFile: ' + typeof tg?.downloadFile)
     log('fayl hajmi: ' + Math.round(item.file.size / 1024) + ' KB')
-    // 1) Telegram/mobil uchun ENG ishonchli yo'l — Web Share (fayl bilan).
+    // 1) Telegram native downloadFile — v9.6'da bor, lekin HTTPS URL kerak.
+    //    Shuning uchun avval vaqtincha hostga yuklaymiz, so'ng downloadFile chaqiramiz.
+    if (tg?.downloadFile) {
+      try {
+        log('HTTPS hostga yuklanmoqda...')
+        const url = await uploadTempFile(item.file, log)
+        tg.downloadFile({ url, file_name: item.name }, (ok) => log('downloadFile javobi: ' + ok))
+        log('downloadFile chaqirildi')
+        return 'downloaded'
+      } catch (e) { log('downloadFile/yuklash xato: ' + ((e as Error)?.message || e)) }
+    }
+    // 2) Web Share (fayl bilan) — agar mavjud bo'lsa.
     if (nav.share) {
       try {
         await nav.share({ files: [item.file], title: item.name })
@@ -642,15 +666,6 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         if (name === 'NotAllowedError') return 'needGesture'
         // boshqa xato (fayl qo'llab-quvvatlanmasa) — pastdagi usullarga o'tamiz
       }
-    }
-    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+). FAQAT http(s) URL bilan
-    //    ishlaydi; bizda blob/data — shuning uchun bu ko'pincha ishlamaydi, sinab ko'ramiz.
-    if (tg?.downloadFile) {
-      try {
-        let cbFired = false
-        tg.downloadFile({ url: item.url, file_name: item.name }, () => { cbFired = true })
-        log('downloadFile chaqirildi (cb: ' + cbFired + ')')
-      } catch (e) { log('downloadFile xato: ' + ((e as Error)?.message || e)) }
     }
     // 3) Oddiy brauzer (desktop / iOS Safari) — <a download> yoki yangi oyna.
     let opened = false
@@ -731,6 +746,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // uni ENG oxirida sinaymiz — aks holda Web Share'gacha yetib bormaydi.
   const handleSavePdf = async () => {
     const diag: string[] = []
+    setExporting(true) // yuklash paytida spinner
     try {
       const res = await deliverPdf(diag)
       if (res === 'shared' || res === 'downloaded') {
@@ -749,6 +765,8 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       )
     } catch (e) {
       setErrorDialog('handleSavePdf xatosi: ' + ((e as Error)?.message || String(e)) + '\n\n' + diag.join('\n'))
+    } finally {
+      setExporting(false)
     }
   }
 
