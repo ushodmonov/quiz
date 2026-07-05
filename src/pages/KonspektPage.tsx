@@ -613,18 +613,58 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Tayyor PDF faylni yetkazadi. Foydalanuvchi bosishi (gesture) ostida chaqirilsa —
   // Telegram/mobil'da Web Share (native ulashish/saqlash) ishlaydi.
   // 'needGesture' — Web Share yangi bosish talab qilyapti (render uzoq bo'lgani uchun).
-  // PDF'ni vaqtincha HTTPS hostga yuklaydi (litterbox — fayl 1 soatda o'chadi).
-  // Telegram downloadFile faqat HTTPS URL qabul qilgani uchun kerak.
+  // PDF'ni vaqtincha HTTPS hostga yuklaydi. Telegram downloadFile faqat HTTPS URL
+  // qabul qilgani uchun kerak. Bir nechta BEPUL host ketma-ket sinaladi — biri
+  // CORS/xato bersa, avtomatik keyingisiga o'tadi. Barcha fayllar vaqtinchalik.
   const uploadTempFile = async (file: File, log?: (s: string) => void): Promise<string> => {
-    const fd = new FormData()
-    fd.append('reqtype', 'fileupload')
-    fd.append('time', '1h')
-    fd.append('fileToUpload', file, file.name)
-    const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd })
-    const url = (await res.text()).trim()
-    log?.('yuklash javobi: ' + url.slice(0, 120))
-    if (!/^https:\/\//i.test(url)) throw new Error('host xato javobi: ' + url.slice(0, 160))
-    return url
+    // 1) litterbox (catbox) — 1 soatlik, plain-text URL qaytaradi.
+    const tryLitterbox = async (): Promise<string> => {
+      const fd = new FormData()
+      fd.append('reqtype', 'fileupload')
+      fd.append('time', '1h')
+      fd.append('fileToUpload', file, file.name)
+      const res = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd })
+      const url = (await res.text()).trim()
+      if (!/^https:\/\//i.test(url)) throw new Error('litterbox javobi: ' + url.slice(0, 120))
+      return url
+    }
+    // 2) tmpfiles.org — JSON {data:{url}} qaytaradi; to'g'ridan-to'g'ri yuklash uchun /dl/ qo'shamiz.
+    const tryTmpfiles = async (): Promise<string> => {
+      const fd = new FormData()
+      fd.append('file', file, file.name)
+      const res = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: fd })
+      const json = await res.json() as { data?: { url?: string } }
+      const page = json?.data?.url
+      if (!page || !/^https:\/\//i.test(page)) throw new Error('tmpfiles javobi: ' + JSON.stringify(json).slice(0, 120))
+      return page.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
+    }
+    // 3) 0x0.st — plain-text URL qaytaradi.
+    const try0x0 = async (): Promise<string> => {
+      const fd = new FormData()
+      fd.append('file', file, file.name)
+      const res = await fetch('https://0x0.st', { method: 'POST', body: fd })
+      const url = (await res.text()).trim()
+      if (!/^https:\/\//i.test(url)) throw new Error('0x0 javobi: ' + url.slice(0, 120))
+      return url
+    }
+    const hosts: { name: string; fn: () => Promise<string> }[] = [
+      { name: 'litterbox', fn: tryLitterbox },
+      { name: 'tmpfiles', fn: tryTmpfiles },
+      { name: '0x0.st', fn: try0x0 },
+    ]
+    let lastErr = ''
+    for (const h of hosts) {
+      try {
+        log?.(h.name + ' ga yuklanmoqda...')
+        const url = await h.fn()
+        log?.(h.name + ' OK: ' + url.slice(0, 120))
+        return url
+      } catch (e) {
+        lastErr = h.name + ': ' + ((e as Error)?.message || e)
+        log?.(lastErr)
+      }
+    }
+    throw new Error('barcha hostlar ishlamadi. Oxirgi: ' + lastErr)
   }
 
   const deliverPdf = async (diag?: string[]): Promise<'shared' | 'downloaded' | 'needGesture' | 'failed'> => {
@@ -645,13 +685,27 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     // 1) Telegram native downloadFile — v9.6'da bor, lekin HTTPS URL kerak.
     //    Shuning uchun avval vaqtincha hostga yuklaymiz, so'ng downloadFile chaqiramiz.
     if (tg?.downloadFile) {
+      let url = ''
       try {
         log('HTTPS hostga yuklanmoqda...')
-        const url = await uploadTempFile(item.file, log)
-        tg.downloadFile({ url, file_name: item.name }, (ok) => log('downloadFile javobi: ' + ok))
-        log('downloadFile chaqirildi')
+        url = await uploadTempFile(item.file, log)
+      } catch (e) {
+        // Faqat YUKLASH xatosi bo'lsa — keyingi usullarga o'tamiz.
+        log('yuklash xato: ' + ((e as Error)?.message || e))
+      }
+      if (url) {
+        // downloadFile Telegram'ning yuklab olish oynasini ochadi. Ba'zi versiyalar
+        // "WebAppDownloadFilePopupOpened" tashlaydi — bu XATO EMAS, oyna ochildi degani.
+        // Shu sabab throw bo'lsa ham MUVAFFAQIYAT deb hisoblaymiz va keyingi
+        // usullarni (window.open/print) ISHGA TUSHIRMAYMIZ — ular oynani yopib qo'yadi.
+        try {
+          tg.downloadFile({ url, file_name: item.name }, (ok) => log('downloadFile javobi: ' + ok))
+          log('downloadFile: oyna ochildi')
+        } catch (e) {
+          log('downloadFile signal: ' + ((e as Error)?.message || e))
+        }
         return 'downloaded'
-      } catch (e) { log('downloadFile/yuklash xato: ' + ((e as Error)?.message || e)) }
+      }
     }
     // 2) Web Share (fayl bilan) — agar mavjud bo'lsa.
     if (nav.share) {
