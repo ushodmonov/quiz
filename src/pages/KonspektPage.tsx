@@ -601,12 +601,18 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Tayyor PDF faylni yetkazadi. Foydalanuvchi bosishi (gesture) ostida chaqirilsa —
   // Telegram/mobil'da Web Share (native ulashish/saqlash) ishlaydi.
   // 'needGesture' — Web Share yangi bosish talab qilyapti (render uzoq bo'lgani uchun).
-  const deliverPdf = async (): Promise<'shared' | 'downloaded' | 'needGesture'> => {
+  const deliverPdf = async (): Promise<'shared' | 'downloaded' | 'needGesture' | 'failed'> => {
     const item = pendingPdf.current
     if (!item) return 'needGesture'
     const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
-    // 1) Telegram/mobil uchun eng ishonchli yo'l — Web Share (fayl bilan).
-    //    canShare ba'zi Telegram (iOS) versiyalarida noto'g'ri false qaytaradi —
+    const tg = (window as unknown as { Telegram?: { WebApp?: {
+      downloadFile?: (p: { url: string; file_name: string }, cb?: (ok: boolean) => void) => void
+      openLink?: (url: string) => void
+    } } }).Telegram?.WebApp
+    // 1) Telegram/mobil uchun ENG ishonchli yo'l — Web Share (fayl bilan).
+    //    Backend yo'q, shuning uchun Android Telegram'da faqat shu usul faylni
+    //    haqiqatda yetkazadi (data:/blob: yuklashlar WebView'da bloklanadi).
+    //    canShare ba'zi Telegram versiyalarida noto'g'ri false qaytaradi —
     //    shuning uchun share bor bo'lsa baribir urinib ko'ramiz.
     if (nav.share) {
       try {
@@ -617,43 +623,61 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         if (name === 'AbortError') return 'shared' // foydalanuvchi bekor qildi — bu ham "tayyor"
         // Gesture yo'qolgan bo'lsa — keyingi bosishga qoldiramiz
         if (name === 'NotAllowedError') return 'needGesture'
-        // boshqa xato (fayl qo'llab-quvvatlanmasa) — yuklab olishga o'tamiz
+        // boshqa xato (fayl qo'llab-quvvatlanmasa) — pastdagi usullarga o'tamiz
       }
     }
-    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+). Android WebView
-    //    <a download> va data: ni bloklaydi, shuning uchun avval Telegram'ning
-    //    o'z mexanizmini sinaymiz (blob: URL — Telegram klienti o'zi yuklab oladi).
-    const tg = (window as unknown as { Telegram?: { WebApp?: {
-      downloadFile?: (p: { url: string; file_name: string }, cb?: (ok: boolean) => void) => void
-      openLink?: (url: string) => void
-    } } }).Telegram?.WebApp
+    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+).
     if (tg?.downloadFile) {
       try {
         tg.downloadFile({ url: item.url, file_name: item.name })
         return 'downloaded'
       } catch { /* qo'llab-quvvatlanmasa — pastdagi zaxira usulga o'tamiz */ }
     }
-    // 3) Aks holda — yuklab olish. Telegram WebView blob: ni bloklaydi, data: ishlaydi.
-    const a = document.createElement('a')
-    a.href = item.dataUrl
-    a.download = item.name
-    a.rel = 'noopener'
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    // 4) Ba'zi WebView'lar download atributini e'tiborsiz qoldiradi —
-    //    PDF'ni yangi oynada ochib beramiz (ko'ruvchidan saqlash mumkin).
+    // 3) Oddiy brauzer (desktop / iOS Safari) — <a download> yoki yangi oyna.
+    //    Telegram Android WebView buni bloklaydi, shu sabab bu — oxirgi urinish.
+    let opened = false
     try {
-      if (tg?.openLink) tg.openLink(item.dataUrl)
-      else window.open(item.dataUrl, '_blank')
+      const a = document.createElement('a')
+      a.href = item.dataUrl
+      a.download = item.name
+      a.rel = 'noopener'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      const w = window.open(item.dataUrl, '_blank')
+      opened = !!w
     } catch { /* e'tibor bermaymiz */ }
+    // Telegram WebView'da anchor ham, window.open ham ishlamasa — bu haqiqiy muvaffaqiyatsizlik.
+    if (tg && !opened) return 'failed'
     return 'downloaded'
   }
 
   // "Saqlash" tugmasi — yangi bosish ostida faylni yetkazadi (Web Share gesture bilan).
   const handleSavePdf = async () => {
     const res = await deliverPdf()
-    if (res !== 'needGesture') setPdfReady(null)
+    if (res === 'shared' || res === 'downloaded') {
+      setPdfReady(null) // muvaffaqiyatli — tugmani yashiramiz
+    } else if (res === 'failed') {
+      // Android Telegram to'g'ridan-to'g'ri saqlashni qo'llamadi — tugma qoladi,
+      // foydalanuvchiga tashqi brauzerda ochishni tavsiya qilamiz.
+      const tg = (window as unknown as { Telegram?: { WebApp?: { showPopup?: (p: unknown) => void; openLink?: (u: string) => void } } }).Telegram?.WebApp
+      const msg = t('konspekt.pdfSaveFailed', "Bu qurilmada Telegram ichida to'g'ridan-to'g'ri saqlab bo'lmadi. PDF'ni brauzerda ochib, o'sha yerdan yuklab oling.")
+      if (tg?.showPopup) {
+        tg.showPopup({
+          title: 'PDF',
+          message: msg,
+          buttons: [
+            { id: 'open', type: 'default', text: t('konspekt.openInBrowser', 'Brauzerda ochish') },
+            { id: 'cancel', type: 'cancel' },
+          ],
+        })
+        // popup callback ishlamasa ham — foydalanuvchi tugmani qayta bosa oladi
+        tg.openLink?.(pendingPdf.current?.dataUrl || '')
+      } else {
+        setCopiedMsg(msg)
+      }
+    }
+    // 'needGesture' — tugma qoladi, foydalanuvchi qayta bosadi
   }
 
   const handlePrint = async () => {
