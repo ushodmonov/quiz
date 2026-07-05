@@ -613,40 +613,46 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Tayyor PDF faylni yetkazadi. Foydalanuvchi bosishi (gesture) ostida chaqirilsa —
   // Telegram/mobil'da Web Share (native ulashish/saqlash) ishlaydi.
   // 'needGesture' — Web Share yangi bosish talab qilyapti (render uzoq bo'lgani uchun).
-  const deliverPdf = async (): Promise<'shared' | 'downloaded' | 'needGesture' | 'failed'> => {
+  const deliverPdf = async (diag?: string[]): Promise<'shared' | 'downloaded' | 'needGesture' | 'failed'> => {
+    const log = (s: string) => diag?.push(s)
     const item = pendingPdf.current
-    if (!item) return 'needGesture'
+    if (!item) { log('pendingPdf yo\'q'); return 'needGesture' }
     const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean; share?: (d: unknown) => Promise<void> }
     const tg = (window as unknown as { Telegram?: { WebApp?: {
+      version?: string
       downloadFile?: (p: { url: string; file_name: string }, cb?: (ok: boolean) => void) => void
       openLink?: (url: string) => void
     } } }).Telegram?.WebApp
+    // Diagnostika — qurilmada qaysi API'lar borligini yozib qo'yamiz.
+    log('navigator.share: ' + typeof nav.share)
+    try { log('canShare(files): ' + (nav.canShare ? nav.canShare({ files: [item.file] }) : 'canShare yo\'q')) } catch (e) { log('canShare xato: ' + ((e as Error)?.message || e)) }
+    log('Telegram.WebApp: ' + (tg ? 'bor v' + (tg.version || '?') : 'yo\'q'))
+    log('downloadFile: ' + typeof tg?.downloadFile)
+    log('fayl hajmi: ' + Math.round(item.file.size / 1024) + ' KB')
     // 1) Telegram/mobil uchun ENG ishonchli yo'l — Web Share (fayl bilan).
-    //    Backend yo'q, shuning uchun Android Telegram'da faqat shu usul faylni
-    //    haqiqatda yetkazadi (data:/blob: yuklashlar WebView'da bloklanadi).
-    //    canShare ba'zi Telegram versiyalarida noto'g'ri false qaytaradi —
-    //    shuning uchun share bor bo'lsa baribir urinib ko'ramiz.
     if (nav.share) {
       try {
         await nav.share({ files: [item.file], title: item.name })
+        log('share: OK')
         return 'shared'
       } catch (shareErr) {
         const name = (shareErr as DOMException)?.name
+        log('share xato: ' + name + ' — ' + ((shareErr as Error)?.message || ''))
         if (name === 'AbortError') return 'shared' // foydalanuvchi bekor qildi — bu ham "tayyor"
-        // Gesture yo'qolgan bo'lsa — keyingi bosishga qoldiramiz
         if (name === 'NotAllowedError') return 'needGesture'
         // boshqa xato (fayl qo'llab-quvvatlanmasa) — pastdagi usullarga o'tamiz
       }
     }
-    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+).
+    // 2) Telegram Mini App — native downloadFile (Bot API 8.0+). FAQAT http(s) URL bilan
+    //    ishlaydi; bizda blob/data — shuning uchun bu ko'pincha ishlamaydi, sinab ko'ramiz.
     if (tg?.downloadFile) {
       try {
-        tg.downloadFile({ url: item.url, file_name: item.name })
-        return 'downloaded'
-      } catch { /* qo'llab-quvvatlanmasa — pastdagi zaxira usulga o'tamiz */ }
+        let cbFired = false
+        tg.downloadFile({ url: item.url, file_name: item.name }, () => { cbFired = true })
+        log('downloadFile chaqirildi (cb: ' + cbFired + ')')
+      } catch (e) { log('downloadFile xato: ' + ((e as Error)?.message || e)) }
     }
     // 3) Oddiy brauzer (desktop / iOS Safari) — <a download> yoki yangi oyna.
-    //    Telegram Android WebView buni bloklaydi, shu sabab bu — oxirgi urinish.
     let opened = false
     try {
       const a = document.createElement('a')
@@ -656,9 +662,11 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       document.body.appendChild(a)
       a.click()
       a.remove()
+      log('<a download> bosildi')
       const w = window.open(item.dataUrl, '_blank')
       opened = !!w
-    } catch { /* e'tibor bermaymiz */ }
+      log('window.open: ' + (opened ? 'OK' : 'bloklandi (null)'))
+    } catch (e) { log('yuklab olish xato: ' + ((e as Error)?.message || e)) }
     // Telegram WebView'da anchor ham, window.open ham ishlamasa — bu haqiqiy muvaffaqiyatsizlik.
     if (tg && !opened) return 'failed'
     return 'downloaded'
@@ -713,23 +721,33 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     }
   }
 
-  // "Saqlash" tugmasi — print oynasini ochadi (Android: "PDF sifatida saqlash").
-  const handleSavePdf = () => {
+  // "Saqlash" tugmasi. Yetkazish tartibi:
+  //   1) Web Share (fayl bilan) — Android Telegram'da eng ishonchli (native "ulashish").
+  //   2) Telegram downloadFile / oddiy yuklab olish.
+  //   3) Print (Android: "PDF sifatida saqlash").
+  // MUHIM: print() Telegram WebView'da jimgina ishlamasligi mumkin, shuning uchun
+  // uni ENG oxirida sinaymiz — aks holda Web Share'gacha yetib bormaydi.
+  const handleSavePdf = async () => {
+    const diag: string[] = []
     try {
-      const ok = printImages(pendingPages.current)
-      if (!ok) {
-        // Print ishlamasa — eski yetkazish zanjirini (Web Share / yuklab olish) sinaymiz.
-        deliverPdf()
-          .then((res) => {
-            if (res === 'shared' || res === 'downloaded') setPdfReady(null)
-            else if (res === 'failed') setErrorDialog("Print ham, Web Share ham, yuklab olish ham ishlamadi. Bu qurilma/WebView hech qaysi usulni qo'llamayapti.")
-          })
-          .catch((e) => setErrorDialog('deliverPdf xatosi: ' + ((e as Error)?.message || String(e))))
+      const res = await deliverPdf(diag)
+      if (res === 'shared' || res === 'downloaded') {
+        setPdfReady(null)
+        return
       }
+      if (res === 'needGesture') return // tugma qoladi, foydalanuvchi qayta bosadi
+      // res === 'failed' — Web Share ham, yuklab olish ham ishlamadi → print sinaymiz.
+      diag.push('print sinovi...')
+      const ok = printImages(pendingPages.current)
+      diag.push('printImages qaytardi: ' + ok)
+      // Print ochilgan bo'lsa ham, WebView'da jimgina ishlamasligi mumkin —
+      // shuning uchun diagnostikani baribir ko'rsatamiz (foydalanuvchi menga yuboradi).
+      setErrorDialog(
+        "Fayl saqlanmadi bo'lsa, quyidagi ma'lumotni menga yuboring:\n\n" + diag.join('\n')
+      )
     } catch (e) {
-      setErrorDialog('handleSavePdf xatosi: ' + ((e as Error)?.message || String(e)))
+      setErrorDialog('handleSavePdf xatosi: ' + ((e as Error)?.message || String(e)) + '\n\n' + diag.join('\n'))
     }
-    // Tugmani qoldiramiz — foydalanuvchi print bekor qilsa qayta bosa oladi.
   }
 
   const handlePrint = async () => {
