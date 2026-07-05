@@ -325,6 +325,8 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   const [pdfReady, setPdfReady] = useState<{ name: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
+  // Xatolikni foydalanuvchiga ko'rsatish uchun (debug) — nima bo'lganini dialogda chiqaramiz.
+  const [errorDialog, setErrorDialog] = useState<string | null>(null)
   const [fontReady, setFontReady] = useState(false)
   const pageRefs = useRef<HTMLDivElement[]>([])
   const fontCssCache = useRef<Record<string, string>>({})
@@ -381,23 +383,30 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Preview'ni konteyner O'LCHAMIGA (kenglik + balandlik) qarab masshtablaymiz —
   // shunda bet hech qachon ekrandan chiqib kesilmaydi (mobile/tablet/desktop).
   useEffect(() => {
-    const el = previewBoxRef.current
-    if (!el) return
+    if (!previewOpen) return
     const EXPORT_WIDTH_PX = (exportWmm * 96) / 25.4
     const EXPORT_HEIGHT_PX = (exportHmm * 96) / 25.4
     const update = () => {
+      const el = previewBoxRef.current
+      if (!el) return
       const cs = getComputedStyle(el)
       const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
       const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)
       const availW = el.clientWidth - padX
       const availH = el.clientHeight - padY
+      // Dialog ochilish/yopilish tranzitsiyasi paytida o'lcham 0 bo'lishi mumkin —
+      // bunda scale'ni O'ZGARTIRMAYMIZ (aks holda bet 0.12x bo'lib "qora/bo'sh" ekran chiqadi).
+      if (availW <= 1 || availH <= 1) return
       const fit = Math.min(availW / EXPORT_WIDTH_PX, availH / EXPORT_HEIGHT_PX)
       setPreviewScale(Math.max(0.12, Math.min(0.9, fit)))
     }
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
+    // Dialog to'liq ochilgach (tranzitsiya tugagach) o'lchamni bir necha marta qayta hisoblaymiz.
+    const raf1 = requestAnimationFrame(() => { update(); requestAnimationFrame(update) })
+    const timer = setTimeout(update, 300) // tranzitsiya tugagach yakuniy hisob
+    let ro: ResizeObserver | null = null
+    const el = previewBoxRef.current
+    if (el) { ro = new ResizeObserver(update); ro.observe(el) }
+    return () => { cancelAnimationFrame(raf1); clearTimeout(timer); ro?.disconnect() }
   }, [previewOpen, exportWmm, exportHmm])
 
   // Dialog ochilganda 1-betdan boshlaymiz; bet soni kamaysa chegaraga qaytaramiz.
@@ -659,14 +668,17 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // "PDF sifatida saqlash" bor — shu tariqa fayl qurilmaga saqlanadi (share/blob
   // kerak emas, backend ham kerak emas). Desktop/iOS'da ham ishlaydi.
   const printImages = (urls: string[]): boolean => {
-    if (urls.length === 0) return false
+    if (urls.length === 0) {
+      setErrorDialog('printImages: betlar rasmi yo\'q (pendingPages bo\'sh). Avval "PDF yuklab olish"ni bosing.')
+      return false
+    }
     try {
       const iframe = document.createElement('iframe')
       iframe.setAttribute('aria-hidden', 'true')
       Object.assign(iframe.style, { position: 'fixed', right: '0', bottom: '0', width: '1px', height: '1px', border: '0', opacity: '0' })
       document.body.appendChild(iframe)
       const doc = iframe.contentWindow?.document
-      if (!doc) { iframe.remove(); return false }
+      if (!doc) { iframe.remove(); setErrorDialog('printImages: iframe.contentWindow.document topilmadi (WebView bloklagan bo\'lishi mumkin).'); return false }
       const imgs = urls.map((u) => `<img src="${u}" />`).join('')
       doc.open()
       doc.write(
@@ -679,7 +691,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       doc.close()
       const win = iframe.contentWindow
       const doPrint = () => {
-        try { win?.focus(); win?.print() } catch { /* jim */ }
+        try { win?.focus(); win?.print() } catch (e) { setErrorDialog('print() xatosi: ' + ((e as Error)?.message || String(e))) }
         // Print oynasi yopilgach iframe'ni tozalaymiz (biroz kutib).
         setTimeout(() => iframe.remove(), 60000)
       }
@@ -695,17 +707,27 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         })
       }
       return true
-    } catch {
+    } catch (e) {
+      setErrorDialog('printImages tashqi xato: ' + ((e as Error)?.message || String(e)))
       return false
     }
   }
 
   // "Saqlash" tugmasi — print oynasini ochadi (Android: "PDF sifatida saqlash").
   const handleSavePdf = () => {
-    const ok = printImages(pendingPages.current)
-    if (!ok) {
-      // Print ishlamasa — eski yetkazish zanjirini (Web Share / yuklab olish) sinaymiz.
-      deliverPdf().then((res) => { if (res === 'shared' || res === 'downloaded') setPdfReady(null) })
+    try {
+      const ok = printImages(pendingPages.current)
+      if (!ok) {
+        // Print ishlamasa — eski yetkazish zanjirini (Web Share / yuklab olish) sinaymiz.
+        deliverPdf()
+          .then((res) => {
+            if (res === 'shared' || res === 'downloaded') setPdfReady(null)
+            else if (res === 'failed') setErrorDialog("Print ham, Web Share ham, yuklab olish ham ishlamadi. Bu qurilma/WebView hech qaysi usulni qo'llamayapti.")
+          })
+          .catch((e) => setErrorDialog('deliverPdf xatosi: ' + ((e as Error)?.message || String(e))))
+      }
+    } catch (e) {
+      setErrorDialog('handleSavePdf xatosi: ' + ((e as Error)?.message || String(e)))
     }
     // Tugmani qoldiramiz — foydalanuvchi print bekor qilsa qayta bosa oladi.
   }
@@ -769,7 +791,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       }
     } catch (e) {
       console.error('PDF eksport xatosi:', e)
-      setImportError(t('konspekt.pdfError', "PDF yasashda xatolik yuz berdi. Qaytadan urinib ko'ring."))
+      setErrorDialog('PDF yasash (handlePrint) xatosi: ' + ((e as Error)?.message || String(e)))
     } finally {
       setExporting(false)
       setExportStatus(null)
@@ -1314,6 +1336,8 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
         fullScreen
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
+        keepMounted
+        transitionDuration={0}
       >
         <AppBar position="sticky" color="default" elevation={1}>
           <Toolbar sx={{ gap: 1 }}>
@@ -1482,6 +1506,24 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
             onClick={() => { applyAdjustToAll(cur, pages.length); setConfirmApplyAll(false) }}
           >
             {t('konspekt.applyAllConfirm', "Ha, barchasiga qo'llash")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Xatolik (debug) — nima bo'lganini foydalanuvchiga ko'rsatamiz */}
+      <Dialog open={!!errorDialog} onClose={() => setErrorDialog(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ color: 'warning.main' }}>{t('konspekt.errorTitle', 'Xatolik')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+            {errorDialog}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { if (errorDialog) copyText(errorDialog, t('konspekt.copied', 'Nusxalandi')) }}>
+            {t('konspekt.copyError', 'Nusxalash')}
+          </Button>
+          <Button onClick={() => setErrorDialog(null)} variant="contained">
+            {t('common.ok', 'OK')}
           </Button>
         </DialogActions>
       </Dialog>
