@@ -319,6 +319,9 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
   // Tayyor PDF — Telegram/mobil'da Web Share yangi bosish (gesture) talab qiladi,
   // shuning uchun render tugagach faylni saqlab qo'yamiz va "Saqlash" tugmasi ko'rsatamiz.
   const pendingPdf = useRef<{ file: File; url: string; dataUrl: string; name: string } | null>(null)
+  // Betlarning rasm (JPEG) data-URL'lari — "Saqlash" bosilganda print (Android'da
+  // "PDF sifatida saqlash") uchun ishlatiladi.
+  const pendingPages = useRef<string[]>([])
   const [pdfReady, setPdfReady] = useState<{ name: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
@@ -652,32 +655,59 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
     return 'downloaded'
   }
 
-  // "Saqlash" tugmasi — yangi bosish ostida faylni yetkazadi (Web Share gesture bilan).
-  const handleSavePdf = async () => {
-    const res = await deliverPdf()
-    if (res === 'shared' || res === 'downloaded') {
-      setPdfReady(null) // muvaffaqiyatli — tugmani yashiramiz
-    } else if (res === 'failed') {
-      // Android Telegram to'g'ridan-to'g'ri saqlashni qo'llamadi — tugma qoladi,
-      // foydalanuvchiga tashqi brauzerda ochishni tavsiya qilamiz.
-      const tg = (window as unknown as { Telegram?: { WebApp?: { showPopup?: (p: unknown) => void; openLink?: (u: string) => void } } }).Telegram?.WebApp
-      const msg = t('konspekt.pdfSaveFailed', "Bu qurilmada Telegram ichida to'g'ridan-to'g'ri saqlab bo'lmadi. PDF'ni brauzerda ochib, o'sha yerdan yuklab oling.")
-      if (tg?.showPopup) {
-        tg.showPopup({
-          title: 'PDF',
-          message: msg,
-          buttons: [
-            { id: 'open', type: 'default', text: t('konspekt.openInBrowser', 'Brauzerda ochish') },
-            { id: 'cancel', type: 'cancel' },
-          ],
-        })
-        // popup callback ishlamasa ham — foydalanuvchi tugmani qayta bosa oladi
-        tg.openLink?.(pendingPdf.current?.dataUrl || '')
-      } else {
-        setCopiedMsg(msg)
+  // Betlarni yashirin iframe'ga joylab print qiladi. Android'da print oynasida
+  // "PDF sifatida saqlash" bor — shu tariqa fayl qurilmaga saqlanadi (share/blob
+  // kerak emas, backend ham kerak emas). Desktop/iOS'da ham ishlaydi.
+  const printImages = (urls: string[]): boolean => {
+    if (urls.length === 0) return false
+    try {
+      const iframe = document.createElement('iframe')
+      iframe.setAttribute('aria-hidden', 'true')
+      Object.assign(iframe.style, { position: 'fixed', right: '0', bottom: '0', width: '1px', height: '1px', border: '0', opacity: '0' })
+      document.body.appendChild(iframe)
+      const doc = iframe.contentWindow?.document
+      if (!doc) { iframe.remove(); return false }
+      const imgs = urls.map((u) => `<img src="${u}" />`).join('')
+      doc.open()
+      doc.write(
+        `<!doctype html><html><head><meta charset="utf-8"><title>${baseName || 'konspekt'}</title>` +
+        `<style>@page{size:${exportWmm}mm ${exportHmm}mm;margin:0}` +
+        `html,body{margin:0;padding:0}` +
+        `img{display:block;width:${exportWmm}mm;height:${exportHmm}mm;object-fit:contain;page-break-after:always;break-after:page}` +
+        `img:last-child{page-break-after:auto;break-after:auto}</style></head><body>${imgs}</body></html>`
+      )
+      doc.close()
+      const win = iframe.contentWindow
+      const doPrint = () => {
+        try { win?.focus(); win?.print() } catch { /* jim */ }
+        // Print oynasi yopilgach iframe'ni tozalaymiz (biroz kutib).
+        setTimeout(() => iframe.remove(), 60000)
       }
+      // Rasmlar dekod bo'lguncha kutamiz — aks holda bo'sh sahifa chiqishi mumkin.
+      if (win) {
+        const imgEls = Array.from(doc.images)
+        let left = imgEls.filter((im) => !im.complete).length
+        if (left === 0) setTimeout(doPrint, 200)
+        else imgEls.forEach((im) => {
+          const done = () => { left--; if (left <= 0) setTimeout(doPrint, 200) }
+          im.addEventListener('load', done)
+          im.addEventListener('error', done)
+        })
+      }
+      return true
+    } catch {
+      return false
     }
-    // 'needGesture' — tugma qoladi, foydalanuvchi qayta bosadi
+  }
+
+  // "Saqlash" tugmasi — print oynasini ochadi (Android: "PDF sifatida saqlash").
+  const handleSavePdf = () => {
+    const ok = printImages(pendingPages.current)
+    if (!ok) {
+      // Print ishlamasa — eski yetkazish zanjirini (Web Share / yuklab olish) sinaymiz.
+      deliverPdf().then((res) => { if (res === 'shared' || res === 'downloaded') setPdfReady(null) })
+    }
+    // Tugmani qoldiramiz — foydalanuvchi print bekor qilsa qayta bosa oladi.
   }
 
   const handlePrint = async () => {
@@ -697,6 +727,7 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       }
       // Betlarni rasmga o'giramiz, so'ng haqiqiy PDF fayl yasaymiz (jsPDF).
       const urls = await renderAllPages()
+      pendingPages.current = urls // "Saqlash" (print) uchun eslab qolamiz
       setExportStatus({ done: urls.length, total: urls.length, phase: 'pdf' })
       await new Promise((r) => requestAnimationFrame(() => r(null)))
       const { jsPDF } = await import('jspdf')
