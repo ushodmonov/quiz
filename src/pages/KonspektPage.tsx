@@ -667,8 +667,10 @@ export default function KonspektPage({ onBack }: KonspektPageProps) {
       opened = !!w
       log('window.open: ' + (opened ? 'OK' : 'bloklandi (null)'))
     } catch (e) { log('yuklab olish xato: ' + ((e as Error)?.message || e)) }
-    // Telegram WebView'da anchor ham, window.open ham ishlamasa — bu haqiqiy muvaffaqiyatsizlik.
-    if (tg && !opened) return 'failed'
+    // Telegram WebView'da window.open truthy qaytarsa ham ko'pincha HECH NARSA ochmaydi —
+    // shuning uchun Telegram ichida uni "muvaffaqiyat" deb hisoblamaymiz, diagnostikani
+    // ko'rsatish uchun doim 'failed' qaytaramiz.
+    if (tg) return 'failed'
     return 'downloaded'
   }
 
