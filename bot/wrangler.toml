@@ -1,0 +1,13 @@
+name = "quiz-bot"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Ochiq (maxfiy bo'lmagan) sozlamalar shu yerda.
+[vars]
+FIREBASE_PROJECT_ID = "quiz-277a6"
+FIREBASE_API_KEY = "AIzaSyAz9_OFJdmssAzPecOTd-M2in6L4uBXfWE"
+MINI_APP_URL = "https://t.me/YOUR_BOT_USERNAME/YOUR_APP_NAME"
+
+# Maxfiy qiymatlar `wrangler secret put` bilan qo'yiladi:
+#   npx wrangler secret put BOT_TOKEN
+#   npx wrangler secret put WEBHOOK_SECRET   (ixtiyoriy, istalgan tasodifiy satr)
